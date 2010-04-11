@@ -1,0 +1,143 @@
+\hypertarget{classNano__Form}{
+\section{Nano\_\-Form Class Reference}
+\label{classNano__Form}\index{Nano\_\-Form@{Nano\_\-Form}}
+}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classNano__Form_f574966ae982f1bcf5703966992d946f}{\_\-\_\-construct} (array \$arguments=array())
+\item 
+\hyperlink{classNano__Form_3e71c491f18020b5c574eb7e230e21d0}{addElement} (\$name, \$attributes=array())
+\item 
+\hyperlink{classNano__Form_31801b2ad37c185877c49a28d31e2094}{addElements} (array \$elements)
+\item 
+\hyperlink{classNano__Form_35783283818c41ff4e1917a66c258651}{validate} (\$values)
+\item 
+\hyperlink{classNano__Form_4d551db84f56be678f9b7cd3c289f7ee}{addValidation} (\$name, \$function)
+\end{CompactItemize}
+\subsection*{Public Attributes}
+\begin{CompactItemize}
+\item 
+const \hyperlink{classNano__Form_67b6658589824e3752dca005237f5915}{DEFAULT\_\-FORM\_\-METHOD} = 'post'
+\item 
+const \hyperlink{classNano__Form_878c4634a213832b49108d0c26ef05c3}{DEFAULT\_\-FORM\_\-ENCODING} = 'multipart/form-data'
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classNano__Form_8bb0fe1b14babd93577a77ec0620a988}{getDefaultAttributes} ()
+\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+\hyperlink{classNano__Form_c6b608a82ddd34cff161c5e34d384fea}{\$type} = 'form'
+\end{CompactItemize}
+\subsection*{Private Member Functions}
+\begin{CompactItemize}
+\item 
+\hyperlink{classNano__Form_24c1ecefa8685c173cebb0676215e5a0}{getElementTagName} (\$type)
+\end{CompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classNano__Form_f574966ae982f1bcf5703966992d946f}{
+\index{Nano\_\-Form@{Nano\_\-Form}!\_\-\_\-construct@{\_\-\_\-construct}}
+\index{\_\-\_\-construct@{\_\-\_\-construct}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{\_\-\_\-construct}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::\_\-\_\-construct (array \$ {\em arguments} = {\tt array()})}}
+\label{classNano__Form_f574966ae982f1bcf5703966992d946f}
+
+
+Create a new \hyperlink{classNano__Form}{Nano\_\-Form}
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em array}]\$attributes (optional) Key =$>$ Value pair of attributes \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]\hyperlink{classNano__Form}{Nano\_\-Form} \$form \end{Desc}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classNano__Form_3e71c491f18020b5c574eb7e230e21d0}{
+\index{Nano\_\-Form@{Nano\_\-Form}!addElement@{addElement}}
+\index{addElement@{addElement}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{addElement}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::addElement (\$ {\em name}, \/  \$ {\em attributes} = {\tt array()})}}
+\label{classNano__Form_3e71c491f18020b5c574eb7e230e21d0}
+
+
+\begin{Desc}
+\item[Returns:]\hyperlink{classNano__Form}{Nano\_\-Form} \$form This form. \end{Desc}
+\hypertarget{classNano__Form_31801b2ad37c185877c49a28d31e2094}{
+\index{Nano\_\-Form@{Nano\_\-Form}!addElements@{addElements}}
+\index{addElements@{addElements}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{addElements}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::addElements (array \$ {\em elements})}}
+\label{classNano__Form_31801b2ad37c185877c49a28d31e2094}
+
+
+Add multipe elements in one go. \$elements is expected to contain a valid array of paramaters for addElement or it will throw an Exception
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em array}]\$elements Array with elements array(\$type=$>$'type', \$name=$>$'nane',\$value,\$attr) \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]\hyperlink{classNano__Form}{Nano\_\-Form} \$this \end{Desc}
+\hypertarget{classNano__Form_4d551db84f56be678f9b7cd3c289f7ee}{
+\index{Nano\_\-Form@{Nano\_\-Form}!addValidation@{addValidation}}
+\index{addValidation@{addValidation}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{addValidation}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::addValidation (\$ {\em name}, \/  \$ {\em function})}}
+\label{classNano__Form_4d551db84f56be678f9b7cd3c289f7ee}
+
+
+\hypertarget{classNano__Form_8bb0fe1b14babd93577a77ec0620a988}{
+\index{Nano\_\-Form@{Nano\_\-Form}!getDefaultAttributes@{getDefaultAttributes}}
+\index{getDefaultAttributes@{getDefaultAttributes}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{getDefaultAttributes}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::getDefaultAttributes ()\hspace{0.3cm}{\tt  \mbox{[}protected\mbox{]}}}}
+\label{classNano__Form_8bb0fe1b14babd93577a77ec0620a988}
+
+
+Return default arguments \hypertarget{classNano__Form_24c1ecefa8685c173cebb0676215e5a0}{
+\index{Nano\_\-Form@{Nano\_\-Form}!getElementTagName@{getElementTagName}}
+\index{getElementTagName@{getElementTagName}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{getElementTagName}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::getElementTagName (\$ {\em type})\hspace{0.3cm}{\tt  \mbox{[}private\mbox{]}}}}
+\label{classNano__Form_24c1ecefa8685c173cebb0676215e5a0}
+
+
+\hypertarget{classNano__Form_35783283818c41ff4e1917a66c258651}{
+\index{Nano\_\-Form@{Nano\_\-Form}!validate@{validate}}
+\index{validate@{validate}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{validate}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::validate (\$ {\em values})}}
+\label{classNano__Form_35783283818c41ff4e1917a66c258651}
+
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classNano__Form_c6b608a82ddd34cff161c5e34d384fea}{
+\index{Nano\_\-Form@{Nano\_\-Form}!\$type@{\$type}}
+\index{\$type@{\$type}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{\$type}]{\setlength{\rightskip}{0pt plus 5cm}Nano\_\-Form::\$type = 'form'\hspace{0.3cm}{\tt  \mbox{[}protected\mbox{]}}}}
+\label{classNano__Form_c6b608a82ddd34cff161c5e34d384fea}
+
+
+\hypertarget{classNano__Form_878c4634a213832b49108d0c26ef05c3}{
+\index{Nano\_\-Form@{Nano\_\-Form}!DEFAULT\_\-FORM\_\-ENCODING@{DEFAULT\_\-FORM\_\-ENCODING}}
+\index{DEFAULT\_\-FORM\_\-ENCODING@{DEFAULT\_\-FORM\_\-ENCODING}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{DEFAULT\_\-FORM\_\-ENCODING}]{\setlength{\rightskip}{0pt plus 5cm}const {\bf Nano\_\-Form::DEFAULT\_\-FORM\_\-ENCODING} = 'multipart/form-data'}}
+\label{classNano__Form_878c4634a213832b49108d0c26ef05c3}
+
+
+\hypertarget{classNano__Form_67b6658589824e3752dca005237f5915}{
+\index{Nano\_\-Form@{Nano\_\-Form}!DEFAULT\_\-FORM\_\-METHOD@{DEFAULT\_\-FORM\_\-METHOD}}
+\index{DEFAULT\_\-FORM\_\-METHOD@{DEFAULT\_\-FORM\_\-METHOD}!Nano_Form@{Nano\_\-Form}}
+\subsubsection[{DEFAULT\_\-FORM\_\-METHOD}]{\setlength{\rightskip}{0pt plus 5cm}const {\bf Nano\_\-Form::DEFAULT\_\-FORM\_\-METHOD} = 'post'}}
+\label{classNano__Form_67b6658589824e3752dca005237f5915}
+
+
+
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+lib/Nano/\hyperlink{Form_8php}{Form.php}\end{CompactItemize}

@@ -1,0 +1,93 @@
+\hypertarget{Bootstrap_8php}{
+\section{lib/Nano/Bootstrap.php File Reference}
+\label{Bootstrap_8php}\index{lib/Nano/Bootstrap.php@{lib/Nano/Bootstrap.php}}
+}
+\subsection*{Classes}
+\begin{CompactItemize}
+\item 
+class \hyperlink{classBlog}{Blog}
+\end{CompactItemize}
+\subsection*{Enumerations}
+\begin{CompactItemize}
+\item 
+enum \hyperlink{Bootstrap_8php_6c0b526c01fb7fbb58a9ff1508514cb2}{SQLITE\_\-PATH} 
+\end{CompactItemize}
+\subsection*{Variables}
+\begin{CompactItemize}
+\item 
+\hyperlink{Bootstrap_8php_c319193077976bb217112e5a7b7b8022}{\$location} = explode( ' ', trim( str\_\-replace( '/', ' ', \$\_\-SERVER\mbox{[}'REQUEST\_\-URI'\mbox{]})))
+\item 
+\hyperlink{Bootstrap_8php_0eb82aa5f81cf845de4b36cd653c42cf}{\$username} = \char`\"{}matthijs\char`\"{}
+\item 
+\hyperlink{Bootstrap_8php_607686ef9f99ea7c42f4f3dd3dbb2b0d}{\$password} = \char`\"{}Kakkerlak\char`\"{}
+\item 
+\hyperlink{Bootstrap_8php_ede271528177a2e46dd058163b89d0a5}{\$blog\_\-title} = \char`\"{}Matthijs's \hyperlink{classNano}{Nano} \hyperlink{classBlog}{Blog}\char`\"{}
+\item 
+\hyperlink{Bootstrap_8php_44ed435614c09351c778ca04cd3800de}{\$blog} = new \hyperlink{classBlog}{Blog}(\$location, \$username, \$password)
+\item 
+\hyperlink{Bootstrap_8php_6733eb5f605d09eaede9845835d71c4e}{exit}
+\item 
+\hyperlink{Bootstrap_8php_50663ba988a223616576d11c5d905a3a}{\$page} = \$db $\rightarrow$ query('SELECT $\ast$ FROM nano\_\-page LIMIT 1')
+\end{CompactItemize}
+
+
+\subsection{Enumeration Type Documentation}
+\hypertarget{Bootstrap_8php_6c0b526c01fb7fbb58a9ff1508514cb2}{
+\index{Bootstrap.php@{Bootstrap.php}!SQLITE\_\-PATH@{SQLITE\_\-PATH}}
+\index{SQLITE\_\-PATH@{SQLITE\_\-PATH}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{SQLITE\_\-PATH}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf SQLITE\_\-PATH}}}
+\label{Bootstrap_8php_6c0b526c01fb7fbb58a9ff1508514cb2}
+
+
+
+
+\subsection{Variable Documentation}
+\hypertarget{Bootstrap_8php_44ed435614c09351c778ca04cd3800de}{
+\index{Bootstrap.php@{Bootstrap.php}!\$blog@{\$blog}}
+\index{\$blog@{\$blog}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{\$blog}]{\setlength{\rightskip}{0pt plus 5cm}\$blog = new {\bf Blog}(\$location, \$username, \$password)}}
+\label{Bootstrap_8php_44ed435614c09351c778ca04cd3800de}
+
+
+\hypertarget{Bootstrap_8php_ede271528177a2e46dd058163b89d0a5}{
+\index{Bootstrap.php@{Bootstrap.php}!\$blog\_\-title@{\$blog\_\-title}}
+\index{\$blog\_\-title@{\$blog\_\-title}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{\$blog\_\-title}]{\setlength{\rightskip}{0pt plus 5cm}\$blog\_\-title = \char`\"{}Matthijs's {\bf Nano} {\bf Blog}\char`\"{}}}
+\label{Bootstrap_8php_ede271528177a2e46dd058163b89d0a5}
+
+
+\hypertarget{Bootstrap_8php_c319193077976bb217112e5a7b7b8022}{
+\index{Bootstrap.php@{Bootstrap.php}!\$location@{\$location}}
+\index{\$location@{\$location}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{\$location}]{\setlength{\rightskip}{0pt plus 5cm}\$location = explode( ' ', trim( str\_\-replace( '/', ' ', \$\_\-SERVER\mbox{[}'REQUEST\_\-URI'\mbox{]})))}}
+\label{Bootstrap_8php_c319193077976bb217112e5a7b7b8022}
+
+
+\hypertarget{Bootstrap_8php_50663ba988a223616576d11c5d905a3a}{
+\index{Bootstrap.php@{Bootstrap.php}!\$page@{\$page}}
+\index{\$page@{\$page}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{\$page}]{\setlength{\rightskip}{0pt plus 5cm}if (\$page===false) if (\$page===false) \$page = \$db $\rightarrow$ query('SELECT $\ast$ FROM nano\_\-page LIMIT 1')}}
+\label{Bootstrap_8php_50663ba988a223616576d11c5d905a3a}
+
+
+\hypertarget{Bootstrap_8php_607686ef9f99ea7c42f4f3dd3dbb2b0d}{
+\index{Bootstrap.php@{Bootstrap.php}!\$password@{\$password}}
+\index{\$password@{\$password}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{\$password}]{\setlength{\rightskip}{0pt plus 5cm}\$password = \char`\"{}Kakkerlak\char`\"{}}}
+\label{Bootstrap_8php_607686ef9f99ea7c42f4f3dd3dbb2b0d}
+
+
+\hypertarget{Bootstrap_8php_0eb82aa5f81cf845de4b36cd653c42cf}{
+\index{Bootstrap.php@{Bootstrap.php}!\$username@{\$username}}
+\index{\$username@{\$username}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{\$username}]{\setlength{\rightskip}{0pt plus 5cm}\$username = \char`\"{}matthijs\char`\"{}}}
+\label{Bootstrap_8php_0eb82aa5f81cf845de4b36cd653c42cf}
+
+
+\hypertarget{Bootstrap_8php_6733eb5f605d09eaede9845835d71c4e}{
+\index{Bootstrap.php@{Bootstrap.php}!exit@{exit}}
+\index{exit@{exit}!Bootstrap.php@{Bootstrap.php}}
+\subsubsection[{exit}]{\setlength{\rightskip}{0pt plus 5cm}{\bf exit}}}
+\label{Bootstrap_8php_6733eb5f605d09eaede9845835d71c4e}
+
+

@@ -1,0 +1,49 @@
+\hypertarget{classNano__Autoloader}{
+\section{Nano\_\-Autoloader Class Reference}
+\label{classNano__Autoloader}\index{Nano\_\-Autoloader@{Nano\_\-Autoloader}}
+}
+\subsection*{Static Public Member Functions}
+\begin{CompactItemize}
+\item 
+static \hyperlink{classNano__Autoloader_0406e0b6151b72f03e5b215e2cc63c6a}{register} (\$function=null)
+\item 
+static \hyperlink{classNano__Autoloader_cee2f22b91ab97fde238884d1cd537a1}{load} (\$name)
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Autoloader is the default autoload implementation for libnano \begin{Desc}
+\item[Author:]Matthijs van Henten $<$\href{mailto:nano@ischen.nl}{\tt nano@ischen.nl}$>$  Copyright (c) 2009, Matthijs van Henten  GPL 2.0 \end{Desc}
+\begin{Desc}
+\item[\hyperlink{todo__todo000001}{Todo}]implement as a singleton \end{Desc}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classNano__Autoloader_cee2f22b91ab97fde238884d1cd537a1}{
+\index{Nano\_\-Autoloader@{Nano\_\-Autoloader}!load@{load}}
+\index{load@{load}!Nano_Autoloader@{Nano\_\-Autoloader}}
+\subsubsection[{load}]{\setlength{\rightskip}{0pt plus 5cm}static Nano\_\-Autoloader::load (\$ {\em name})\hspace{0.3cm}{\tt  \mbox{[}static\mbox{]}}}}
+\label{classNano__Autoloader_cee2f22b91ab97fde238884d1cd537a1}
+
+
+Basic auloader. loads classes from libnano \hypertarget{classNano__Autoloader_0406e0b6151b72f03e5b215e2cc63c6a}{
+\index{Nano\_\-Autoloader@{Nano\_\-Autoloader}!register@{register}}
+\index{register@{register}!Nano_Autoloader@{Nano\_\-Autoloader}}
+\subsubsection[{register}]{\setlength{\rightskip}{0pt plus 5cm}static Nano\_\-Autoloader::register (\$ {\em function} = {\tt null})\hspace{0.3cm}{\tt  \mbox{[}static\mbox{]}}}}
+\label{classNano__Autoloader_0406e0b6151b72f03e5b215e2cc63c6a}
+
+
+Wraps around spl\_\-autoload\_\-register If no parameters are given, the default ( itself ) autoloader is registered.
+
+\begin{Desc}
+\item[Author:]Matthijs van Henten $<$\href{mailto:nano@ischen.nl}{\tt nano@ischen.nl}$>$ \end{Desc}
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em function}]\$function Function format similar to call\_\-user\_\-func\_\-array() \end{description}
+\end{Desc}
+
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+lib/Nano/\hyperlink{Autoloader_8php}{Autoloader.php}\end{CompactItemize}
