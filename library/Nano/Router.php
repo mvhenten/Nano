@@ -1,5 +1,5 @@
 <?php
-class Pico_Router extends Pico_Collection{
+class Nano_Router extends Nano_Collection{
     public function __construct( $routes ){
         parent::__construct( $this->getRoute( $routes ) );
     }

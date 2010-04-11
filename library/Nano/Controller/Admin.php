@@ -1,7 +1,7 @@
 <?php
-class Pico_Controller_Admin extends Pico_Controller{
+class Nano_Controller_Admin extends Nano_Controller{
     protected function init(){
-        if( !Pico_Admin::hasIdentity() ){
+        if( !Nano_Admin::hasIdentity() ){
             $this->redirect( '/' );
         }
     }

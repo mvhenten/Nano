@@ -1,11 +1,11 @@
 <?php
-class Pico_Request{
+class Nano_Request{
     private $_request;
     private $_post;
     private $_get;
     private $_router;
 
-    public function __construct( Pico_Router $router = null ){
+    public function __construct( Nano_Router $router = null ){
         if( null !== $router ){
             $this->_router = $router;
         }
@@ -31,7 +31,7 @@ class Pico_Request{
 
     public function getPost(){
         if( $this->isPost() && null == $this->_post ){
-            $this->_post = new Pico_Collection( $_POST );
+            $this->_post = new Nano_Collection( $_POST );
         }
 
         return $this->_post;
@@ -39,7 +39,7 @@ class Pico_Request{
 
     public function getRequest(){
         if( null == $this->_request ){
-            $this->_request = new Pico_Collection( $_REQUEST );
+            $this->_request = new Nano_Collection( $_REQUEST );
         }
         return $this->_request();
     }

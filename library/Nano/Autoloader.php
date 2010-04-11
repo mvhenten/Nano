@@ -1,5 +1,5 @@
 <?php
-class Pico_Autoloader{
+class Nano_Autoloader{
     private static $instance;
     private $namespaces = array();
 
@@ -7,12 +7,12 @@ class Pico_Autoloader{
     }
 
     public static function register(){
-        spl_autoload_register( 'Pico_Autoloader::autoLoad' );
+        spl_autoload_register( 'Nano_Autoloader::autoLoad' );
     }
 
     public static function getInstance(){
         if( null === self::$instance ){
-            self::$instance = new Pico_AutoLoader();
+            self::$instance = new Nano_AutoLoader();
         }
 
         return self::$instance;

@@ -1,5 +1,5 @@
 <?php
-class Pico_Controller{
+class Nano_Controller{
     private $_request;
     private $_view;
 

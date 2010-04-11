@@ -1,7 +1,7 @@
 <?php
-class Pico_Collection extends ArrayObject{
+class Nano_Collection extends ArrayObject{
     static function factory( $values = null ){
-        return new Pico_Collection( (array) $values );
+        return new Nano_Collection( (array) $values );
     }
 
     public function __get( $name ){

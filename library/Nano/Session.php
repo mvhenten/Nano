@@ -2,7 +2,7 @@
 /**
  * @todo this is a stub implementation that sets/gets session array
  */
-class Pico_Session{
+class Nano_Session{
     private static $_instance;
     private $_identity;
 
@@ -19,11 +19,11 @@ class Pico_Session{
 
     /**
      * Return current instance
-     * @return Pico_Session $session
+     * @return Nano_Session $session
      */
     public static function getInstance(){
         if( null == self::$_instance ){
-            self::$_instance = new Pico_Session();
+            self::$_instance = new Nano_Session();
         }
 
         return self::$_instance;

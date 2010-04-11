@@ -1,5 +1,5 @@
 <?php
-class Pico_Config_Ini extends Pico_Collection{
+class Nano_Config_Ini extends Nano_Collection{
     private $config = array();
 
     public function __construct( $path ){
@@ -16,7 +16,7 @@ class Pico_Config_Ini extends Pico_Collection{
                 $key    = $this->fold( $key );
                 $collect = array_merge_recursive( $collect, $key );
             }
-            $this[$section] = new Pico_Collection( $collect );
+            $this[$section] = new Nano_Collection( $collect );
         }
     }
 

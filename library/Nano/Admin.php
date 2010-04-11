@@ -1,5 +1,5 @@
 <?php
-class Pico_Admin{
+class Nano_Admin{
     private static $_instance;
     private static $_identity;
 
@@ -9,12 +9,12 @@ class Pico_Admin{
     private function __construct(){/*singleton*/}
 
     /**
-     * Return current instance of Pico_Admin
-     * @return Pico_Admin $admin
+     * Return current instance of Nano_Admin
+     * @return Nano_Admin $admin
      */
     public static function getInstance(){
         if( null == self::$_instance ){
-            self::$_instance = new Pico_Admin();
+            self::$_instance = new Nano_Admin();
         }
 
         return self::$_instance;
@@ -36,7 +36,7 @@ class Pico_Admin{
      */
     public static function getIdentity(){
         if( null == self::$_identity ){
-            self::$_identity = Pico_Session::getInstance()->pico_admin;
+            self::$_identity = Nano_Session::getInstance()->Nano_admin;
         }
         return self::$_identity;
     }
@@ -45,7 +45,7 @@ class Pico_Admin{
      * unset session admin
      */
     public static function destroyIdentity(){
-        Pico_Session::getInstance()->pico_admin = Null;
+        Nano_Session::getInstance()->Nano_admin = Null;
     }
 
     /**
@@ -53,7 +53,7 @@ class Pico_Admin{
     */
     public static function setIdentity( $values ){
         self::$_identity = $values;
-        Pico_Session::getInstance()->pico_admin = $values;
+        Nano_Session::getInstance()->Nano_admin = $values;
     }
 
 }
