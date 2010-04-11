@@ -1,55 +1,46 @@
 <?php
-class Nano_Request{
-    private $route;
-    private $post;
-    private $request;
+class Pico_Request{
+    private $_request;
+    private $_post;
+    private $_get;
+    private $_router;
+
+    public function __construct( Pico_Router $router = null ){
+        if( null !== $router ){
+            $this->_router = $router;
+        }
+    }
 
     public function __get( $name ){
-        if( null !== $this->getRoute()->$name ){
-            return $this->getRoute()->$name;
+        if( null !== $this->_router && null !== $this->_router->$name ){
+            return $this->_router->$name;
         }
-        else if( $this->isPost() ){
-            return $this->getPost()->$name;
+        elseif( null !== $this->getPost() && null !== $this->_post->$name ){
+            return $this->_post->$name;
         }
 
         return $this->getRequest()->$name;
     }
 
-    /**
-     * Returns true if there are post variables set
-     *
-     * @return bool $isPost
-     */
     public function isPost(){
-        if( $_SERVER['REQUEST_METHOD'] == 'POST' ){
+        if( count( $_POST ) > 0 ){
             return true;
         }
-
         return false;
     }
 
-    public function getRoute(){
-        if( null == $this->route ){
-            $route = Nano_Router::getRoute();
-            $this->route = new Nano_Collection( $route );
-        }
-
-        return $this->route;
-    }
-
     public function getPost(){
-        if( null == $this->post ){
-            $this->post = new Nano_Collection( $_POST );
+        if( $this->isPost() && null == $this->_post ){
+            $this->_post = new Pico_Collection( $_POST );
         }
 
-        return $this->post;
+        return $this->_post;
     }
 
     public function getRequest(){
-        if( null == $this->request ){
-            $this->request = new Nano_Collection( $_REQUEST );
+        if( null == $this->_request ){
+            $this->_request = new Pico_Collection( $_REQUEST );
         }
-
-        return $this->request;
+        return $this->_request();
     }
 }

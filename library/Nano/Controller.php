@@ -1,59 +1,41 @@
 <?php
-abstract class Nano_Controller{
-    private $request;
-    private $view;
+class Pico_Controller{
+    private $_request;
+    private $_view;
 
-    protected function initialize(){}
-    protected function postDispatch(){}
-    protected function preDispatch(){}
+    public function __construct( $request ){
+        $this->_request = $request;
+        $this->init();
 
-
-    public final function __construct( Nano_Request $request = null ){
-        if( null !== $request ){
-            $this->request = $request;
+        try{
+            call_user_func( array( $this, sprintf("%sAction", $request->action)));
         }
-
-        $this->initialize();
-        $this->dispatch( $this->getRequest()->action );
-    }
-
-    public final function __get( $name ){
-        $method = 'get' . ucfirst($name);
-
-        if( method_exists( $this, $method ) ){
-            return $this->$method();
+        catch( Exception $e ){
+            die( sprintf('Action "%s" is not defined', $request->action) );
         }
     }
 
-    public final function dispatch( $action ){
-        $this->preDispatch();
-
-        $method = strtolower( $action ) . 'Action';
-
-        if( method_exists( $this, $method ) ){
-            call_user_func( array( $this, $method ) );
-            $this->postDispatch();
-        }
+    protected function init(){
     }
 
-    public final function getRequest(){
-        if( null == $this->request ){
-            $this->request = new Nano_Request();
-        }
-
-        return $this->request;
+    protected function redirect( $where, $how = 303 ){
+        header( sprintf( 'Location: %s', $where, $how ));
+        exit(1);
     }
 
-    public final function getView(){
-        if( null == $this->view ){
-            $this->view = new Nano_Template();
+    protected function forward( $action, $controller = null ){
+        if( null == $controller ){
+            $controller = $this;
         }
-
-        return $this->view;
+        call_user_func(array($controller, sprintf('%sAction', ucfirst($action))));
     }
 
-    public function redirect( $path, $httpCode = '303' ){
-        header( sprintf( 'Location: %s', $path ), true, $httpCode );
-        exit;
+
+    protected function getView(){
+        return $this->_view;
+    }
+
+    protected function getRequest(){
+        return $this->_request;
     }
 }

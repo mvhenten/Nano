@@ -1,67 +1,57 @@
 <?php
-class Nano_Router{
-    private static $instance;
-
-    private $routers;
-    private $route;
-
-    private function __construct(){}
-    private function __clone(){}
-
-    public function getInstance(){
-        if( null === self::$instance ){
-            self::$instance = new self();
-        }
-
-        return self::$instance;
+class Pico_Router extends Pico_Collection{
+    public function __construct( $routes ){
+        parent::__construct( $this->getRoute( $routes ) );
     }
 
-    public function addRouter( $name, $route ){
-        self::getInstance()->pushRouter( $name, $route );
+    private function getRequestUri(){
+        return $_SERVER['REQUEST_URI'];
     }
 
-    public function getRoute(){
-        return self::getInstance()->makeRoute();
+    private function getRequestValues( $replace ){
+        $url = $this->getRequestUri();
+        $url = str_replace( $replace, '', $url );
+        return array_filter(explode( '/', array_shift( explode( '?', $url ) )));
     }
 
-    private function pushRouter( $name, $route ){
-        if( null == $this->routers ){
-            $this->routers = array();
-        }
-        $this->routers[$name] = $route;
-    }
+    private function getRoute( $routes ){
+        $request = $this->getRequestUri();
+        $url    = '';
+        $route  = $routes->default;
 
-    private function makeRoute(){
-        if( null == $this->route ){
-            $template = $this->getRouter();
-            $route    = array();
+        foreach( $routes as $name => $value ){
+            $url = $routes->$name;
+            $url = preg_replace( '/\/:(\w+)/', '', $url['route'] );
 
-
-			$script_url = isset( $_SERVER['SCRIPT_URL'] ) ? $_SERVER['SCRIPT_URL'] : $_SERVER['REQUEST_URI'];
-
-            foreach( array_filter( explode( '/', $script_url)) as $value ){
-                $key = array_shift( array_keys( $template ) );
-
-                if( null === $key ){
-                    $template[$value] = null;
-                    continue;
-                }
-
-                $route[$key] = $value;
-                array_shift($template);
+            if( ! empty( $url )
+               && preg_match( sprintf( '/%s/', str_replace('/', '\/', $url ) ), $request ) > 0 ){
+                $route = $routes->$name;
+                break;
             }
-
-            $route = array_merge( $route, $template );
-            $this->route = $route;
         }
-        return $this->route;
-    }
 
-    // dummy implementation. this only allows for one router to be set!
-    private function getRouter(){
-        if( is_array( $this->routers ) ){
-            return array_shift( $this->routers );
+
+        $n       = preg_replace( '/\/(\w+)/', '', $route['route'] );
+        $keys    = array_filter( explode( '/:', $n ));
+        $router  = array_combine( $keys, array_pad( array(), count($keys), Null ) );
+        $router  = array_merge( $router, $route['defaults'] );
+        $request = $this->getRequestValues( $url );
+
+        while( count($request) > 0 ){
+            while( count( $keys ) > 0 ){
+                $key = array_shift( $keys );
+                $value = array_shift( $request );
+                if( null !== $value ){
+                    $router[$key] = $value;
+                }
+            }
+            $key = array_shift( $request );
+            if( null !== $key ){
+                $router[$key] = array_shift( $request );
+            }
         }
-        return array();
+
+        return $router;
     }
 }
+
