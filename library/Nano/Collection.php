@@ -22,6 +22,13 @@ class Nano_Collection extends ArrayObject{
         $this->offsetSet( $name, $value );
     }
 
+    public function __isset( $name ){
+        if( null !== $this->__get( $name ) ){
+            return true;
+        }
+        return false;
+    }
+
     public function delete( $name ){
         if( $this->offsetExists( $name ) ){
             $value = $this->offsetGet( $name );
