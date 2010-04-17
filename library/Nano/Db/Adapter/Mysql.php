@@ -133,12 +133,25 @@ class Nano_Db_Adapter_Mysql extends PDO{
         $values = (array) $values;
 
         $this->sth = $this->prepare( $query );
-        $this->sth->execute( $values );
+        if( false == $this->sth ){
+             $error = print_r( $this->errorInfo(), true );
+             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
+         }
+         else{
+            if( isset( $options ) ){
+                $return = $this->sth->fetchAll( $style, $options );
+            }
+            else{
+                $return =$this->sth->fetchAll( $style );
+            }
+         }
 
-        if( isset( $options ) ){
-            return $this->sth->fetchAll( $style, $options );
+        if( ! $return ){
+           $error = print_r( $this->sth->errorInfo(), true );
+           throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }
-        return $this->sth->fetchAll( $style );
+
+        return $return;
     }
 
 
@@ -174,12 +187,13 @@ class Nano_Db_Adapter_Mysql extends PDO{
         $query[] = 'VALUES';
         $query[] = '(' . join(',', $keys ) . ')';
 
-        var_dump( join( "\n", $query ) );
+        //var_dump( join( "\n", $query ) );
 
         $this->sth = $this->prepare( join("\n", $query ) );
 
-        if( false == $this->sth ){
-            echo $this->errorInfo();
+       if( false == $this->sth ){
+            $error = print_r( $this->errorInfo(), true );
+            throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }
         else if( !$this->sth->execute( $values ) ){
             $error = print_r( $this->sth->errorInfo(), true );
@@ -226,7 +240,17 @@ class Nano_Db_Adapter_Mysql extends PDO{
         $values = array_combine( $keys, $values );
 
         $this->sth = $this->prepare( join("\n", $query ) );
-        $this->sth->execute( $values );
+
+       if( false == $this->sth ){
+            $error = print_r( $this->errorInfo(), true );
+            throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
+        }
+        else if( !$this->sth->execute( $values ) ){
+            $error = print_r( $this->sth->errorInfo(), true );
+            throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
+        }
+
+//        $this->sth->execute( $values );
         return $this->lastInsertId();
     }
 }

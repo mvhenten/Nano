@@ -1,5 +1,5 @@
 <?php
-class Nano_Config_Ini extends Nano_Collection{
+class Nano_Config_Ini extends Nano_Config{
     private $config = array();
 
     public function __construct( $path ){
