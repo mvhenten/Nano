@@ -71,16 +71,7 @@ class Nano_Db_Mapper{
         $values = array_filter( $model->toArray() );
 		$keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
 
-
-		try{
-			$vals =  $this->getDb()->select( $this->_tableName );
-		}
-		catch(Exception $d){
-			var_dump( $d );
-		}
-
-
-
+		return $this->getDb()->select( $this->_tableName );
 	}
 
     /**
