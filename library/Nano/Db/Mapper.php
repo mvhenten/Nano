@@ -53,9 +53,9 @@ class Nano_Db_Mapper{
      */
     public function save( $model ){
         $values = $model->toArray();
-        $key = $this->_primaryKey;
+        $key 	= $this->_primaryKey;
 
-        $keys = array_map( array( $this, '_dasherize' ), array_keys($values) );
+        $keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
         $values = array_combine( $keys, $values );
 
         if( null == $model->$key ){
@@ -66,6 +66,22 @@ class Nano_Db_Mapper{
             $this->getDb()->update( $this->_tableName, $values, $key );
         }
     }
+
+	public function search( $model ){
+        $values = array_filter( $model->toArray() );
+		$keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
+
+
+		try{
+			$vals =  $this->getDb()->select( $this->_tableName );
+		}
+		catch(Exception $d){
+			var_dump( $d );
+		}
+
+
+
+	}
 
     /**
      * Delete this object from the database using it's primary key

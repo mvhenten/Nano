@@ -131,25 +131,19 @@ class Nano_Db_Adapter_Mysql extends PDO{
      */
     public function fetchAll( $query, $values = null, $style = PDO::FETCH_OBJ, $options = null ){
         $values = (array) $values;
-
         $this->sth = $this->prepare( $query );
-        if( false == $this->sth ){
-             $error = print_r( $this->errorInfo(), true );
-             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
-         }
-         else{
-            if( isset( $options ) ){
-                $return = $this->sth->fetchAll( $style, $options );
-            }
-            else{
-                $return =$this->sth->fetchAll( $style );
-            }
-         }
 
-        if( ! $return ){
-           $error = print_r( $this->sth->errorInfo(), true );
-           throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
-        }
+		if( false == $this->sth ){
+			$error = print_r( $this->errorInfo(), true );
+			throw new Exception( 'Query failed: PDO::errorInfo():' . $error );
+		}
+		else if( $this->sth->execute( $values ) ){
+		   $return = $this->sth->fetchAll( $style );
+		}
+		else{
+		   $error = print_r( $this->sth->errorInfo(), true );
+		   throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
+		}
 
         return $return;
     }

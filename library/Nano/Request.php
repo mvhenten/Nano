@@ -41,6 +41,6 @@ class Nano_Request{
         if( null == $this->_request ){
             $this->_request = new Nano_Collection( $_REQUEST );
         }
-        return $this->_request();
+        return $this->_request;
     }
 }
