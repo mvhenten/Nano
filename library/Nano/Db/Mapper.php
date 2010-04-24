@@ -67,12 +67,12 @@ class Nano_Db_Mapper{
         }
     }
 
-	public function search( $model ){
-        $values = array_filter( $model->toArray() );
-		$keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
-
-		return $this->getDb()->select( $this->_tableName );
-	}
+//	public function search( $model ){
+//        $values = array_filter( $model->toArray() );
+//		$keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
+//
+//		return $this->getDb()->select( $this->_tableName );
+//	}
 
     /**
      * Delete this object from the database using it's primary key
@@ -87,6 +87,23 @@ class Nano_Db_Mapper{
             $this->_tableName,
             $this->_primaryKey
         ), array( $model->$key ) );
+    }
+
+    /**
+     *
+     */
+    public function search( $model ){
+        $values = array_filter($model->toArray());
+        $where  = null;
+
+        if( count($values) > 0 ){
+            $key = $this->_primaryKey;
+
+            $keys = array_map( array( $this, '_dasherize' ), array_keys($values) );
+            $where = array_combine( $keys, $values );
+        }
+
+        return $this->getDb()->select( $this->_tableName, $where );
     }
 
     /**
