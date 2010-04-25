@@ -13,12 +13,14 @@ class Nano_Controller{
 
         $this->preDispatch();
 
-        try{
+        if( ($method = sprintf('%sAction', $request->action) )
+           && method_exists($this, $method) ){
             call_user_func( array( $this, sprintf("%sAction", $request->action)));
         }
-        catch( Exception $e ){
-            die( sprintf('Action "%s" is not defined', $request->action) );
+        else{
+            throw new Exception( sprintf('Action %s not defined', $request->action) );
         }
+
 
         $this->postDispatch();
         $this->renderView();
@@ -57,6 +59,12 @@ class Nano_Controller{
 
     protected function setLayout( $name ){
         $this->_layout = $name;
+    }
+
+    protected function _pageNotFound( $content ){
+        header("HTTP/1.0 404 Not Found", true, 404);
+        echo $content;
+        exit;
     }
 
     protected function _redirect( $where, $how = 303 ){

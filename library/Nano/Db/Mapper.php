@@ -39,8 +39,16 @@ class Nano_Db_Mapper{
      * @return void
      */
     public function find( $model ){
-        $key = $this->_primaryKey;
-        $obj = $this->fetchById( $model->$key );
+        $values = array_filter($model->toArray());
+        $where  = null;
+
+        if( count($values) > 0 ){
+            $keys = array_map( array( $this, '_dasherize' ), array_keys($values) );
+            $where = array_combine( $keys, $values );
+        }
+
+        $obj = $this->getDb()
+            ->fetchRow($this->_tableName, $where );
 
         foreach( $obj as $key => $value ){
             $model->$key = $value;
@@ -96,14 +104,23 @@ class Nano_Db_Mapper{
         $values = array_filter($model->toArray());
         $where  = null;
 
-        if( count($values) > 0 ){
-            $key = $this->_primaryKey;
+        unset( $values[$this->_primaryKey] );
 
+        if( count($values) > 0 ){
             $keys = array_map( array( $this, '_dasherize' ), array_keys($values) );
             $where = array_combine( $keys, $values );
         }
 
-        return $this->getDb()->select( $this->_tableName, $where );
+
+        $results = $this->getDb()->select( $this->_tableName, $where );
+        $name    = get_class( $model );
+        $collect = array();
+
+        foreach( $results as $result ){
+            $collect[] = new $name( $result );
+        }
+
+        return $collect;
     }
 
     /**
@@ -114,7 +131,6 @@ class Nano_Db_Mapper{
      * @return object $tableRow
      */
     private function fetchById( $id ){
-        $obj = $this->getDb()->fetchRow($this->_tableName, array($this->_primaryKey=>$id) );
         return $obj;
     }
 

@@ -70,7 +70,7 @@ class Nano_Db_Adapter_Mysql extends PDO{
                     array_fill( 0, count($where), '%s = :%s' ),
                     array_keys($where), array_keys($where) );
             }
-            $select[]  = 'WHERE ' . join( 'AND ', $where);
+            $select[]  = 'WHERE ' . join( ' AND ', $where);
         }
 
         if( null != $limit ){
@@ -97,28 +97,6 @@ class Nano_Db_Adapter_Mysql extends PDO{
     public function fetchRow( $table, $where = null, $values = null, $columns = null ){
         //@todo use $this->select!
         $result = $this->select( $table, $where, $values, $columns, 1 );
-        return array_shift( $result );
-
-        $values = (array) $values;
-
-        if( null !== $columns ){
-            $columns = array_map( 'sprintf', array_fill( 0, count($columns), '`%s`'), $columns );
-            $select = array( 'SELECT ' . "\n" . join( ",\n", $columns ));
-        }
-        else{
-            $select = array('SELECT *');
-        }
-
-        $select[] = sprintf( 'FROM `%s`', $table );
-
-        if( null !== $where ){
-            $select[]  = 'WHERE ' . $where;
-        }
-
-        $select[] = 'LIMIT 1';
-
-        $result = $this->fetchAll( join( "\n", $select), $values );
-
         return array_shift( $result );
     }
 
@@ -181,16 +159,16 @@ class Nano_Db_Adapter_Mysql extends PDO{
         $query[] = 'VALUES';
         $query[] = '(' . join(',', $keys ) . ')';
 
-        //var_dump( join( "\n", $query ) );
-
         $this->sth = $this->prepare( join("\n", $query ) );
 
        if( false == $this->sth ){
             $error = print_r( $this->errorInfo(), true );
+            echo $error;
             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }
         else if( !$this->sth->execute( $values ) ){
             $error = print_r( $this->sth->errorInfo(), true );
+            echo $error;
             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }
 
