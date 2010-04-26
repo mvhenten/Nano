@@ -17,6 +17,15 @@ class Nano_Session{
         return self::getInstance();
     }
 
+    public static function destroy(){
+        //@todo this is a stub
+        session_destory();
+    }
+
+    public static function session(){
+        return self::getInstance();
+    }
+
     /**
      * Return current instance
      * @return Nano_Session $session

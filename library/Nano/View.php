@@ -17,7 +17,8 @@ class Nano_View{
         $config = (array) $config;
         $config['request'] = $request;
 
-        $this->setLayout( $config );    }
+        $this->setLayout( $config );
+    }
 
     public function setLayout( array $layout ){
         foreach( $layout as $name => $value ){
@@ -43,8 +44,11 @@ class Nano_View{
             , $this->_structure
         );
 
+        $path = sprintf( '%s/%s%s', $this->_base, $this->_path, $view );
+
+
         ob_start();
-        include( sprintf( '%s/%s%s', $this->_base, $this->_path, $view ) );
+        require_once( $path );
         $this->_view = ob_get_clean();
 
         ob_start();
