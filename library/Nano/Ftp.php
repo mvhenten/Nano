@@ -30,6 +30,43 @@ class Nano_Ftp{
         ftp_chdir( $this->_fp, ftp_pwd($this->_fp) . '/' . $path );
     }
 
+    public function getPwd(){
+        return ftp_pwd( $this->_fp );
+    }
+
+    public function getContents( $path ){
+        // open some file to write to
+        $tmp    = tempnam(sys_get_temp_dir(), 'PHP_');
+        $handle = fopen($tmp, 'w');
+        $path   = ftp_pwd($this->_fp) . '/'. $path;
+
+        ftp_fget($this->_fp, $handle, $path, FTP_ASCII, 0);
+        fclose($handle);
+
+        $content = file_get_contents( $tmp );
+        unlink( $tmp );
+
+        return $content;
+    }
+
+    public function putContents( $content, $path ){
+        $tmp = tempnam( sys_get_temp_dir(), 'PHP_' );
+
+        file_put_contents( $tmp, $content );
+
+        $fp = fopen( $tmp, 'r');
+
+        ftp_fput( $this->_fp, $path, $fp, FTP_BINARY, 0 );
+
+        fclose( $fp );
+        unlink( $tmp );
+
+    }
+
+    public function isFile( $path ){
+        return ftp_size( $this->_fp, $path ) == -1 ? false : true;
+    }
+
     public function listDir(){
         if( $this->_fp == null ){
             return null;
