@@ -17,8 +17,6 @@ class Nano_View{
         $config = (array) $config;
         $config['request'] = $request;
 
-        var_dump( $config ); exit;
-
         $this->setLayout( $config );
     }
 

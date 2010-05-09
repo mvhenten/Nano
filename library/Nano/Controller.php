@@ -55,7 +55,13 @@ class Nano_Controller{
 
     protected function getView(){
         if( null == $this->_view ){
-            $view = new Nano_View( $this->getConfig()->layout[$this->getLayout()], $this->getRequest() );
+            $layout = 'default';
+
+            if( $this->getRequest()->module !== '' ){
+                $layout = $this->getRequest()->module;
+            }
+
+            $view = new Nano_View( $this->getConfig()->layout[$layout], $this->getRequest() );
             $this->setView( $view );
         }
 
