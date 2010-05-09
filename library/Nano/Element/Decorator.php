@@ -46,8 +46,13 @@ class Nano_Element_Decorator{
         if( null !== ( $content = $element->getContent() )
            || $element->vertile() ){
             if( null !== $content ){
-                $content = $content->map( 'rtrim', "\n")
-                         ->join("\n");
+                //$content = $content->map( 'rtrim', "\n")
+                //         ->join("\n");
+
+                $content = (array) $content;
+                $with = array_fill( 0, count($content), "\n");
+                $content = array_map( 'rtrim', $content,$with);
+                $content = join( "\n", $content );
             }
 
             $html   = sprintf(

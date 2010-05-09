@@ -74,7 +74,9 @@ class Nano_Element{
             $this->setContent( $value );
         }
         else{
-            $this->getContent()->push( $value );
+            $content = $this->getContent();
+            $content[] = $value;
+            //$this->getContent()->push( $value );
         }
 
         return $this;
@@ -83,9 +85,12 @@ class Nano_Element{
     public function addChild( Nano_Element $element ){
         //$element->setParent( $this );
 
-        $this->getChildren()
-            ->push( $element );
-
+        $children = $this->getChildren();
+        $children[] = $element;
+        //
+        //$this->getChildren()
+        //    ->push( $element );
+        //
         return $this;
     }
 

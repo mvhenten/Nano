@@ -62,7 +62,7 @@ class Nano_Controller{
         return $this->_view;
     }
 
-    protected function setLayout( $name ){
+    public function setLayout( $name ){
         $this->_layout = $name;
     }
 
