@@ -22,7 +22,7 @@ class Nano_Form extends Nano_Form_Abstract_Element{
     protected function getDefaultAttributes(){
         return array(
             'method'    => self::DEFAULT_FORM_METHOD,
-            'encoding'  => self::DEFAULT_FORM_ENCODING
+            'enctype'  => self::DEFAULT_FORM_ENCODING
         );
     }
 

@@ -32,10 +32,11 @@ class Nano_Autoloader{
 
     private function load( $name ){
         $pieces = explode( '_', $name );
-        $namespace = array_shift( $pieces );
+//        $namespace = array_shift( $pieces );
         foreach( $this->namespaces as $key => $value ){
-            if( $key == $namespace ){
-                $path = sprintf( '%s/%s.php', $value, join( '/', $pieces ));
+            if( strpos( $name, $key ) === 0 && strlen($name) > $key ){
+                $file = array_filter( explode('_',substr( $name, strlen($key) )) );
+                $path = sprintf( '%s/%s.php', $value, join( '/', $file ));
                 $this->includePath( $path );
             }
         }

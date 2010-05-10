@@ -10,8 +10,12 @@ class Nano_Controller{
         $this->setConfig( $config );
 
         $this->init();
+    }
 
+    public function dispatch(){
         $this->preDispatch();
+
+        $request = $this->getRequest();
 
         if( ($method = sprintf('%sAction', $request->action) )
            && method_exists($this, $method) ){
@@ -21,9 +25,16 @@ class Nano_Controller{
             throw new Exception( sprintf('Action %s not defined', $request->action) );
         }
 
-
         $this->postDispatch();
         $this->renderView();
+    }
+
+    public function setLayout( $name ){
+        $this->_layout = $name;
+    }
+
+    public function setHelperPath( $path ){
+        $this->getView()->setHelperPath( $path );
     }
 
     protected function setConfig( Nano_Config $config ){
@@ -57,6 +68,7 @@ class Nano_Controller{
         if( null == $this->_view ){
             $layout = 'default';
 
+            //@todo this sets layout counter-intuitive.
             if( $this->getRequest()->module !== '' ){
                 $layout = $this->getRequest()->module;
             }
@@ -66,10 +78,6 @@ class Nano_Controller{
         }
 
         return $this->_view;
-    }
-
-    public function setLayout( $name ){
-        $this->_layout = $name;
     }
 
     protected function _pageNotFound( $content ){

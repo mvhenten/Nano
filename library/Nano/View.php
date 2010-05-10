@@ -12,12 +12,61 @@ class Nano_View{
     protected $_request;
     protected $_view;
     protected $_content;
+    protected $_helperPath;
+    protected $_helpers;
 
     public function __construct( $config, Nano_Request $request ){
         $config = (array) $config;
         $config['request'] = $request;
 
         $this->setLayout( $config );
+    }
+
+    public function __set( $name, $value ){
+        $this->getContent()->$name = $value;
+    }
+
+    public function __get( $name ){
+        return $this->getContent()->$name;
+    }
+
+    public function __call( $name, $arguments ){
+        $helper = $this->getHelper( $name );
+        return call_user_func_array( array($helper, $name), $arguments );
+    }
+
+    public function getHelper( $name ){
+        if( null == $this->_helpers ){
+            $this->_helpers = array();
+        }
+
+        if( !in_array( $name, $this->_helpers ) ){
+            $base       = ucfirst( $name ) . '.php';
+            $paths      = $this->getHelperPath();
+            $className  = 'Helper_' . ucfirst($name);
+            $helper     = null;
+
+            foreach( $paths as $path ){
+                $path = $path . '/' . $base;
+                if( file_exists( $path ) ){
+                    require_once( $path );
+                    if( class_exists( $className ) ){
+                        $helper = new $className;
+                    }
+                }
+            }
+
+            if( null == $helper ){
+                $className = 'Nano_View_Helper_' . ucfirst($name);
+                // ok this will throw an exception
+                // but you should know this...
+                $helper = new $className;
+            }
+
+            $this->_helpers[$name] = $helper;
+        }
+
+        return $this->_helpers[$name];
     }
 
     public function setLayout( array $layout ){
@@ -28,13 +77,21 @@ class Nano_View{
         }
     }
 
-    public function __set( $name, $value ){
-        $this->getContent()->$name = $value;
+    public function setHelperPath( $path ){
+        if( null == $this->_helperPath ){
+            $this->_helperPath = array();
+        }
+
+        $this->_helperPath[] = $path;
     }
 
-    public function __get( $name ){
-        return $this->getContent()->$name;
+    public function getHelperPath(){
+        if( null == $this->_helperPath ){
+            $this->_helperPath = array();
+        }
+        return $this->_helperPath;
     }
+
 
     public function __toString(){
         $layout = sprintf('%s/%s/%s', $this->_base, $this->_path, $this->_layout );
