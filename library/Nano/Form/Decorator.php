@@ -50,7 +50,7 @@ class Nano_Form_Decorator extends Nano_Element_Decorator{
         return $content;
     }
 
-    private function getElementCount(){
+    protected function getElementCount(){
         static $count = 0;
         return $count++;
     }
