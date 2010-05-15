@@ -137,7 +137,10 @@ class Nano_Element{
     }
 
     public function removeAttribute( $name ){
-        return $this->getAttributes()->remove( $name );
+        $attr = $this->getAttributes();
+        $value = $attr->$name;
+        $attr->$name = null;
+        return $value;
     }
 
     public function hasChildren(){

@@ -1,7 +1,7 @@
 <?php
-abstract class Nano_Form_Abstract_Element extends Nano_Element{
+abstract class Nano_Form_Element_Abstract extends Nano_Element{
     protected $label;
-    protected $decorator = 'Nano_Form_Decorator';
+    protected $decorator = 'Nano_Form_Decorator_Input';
     protected $validators;
     protected $wrapper;
 

@@ -60,7 +60,9 @@ class Nano_Controller{
         return $this->_layout;
     }
 
-    protected function setView( $view ){
+    protected function setView( $layout, $router ){
+        $view = new Nano_View( $layout, $router );
+
         $this->_view = $view;
     }
 
@@ -73,8 +75,10 @@ class Nano_Controller{
                 $layout = $this->getRequest()->module;
             }
 
-            $view = new Nano_View( $this->getConfig()->layout[$layout], $this->getRequest() );
-            $this->setView( $view );
+            $layout = $this->getConfig()->layout[$layout];
+            $request = $this->getRequest();
+
+            $this->setView( $layout, $request->getRouter() );
         }
 
         return $this->_view;
@@ -92,10 +96,45 @@ class Nano_Controller{
     }
 
     protected function _forward( $action, $controller = null ){
+        //@todo implement forward to different controller:
+        // do we need to post-dspatch too?
         if( null == $controller ){
             $controller = $this;
         }
-        call_user_func(array($controller, sprintf('%sAction', ucfirst($action))));
+
+        $request = $this->getRequest();
+        $layout = 'default';
+
+        if( $request->module !== '' ){
+            $layout = $request->module;
+        }
+
+        $layout = $this->getConfig()->layout[$layout];
+        $router = $request->getRouter();
+
+
+        $router->action = $action;
+
+        $helperPath = $this->getView()->getHelperPath();
+
+        $this->setView( $layout, $router );
+
+        foreach( $helperPath as $path ){
+            $this->getView()->setHelperPath( $path );
+        }
+
+
+        if( ($method = sprintf('%sAction', $request->action) )
+           && method_exists($this, $method) ){
+            call_user_func( array( $this, sprintf("%sAction", $request->action)));
+        }
+        else{
+            throw new Exception( sprintf('Action %s not defined', $request->action) );
+        }
+
+        $this->postDispatch();
+        $this->renderView();
+        exit;
     }
 
 

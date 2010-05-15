@@ -31,17 +31,12 @@ class Nano_Element_Decorator{
      */
     protected final function renderElement( $element ){
         $tagName    = $element->getType();
-        $attributes = array();
+        $attributes = $this->renderAttributes( $element );
 
         foreach( $element->getChildren() as $child ){
             $element->addContent( rtrim((string) $child) );
         }
 
-        foreach( $element->getAttributes() as $key => $value ){
-            $attributes[] = " " . htmlentities($key) . '="' . htmlentities($value) . '"';
-        }
-
-        $attributes = rtrim(join('', $attributes));
 
         if( null !== ( $content = $element->getContent() )
            || $element->vertile() ){
@@ -70,7 +65,20 @@ class Nano_Element_Decorator{
         return $this->indent( $html );
     }
 
-    private function indent( $string ){
+    protected function renderAttributes( Nano_Element $element ){
+        $attributes = array_filter((array) $element->getAttributes());
+
+        if( count( $attributes ) ){
+            $values = array_map('htmlentities', $attributes);
+            $keys   = array_map('htmlentities', array_keys($values));
+
+            $attributes = array_map( 'sprintf', array_fill(0, count($keys), ' %s="%s"'), $keys, $values);
+        }
+
+        return join( '', $attributes );
+    }
+
+    protected function indent( $string ){
         $pieces = explode( "\n", $string );
         $collect = array();
         foreach( $pieces as $line ){

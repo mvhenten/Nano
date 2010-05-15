@@ -1,9 +1,10 @@
 <?php
-class Nano_Form extends Nano_Form_Abstract_Element{
+class Nano_Form extends Nano_Form_Element_Abstract{
     const DEFAULT_FORM_METHOD    = 'post';
     const DEFAULT_FORM_ENCODING  = 'multipart/form-data';
 
-    protected $type = 'form';
+    protected $decorator = 'Nano_Form_Decorator_Input';
+    protected $type      = 'form';
 
     /**
      * Create a new Nano_Form
@@ -45,18 +46,8 @@ class Nano_Form extends Nano_Form_Abstract_Element{
         $attributes['name'] = $name;
 
         $type   = $this->getElementTagName( $config->type );
-		$class  = 'Nano_Form_' . ucfirst( $type );
-
-        // todo implement better templating.
-        if( $class == 'Nano_Form_Input' ){
-            $attributes['type'] = $config->type;
-        }
-
-        //@TODO maybe implement this without trying to load?
-        if( ! class_exists( $class ) ){
-            $class      = 'Nano_Form_Element';
-            $attributes['type'] = $config->type;
-		}
+		$class  = 'Nano_Form_Element_' . ucfirst( $type );
+        $attributes['type'] = $config->type;
 
         $input = new $class( $type, $attributes );
 
@@ -80,6 +71,8 @@ class Nano_Form extends Nano_Form_Abstract_Element{
         switch( $type ){
             case 'textarea':
                 return 'textarea';
+            case 'checkbox':
+                return 'checkbox';
             default:
                 return 'input';
         }

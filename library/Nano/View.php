@@ -15,7 +15,7 @@ class Nano_View{
     protected $_helperPath;
     protected $_helpers;
 
-    public function __construct( $config, Nano_Request $request ){
+    public function __construct( $config, $request ){
         $config = (array) $config;
         $config['request'] = $request;
 

@@ -1,4 +1,3 @@
 <?php
-class Nano_Form_Input extends Nano_Form_Abstract_Element{
-
+class Nano_Form_Element_Input extends Nano_Form_Element_Abstract{
 }

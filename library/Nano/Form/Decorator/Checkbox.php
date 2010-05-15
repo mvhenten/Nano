@@ -1,5 +1,5 @@
 <?php
-class Nano_Form_Decorator_Checkbox extends Nano_Form_Decorator{
+class Nano_Form_Decorator_Checkbox extends Nano_Form_Decorator_Abstract{
     protected function render( Nano_Element $element ){
         $value = $element->getAttribute('value');
         $element->setType('input');

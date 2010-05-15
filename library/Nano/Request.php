@@ -22,6 +22,10 @@ class Nano_Request{
         return $this->getRequest()->$name;
     }
 
+    public function getRouter(){
+        return $this->_router;
+    }
+
     public function isPost(){
         if( count( $_POST ) > 0 ){
             return true;
