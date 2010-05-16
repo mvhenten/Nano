@@ -34,7 +34,9 @@ class Nano_Form extends Nano_Form_Element_Abstract{
         $config = array(
             'label'      => null,
             'type'       => null,
-            'wrapper'   => null
+            'wrapper'   => null,
+            'required'  => false,
+            'validators'  => array(),
         );
 
         $config = (object) array_merge( $config, $attributes );
@@ -42,29 +44,31 @@ class Nano_Form extends Nano_Form_Element_Abstract{
         unset( $attributes['label'] );
         unset( $attributes['type'] );
         unset( $attributes['wrapper']);
+        unset( $attributes['validators']);
+        unset( $attributes['required']);
 
         $attributes['name'] = $name;
 
         $type   = $this->getElementTagName( $config->type );
 		$class  = 'Nano_Form_Element_' . ucfirst( $type );
+
         $attributes['type'] = $config->type;
 
-        $input = new $class( $type, $attributes );
+        $element = new $class( $type, $attributes );
 
-        if( null !== $config->wrapper ){
-            $input->setWrapper( $config->wrapper );
-        }
-        if( null !== $config->label ){
-            $input->setLabel( $config->label );
-        }
-        if( null !== $config->wrapper &&
-           ($config->wrapper instanceof Nano_Element) ){
-            $input->setWrapper( $config->wrapper );
+        $element->setLabel( $config->label );
+        $element->setRequired( $config->required );
+
+        if($config->wrapper) $element->setWrapper( $config->wrapper );
+
+
+        foreach( $config->validators as $construct ){
+            call_user_func_array( array( $element, 'addValidator'), $construct);
         }
 
-		$this->addChild( $input );
+		$this->addChild( $element );
 
-        return $input;
+        return $element;
 	}
 
     private function getElementTagName( $type ){
@@ -92,10 +96,4 @@ class Nano_Form extends Nano_Form_Element_Abstract{
 		}
 	}
 
-	public function validate( $values ){
-
-	}
-
-	public function addValidation( $name, $function ){
-	}
 }
