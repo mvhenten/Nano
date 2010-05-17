@@ -39,11 +39,11 @@ class Nano_Form_Decorator_Abstract extends Nano_Element_Decorator{
             $content = $this->renderElement( $labelElement->addContent( $label . $content ) );
         }
 
-        if( $type !== 'hidden' ){
+        if( $type !== 'hidden' && $wrapper !== false ){
             $content = $this->renderElement( $wrapper->addContent( $content ) );
         }
 
-        return (string) $content;
+        return sprintf( "%s%s%s", $element->getPrefix(), $content, $element->getSuffix() );
     }
 
 

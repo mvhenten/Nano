@@ -111,7 +111,7 @@ class Nano_Db_Mapper{
             $where = array_combine( $keys, $values );
         }
 
-
+//		var_dump( $where );
         $results = $this->getDb()->select( $this->_tableName, $where );
         $name    = get_class( $model );
         $collect = array();

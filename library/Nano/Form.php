@@ -31,21 +31,21 @@ class Nano_Form extends Nano_Form_Element_Abstract{
 	 * @return Nano_Form $form This form.
 	 */
 	public function addElement( $name, $attributes = array() ){
-        $config = array(
+        $defaults = array(
             'label'      => null,
             'type'       => null,
             'wrapper'   => null,
             'required'  => false,
             'validators'  => array(),
+			'prefix'	=> null,
+			'suffix'	=> null
         );
 
-        $config = (object) array_merge( $config, $attributes );
+        $config = (object) array_merge( $defaults, $attributes );
 
-        unset( $attributes['label'] );
-        unset( $attributes['type'] );
-        unset( $attributes['wrapper']);
-        unset( $attributes['validators']);
-        unset( $attributes['required']);
+		foreach( $defaults as $key => $value ){
+			unset( $attributes[$key] );
+		}
 
         $attributes['name'] = $name;
 
@@ -56,10 +56,19 @@ class Nano_Form extends Nano_Form_Element_Abstract{
 
         $element = new $class( $type, $attributes );
 
+		//foreach( $config as $key => $value ){
+		//	$element->$key = $value;
+		//}
+
+		//$element->prefix = $config->prefix;
+		//$element->suffix = $config->suffix;
+		//$element->wrapper = $config->wrapper;
+
         $element->setLabel( $config->label );
         $element->setRequired( $config->required );
-
-        if($config->wrapper) $element->setWrapper( $config->wrapper );
+		$element->setWrapper( $config->wrapper );
+		$element->setPrefix( $config->prefix );
+		$element->setSuffix( $config->suffix );
 
 
         foreach( $config->validators as $construct ){

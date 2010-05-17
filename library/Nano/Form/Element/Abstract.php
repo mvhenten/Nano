@@ -7,6 +7,8 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
     private $_wrapper;
     private $_required;
     private $_errors;
+	private $_prefix;
+	private $_suffix;
 
     /**
      * Return default arguments - use this to set up some defaults
@@ -89,7 +91,6 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
         return $this->_errors;
     }
 
-
     private function getValidators(){
         if( null == $this->validators ){
             $this->validators = new Nano_Collection();
@@ -115,18 +116,57 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
         return $this->_label;
     }
 
-    public function setWrapper( Nano_Element $wrapper ){
-        $this->_wrapper = $wrapper;
+	//public function __set( $name, $value ){
+	//	if( ($method = 'set' . ucfirst($name) ) && method_exists( $this, $method ) ){
+	//		$this->$method( $value );
+	//	}
+	//	else if( ( $property = '_' . $name ) && property_exists( $this, $property ) ){
+	//		$this->$property = $value;
+	//	}
+	//}
+	//
+	//public function __get( $name ){
+	//	if( ($method = 'set' . ucfirst($name) ) && method_exists( $this, $method ) ){
+	//		return $this->$method();
+	//	}
+	//	else if( ( $property = '_' . $name ) && property_exists( $this, $property ) ){
+	//		return $this->$property;
+	//	}
+	//}
+
+    public function setWrapper( $wrapper ){
+		if( $wrapper instanceof Nano_Element ){
+	        $this->_wrapper = $wrapper;
+		}
+		else if( null !== $wrapper ){
+			$this->_wrapper = false;
+		}
     }
 
     public function getWrapper(){
-        if( null == $this->_wrapper ){
+        if( null === $this->_wrapper ){
             $this->_wrapper = new Nano_Element( 'div', array(
                 'class' => 'formElementWrapper'
             ) );
         }
         return $this->_wrapper;
     }
+
+	public function setPrefix( $value ){
+		$this->_prefix = $value;
+	}
+
+	public function getPrefix(){
+		return $this->_prefix;
+	}
+
+	public function setSuffix( $value ){
+		$this->_suffix = $value;
+	}
+
+	public function getSuffix(){
+		return $this->_suffix;
+	}
 
     public function setRequired( $required = true ){
         $this->_required = true;
