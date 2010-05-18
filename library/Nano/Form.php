@@ -50,19 +50,12 @@ class Nano_Form extends Nano_Form_Element_Abstract{
         $attributes['name'] = $name;
 
         $type   = $this->getElementTagName( $config->type );
+
 		$class  = 'Nano_Form_Element_' . ucfirst( $type );
 
         $attributes['type'] = $config->type;
 
         $element = new $class( $type, $attributes );
-
-		//foreach( $config as $key => $value ){
-		//	$element->$key = $value;
-		//}
-
-		//$element->prefix = $config->prefix;
-		//$element->suffix = $config->suffix;
-		//$element->wrapper = $config->wrapper;
 
         $element->setLabel( $config->label );
         $element->setRequired( $config->required );
@@ -86,6 +79,8 @@ class Nano_Form extends Nano_Form_Element_Abstract{
                 return 'textarea';
             case 'checkbox':
                 return 'checkbox';
+			case 'select':
+				return 'select';
             default:
                 return 'input';
         }
