@@ -20,6 +20,10 @@ class Nano_Form_Element_Fieldset extends Nano_Form{
 		if( null !== ( $type = $this->removeAttribute('type') ) ){
 			$this->type = $type;
 		}
+
+        if( null !== ( $elements = $this->removeAttribute( 'elements' ) ) ){
+            $this->addElements( $elements );
+        }
     }
 
 

@@ -29,6 +29,16 @@ class Nano_Collection extends ArrayObject{
         return false;
     }
 
+    public function pluck( $property ){
+        $collect = array();
+        
+        foreach( $this as $value ){
+            if( key_exists( $property, $value ) ){
+                return (object) $value->$property;
+            }
+        }
+    }
+
     public function delete( $name ){
         if( $this->offsetExists( $name ) ){
             $value = $this->offsetGet( $name );

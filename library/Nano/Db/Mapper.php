@@ -39,13 +39,8 @@ class Nano_Db_Mapper{
      * @return void
      */
     public function find( $model ){
-        $values = array_filter($model->toArray());
-        $where  = null;
-
-        if( count($values) > 0 ){
-            $keys = array_map( array( $this, '_dasherize' ), array_keys($values) );
-            $where = array_combine( $keys, $values );
-        }
+        $key = $this->_primaryKey;
+        $where = array( $key => $model->$key );
 
         $obj = $this->getDb()
             ->fetchRow($this->_tableName, $where );
@@ -75,13 +70,6 @@ class Nano_Db_Mapper{
         }
     }
 
-//	public function search( $model ){
-//        $values = array_filter( $model->toArray() );
-//		$keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
-//
-//		return $this->getDb()->select( $this->_tableName );
-//	}
-
     /**
      * Delete this object from the database using it's primary key
      * @param Some_Model $model Model to delete
@@ -91,13 +79,16 @@ class Nano_Db_Mapper{
         $key = $this->_primaryKey;
 
         $this->getDb()->query( sprintf(
-            'DELETE FROM `%s` WHERE %s = ?',
+            'DELETE FROM `%s` WHERE %s = %d',
             $this->_tableName,
-            $this->_primaryKey
-        ), array( $model->$key ) );
+            $this->_primaryKey,
+            $model->$key
+        ));
     }
 
     /**
+     * Perform a search based on the current model's properties
+     * @todo implement a paged-query
      *
      */
     public function search( $model ){
@@ -111,7 +102,6 @@ class Nano_Db_Mapper{
             $where = array_combine( $keys, $values );
         }
 
-//		var_dump( $where );
         $results = $this->getDb()->select( $this->_tableName, $where );
         $name    = get_class( $model );
         $collect = array();
@@ -123,16 +113,6 @@ class Nano_Db_Mapper{
         return $collect;
     }
 
-    /**
-     * A simple find by id
-     * Performs a simple select * for current table
-     *
-     * @param int $id Primary key value
-     * @return object $tableRow
-     */
-    private function fetchById( $id ){
-        return $obj;
-    }
 
     private function primaryKey(){
         return $this->_primaryKey;
@@ -142,7 +122,7 @@ class Nano_Db_Mapper{
      * Fetch default database adapter
      * @return Nano_Db_Adapter $adapter
      */
-    private function getDb(){
+    protected function getDb(){
         return Nano_Db::getAdapter( $this->_adapter );
     }
 

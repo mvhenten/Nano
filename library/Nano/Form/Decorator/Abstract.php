@@ -21,7 +21,10 @@ class Nano_Form_Decorator_Abstract extends Nano_Element_Decorator{
 
         if( null == ( $id = $element->getAttribute('id') ) ){//generate unique id
             $count = $this->getElementCount();
-            $element->setAttribute( 'id', sprintf('%s-element-%d', $element->getAttribute('type'), $count) );
+
+            $eType = ( $eType = $element->getAttribute('type') ) ? $eType : $type;
+
+            $element->setAttribute( 'id', sprintf('%s-element-%d', $eType, $count) );
         }
 
         if( empty( $className ) ){//generate auto classnames

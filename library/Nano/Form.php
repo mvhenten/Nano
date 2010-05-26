@@ -27,10 +27,26 @@ class Nano_Form extends Nano_Form_Element_Abstract{
         );
     }
 
+    public function addFieldset( $name, $attributes ){
+        $fielset = new Nano_Form_Element_Fieldset( $attributes );
+
+        $this->addChild( $fieldset );
+
+        return $fieldset;
+    }
+
 	/**
 	 * @return Nano_Form $form This form.
 	 */
 	public function addElement( $name, $attributes = array() ){
+        if( count($attributes) == 0 ) return true;
+        if( $attributes instanceof Nano_Element ){
+            $this->addChild( $attributes );
+            return $attributes;
+        }
+
+
+
         $defaults = array(
             'label'      => null,
             'type'       => null,
@@ -43,6 +59,10 @@ class Nano_Form extends Nano_Form_Element_Abstract{
 
         $config = (object) array_merge( $defaults, $attributes );
 
+        if( $config->type == 'fieldset' ){
+            return $this->addFieldset( $name, $attributes );
+        }
+
 		foreach( $defaults as $key => $value ){
 			unset( $attributes[$key] );
 		}
@@ -50,23 +70,25 @@ class Nano_Form extends Nano_Form_Element_Abstract{
         $attributes['name'] = $name;
 
         $type   = $this->getElementTagName( $config->type );
-
 		$class  = 'Nano_Form_Element_' . ucfirst( $type );
 
-        $attributes['type'] = $config->type;
+        if( class_exists( $class ) ){
+            $attributes['type'] = $config->type;
 
-        $element = new $class( $type, $attributes );
+            $element = new $class( $type, $attributes );
 
-        $element->setLabel( $config->label );
-        $element->setRequired( $config->required );
-		$element->setWrapper( $config->wrapper );
-		$element->setPrefix( $config->prefix );
-		$element->setSuffix( $config->suffix );
+            $element->setLabel( $config->label );
+            $element->setRequired( $config->required );
+            $element->setWrapper( $config->wrapper );
+            $element->setPrefix( $config->prefix );
+            $element->setSuffix( $config->suffix );
 
 
-        foreach( $config->validators as $construct ){
-            call_user_func_array( array( $element, 'addValidator'), $construct);
+            foreach( $config->validators as $construct ){
+                call_user_func_array( array( $element, 'addValidator'), $construct);
+            }
         }
+
 
 		$this->addChild( $element );
 

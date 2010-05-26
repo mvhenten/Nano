@@ -137,6 +137,14 @@ class Nano_Controller{
         exit;
     }
 
+    protected function _helper( $name, $arguments ){
+        $arguments = func_get_args();
+
+        $name = array_shift( $arguments );
+
+        return $this->getView()->__call( $name, $arguments );
+    }
+
 
     protected function renderView(){ echo $this->getView(); }
     protected function preDispatch(){}

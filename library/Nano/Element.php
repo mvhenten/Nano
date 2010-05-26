@@ -59,7 +59,10 @@ class Nano_Element{
     }
 
     public function setContent( $value ){
-        if( null !== $value ){
+        if( $value instanceof Nano_Element ){
+            $this->addChild( $value );
+        }
+        else if( null !== $value ){
             $this->content = new Nano_Collection();
             $this->addContent( $value );
         }
@@ -82,16 +85,110 @@ class Nano_Element{
         return $this;
     }
 
-    public function addChild( Nano_Element $element ){
-        //$element->setParent( $this );
-
+    public function addChild( $args ){
         $children = $this->getChildren();
+        $args = func_get_args();
+
+        $element = array_shift( $args );
+
+        if( ! $element instanceof Nano_Element ){
+            $attributes = array_shift( $args );
+            $content    = array_shift( $args );
+
+            $element = new Nano_Element( $element, $attributes, $content );
+        }
+
         $children[] = $element;
-        //
-        //$this->getChildren()
-        //    ->push( $element );
-        //
+
         return $this;
+    }
+
+    /**
+     * Factory function: accepts an array as constructor options for Nano_Elements
+     * $attributes may contain a special key 'content'
+     *
+     * @param array $children Array of type => attributes
+     * @return $this liquid
+     */
+    public function addChildren( $children ){
+        if( ! is_array( $children ) ){
+            return;
+        }
+
+
+        foreach( $children as $type => $attributes ){
+            $config = (object) array_merge(array(
+                'children' => null,
+                'content'  => null
+            ), $attributes );
+
+            unset( $attributes['children'] );
+            unset( $attributes['content'] );
+
+            $child = new Nano_Element( $type, $attributes, $config->content );
+            $child->addChildren( $config->children );
+
+            $this->addChild( $child );
+        }
+
+        return $this;
+    }
+
+    /**
+     * Collect children of this element defined by $select
+     * Note that this function returns any match!
+     *
+     * @param array $select Select may contain 'type', or any other attribute
+     */
+    public function findChildren( array $select = array() ){
+        $children = $this->getChildren();
+
+        if( count( $select ) == 0 ){
+            return $children;
+        }
+
+        $config = (object) array_merge( array(
+            'type'  => null,
+            'id'    => null,
+            'className' => null,
+            'attributes' => null
+        ), $select );
+
+        unset( $select['type'] );
+        unset( $select['id'] );
+        unset( $select['id'] );
+
+        $config->attributes = $select;
+        $collect  = array();
+
+        foreach( $children as $child ){
+            if( ( $config->type && $child->getType() == $config->type )
+               || ($config->id && $child->getAttribute('id') == $config->id)
+               || ($config->className && $child->getAttribute('class') == $config->clasName )
+            ){
+                $collect[] = $child;
+            }
+            else if( count($config->attributes) > 0 ){
+                foreach( $config->attributes as $key => $value ){
+                    if( $child->getAttribute( $key ) == $value ){
+                        $collect[] = $child;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $collect;
+    }
+
+    public function recursivelyFindChildren( array $select = array() ){
+        $collect = $this->findChildren( $select );
+
+        foreach( $this->getChildren() as $child ){
+            array_merge( $collect, $child->recursivelyFindChildren($select));
+        }
+
+        return $collect;
     }
 
     public function setParent( Nano_Element $element ){
