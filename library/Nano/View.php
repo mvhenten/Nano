@@ -14,12 +14,18 @@ class Nano_View{
     protected $_content;
     protected $_helperPath;
     protected $_helpers;
+    protected $_layoutpath;
 
     public function __construct( $config, $request ){
         $config = (array) $config;
         $config['request'] = $request;
 
-        $this->setLayout( $config );
+
+        foreach( $config as $name => $value ){
+            if( ($property = '_' . $name) && property_exists( $this, $property ) ){
+                $this->$property = $value;
+            }
+        }
     }
 
     public function __set( $name, $value ){
@@ -33,6 +39,85 @@ class Nano_View{
     public function __call( $name, $arguments ){
         $helper = $this->getHelper( $name );
         return call_user_func_array( array($helper, $name), $arguments );
+    }
+
+    public function getHelperPath(){
+        if( null == $this->_helperPath ){
+            $this->_helperPath = array();
+        }
+        return $this->_helperPath;
+    }
+
+
+    public function __toString(){
+        if( false !== ( $path = $this->getTemplate() ) && ! empty($path) ){
+            ob_start();
+            require_once( $path );
+            $this->getContent()->template = ob_get_clean(); // content is now a string!
+        }
+
+        if( false !== ( $path = $this->getLayout() ) && ! empty( $path ) ){
+            ob_start();
+            require_once( $path );
+            return ob_get_clean();
+        }
+
+        return '';
+    }
+
+    public function getLayout(){
+        if( null === $this->_layout && null !== $this->_layoutpath ){
+            $layout = sprintf('%s/%s/%s', $this->_base, $this->_path, $this->_layoutpath );
+            $this->setLayout( $layout );
+        }
+
+        return $this->_layout;
+    }
+
+    public function disableLayout(){
+        $this->_layout = false;
+    }
+
+    public function setLayout( $path ){
+        $this->_layout = $path;
+    }
+
+    /**
+     * Gets template filename
+     */
+    public function getTemplate(){
+        if( null === $this->_view ){
+            $request = $this->getRequest();
+
+            $view = str_replace( array(':controller', ':action')
+                , array( $request->controller, $request->action )
+                , $this->_structure
+            );
+
+            $this->setTemplate( $view );
+        }
+
+        return $this->_view;
+    }
+
+    public function setTemplate( $view ){
+        $path = sprintf( '%s/%s%s', $this->_base, $this->_path, $view );
+        $this->_view = $path;
+    }
+
+    public function disableTemplate(){
+        $this->_view = false;
+    }
+
+    private function getContent(){
+        if( null === $this->_content ){
+            $this->_content = new Nano_Collection();
+        }
+        return $this->_content;
+    }
+
+    public function getRequest(){
+        return $this->_request;
     }
 
     public function getHelper( $name ){
@@ -69,13 +154,6 @@ class Nano_View{
         return $this->_helpers[$name];
     }
 
-    public function setLayout( array $layout ){
-        foreach( $layout as $name => $value ){
-            if( ($property = '_' . $name) && property_exists( $this, $property ) ){
-                $this->$property = $value;
-            }
-        }
-    }
 
     public function setHelperPath( $path ){
         if( null == $this->_helperPath ){
@@ -83,50 +161,5 @@ class Nano_View{
         }
 
         $this->_helperPath[] = $path;
-    }
-
-    public function getHelperPath(){
-        if( null == $this->_helperPath ){
-            $this->_helperPath = array();
-        }
-        return $this->_helperPath;
-    }
-
-
-    public function __toString(){
-        $layout = sprintf('%s/%s/%s', $this->_base, $this->_path, $this->_layout );
-
-        $view = str_replace( array(':controller', ':action')
-            , array( $this->getRequest()->controller, $this->getRequest()->action )
-            , $this->_structure
-        );
-
-        $path = sprintf( '%s/%s%s', $this->_base, $this->_path, $view );
-
-
-        ob_start();
-        require_once( $path );
-        $this->_view = ob_get_clean();
-
-        ob_start();
-        include( $layout );
-
-        return ob_get_clean();
-    }
-
-    private function getContent(){
-        if( null == $this->_content ){
-            $this->_content = new Nano_Collection();
-        }
-        return $this->_content;
-    }
-
-    private function getView(){
-        return $this->_view;
-    }
-
-    public function getRequest(){
-
-        return $this->_request;
     }
 }

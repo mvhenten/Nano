@@ -1,5 +1,7 @@
 <?php
 class Nano_Form_Element_Select extends Nano_Form_Element_Abstract{
+    protected $_type = 'select';
+
     public function __construct( $type = null, array $attributes = null, $content = null ){
 		unset( $attributes['type']);
 

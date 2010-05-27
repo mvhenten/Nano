@@ -42,11 +42,11 @@ class Nano_Autoloader{
         }
     }
 
-    private function includePath( $path ){
+    private function includePath( $path, $fail = false ){
         if( file_exists( $path ) ){
             require_once( $path );
         }
-        else{
+        else if( $fail ){
             throw new Exception( sprintf( 'File does not exist "%s"', $path ));
         }
     }

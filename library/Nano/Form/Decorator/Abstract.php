@@ -28,7 +28,7 @@ class Nano_Form_Decorator_Abstract extends Nano_Element_Decorator{
         }
 
         if( empty( $className ) ){//generate auto classnames
-            $className = sprintf('%s-%s', $type, $element->getAttribute('type'));
+            $className = rtrim( sprintf('%s-%s', $type, $element->getAttribute('type')), '-');
             $element->setAttribute( 'class', $className );
         }
 
@@ -42,7 +42,7 @@ class Nano_Form_Decorator_Abstract extends Nano_Element_Decorator{
             $content = $this->renderElement( $labelElement->addContent( $label . $content ) );
         }
 
-        if( $type !== 'hidden' && $wrapper !== false ){
+        if( $type !== 'hidden' && !empty($wrapper) ){
             $content = $this->renderElement( $wrapper->addContent( $content ) );
         }
 
