@@ -50,10 +50,10 @@ class Nano_View{
 
 
     public function __toString(){
-        if( false !== ( $path = $this->getTemplate() ) && ! empty($path) ){
+        if( false !== ( $path = $this->getViewScript() ) && ! empty($path) ){
             ob_start();
             require_once( $path );
-            $this->getContent()->template = ob_get_clean(); // content is now a string!
+            $this->getContent()->viewScript = ob_get_clean(); // content is now a string!
         }
 
         if( false !== ( $path = $this->getLayout() ) && ! empty( $path ) ){
@@ -83,9 +83,9 @@ class Nano_View{
     }
 
     /**
-     * Gets template filename
+     * Gets ViewScript filename
      */
-    public function getTemplate(){
+    public function getViewScript(){
         if( null === $this->_view ){
             $request = $this->getRequest();
 
@@ -94,18 +94,18 @@ class Nano_View{
                 , $this->_structure
             );
 
-            $this->setTemplate( $view );
+            $this->setViewScript( $view );
         }
 
         return $this->_view;
     }
 
-    public function setTemplate( $view ){
+    public function setViewScript( $view ){
         $path = sprintf( '%s/%s%s', $this->_base, $this->_path, $view );
         $this->_view = $path;
     }
 
-    public function disableTemplate(){
+    public function disableViewScript(){
         $this->_view = false;
     }
 

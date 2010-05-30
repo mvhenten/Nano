@@ -1,20 +1,25 @@
 <?php
 class Nano_Form_Element_Select extends Nano_Form_Element_Abstract{
-    protected $_type = 'select';
+    protected $_type      = 'select';
 
-    public function __construct( $type = null, array $attributes = null, $content = null ){
-		unset( $attributes['type']);
+    /**
+     * Create a new Nano_Fieldset
+     *
+     * @param array $attributes (optional) Key => Value pair of attributes
+     * @return Nano_Form $form
+     */
+    public function __construct( $name, $attributes = array() ){
+        $attributes = array_merge( array(
+            'options'   => null
+        ), $attributes );
 
-		$attributes['class'] = 'select';
+        if( $options = $attributes['options'] ){
+            $this->addOptions( $options );
+        }
 
-		parent::__construct( 'select', $attributes, $content );
-		$this->setVertile(true);
-
-		$this->addChild( new Nano_Element( 'option', array('selected'=>'selected', 'disabled'=>true), 'choose option'));
-		if( null !== ( $options = $this->removeAttribute('options') ) ){
-			$this->addOptions( $options );
-		}
-	}
+        unset( $attributes['options'] );
+        parent::__construct( $name, $attributes );
+    }
 
 	public function addOptions( array $options ){
 		foreach( $options as $value => $label ){

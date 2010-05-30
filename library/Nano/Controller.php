@@ -95,46 +95,40 @@ class Nano_Controller{
         exit(1);
     }
 
+    /**
+     * Forward the entire request to a different action/controller
+     * @param string $action Actual name of the action (whitout Action)
+     * @param mixed $controller Controller name or object
+     */
     protected function _forward( $action, $controller = null ){
         //@todo implement forward to different controller:
         // do we need to post-dspatch too?
+        $request = $this->getRequest();
+
         if( null == $controller ){
             $controller = $this;
         }
-
-        $request = $this->getRequest();
-        $layout = 'default';
-
-        if( $request->module !== '' ){
-            $layout = $request->module;
+        else if ( is_string( $controller ) ){
+            $controller = new $controller( $this->getRequest(), $this->getConfig() );
         }
-
-        $layout = $this->getConfig()->layout[$layout];
-        $router = $request->getRouter();
-
-
-        $router->action = $action;
-
-        $helperPath = $this->getView()->getHelperPath();
-
-        $this->setView( $layout, $router );
-
-        foreach( $helperPath as $path ){
-            $this->getView()->setHelperPath( $path );
+        else if( !$controller instanceof Nano_Controller ){
+            throw new Exception( 'Controller must be a propper class name or instance of Nano_Controller');
         }
 
 
-        if( ($method = sprintf('%sAction', $request->action) )
-           && method_exists($this, $method) ){
-            call_user_func( array( $this, sprintf("%sAction", $request->action)));
+        $controller->preDispatch();
+
+
+        if( ($method = sprintf('%sAction', $action) )
+           && method_exists($controller, $method) ){
+            call_user_func( array( $this, sprintf("%sAction", $action)));
         }
         else{
-            throw new Exception( sprintf('Action %s not defined', $request->action) );
+            throw new Exception( sprintf('Action %s not defined', $action) );
         }
 
         $this->postDispatch();
         $this->renderView();
-        exit;
     }
 
     protected function _helper( $name, $arguments ){

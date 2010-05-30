@@ -3,7 +3,7 @@ class Nano_Form extends Nano_Form_Element_Abstract{
     const DEFAULT_FORM_METHOD    = 'post';
     const DEFAULT_FORM_ENCODING  = 'multipart/form-data';
 
-    protected $decorator = 'Nano_Form_Decorator_Input';
+    protected $decorator = 'Nano_Form_Decorator_Form';
     protected $_type      = 'form';
 
     /**

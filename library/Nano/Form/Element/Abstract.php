@@ -17,6 +17,7 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
             'label'       => null,
             'required'    => false,
             'validators'  => array(),
+            'validator'   => null,
 			'prefix'	  => null,
 			'suffix'	  => null,
             'elements'    => null,
@@ -109,6 +110,14 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
      */
     protected function getDefaultAttributes(){
         return array();
+    }
+
+    public function addValidators( $validators ){
+        foreach( $validators as $validator ){
+            @list( $method, $options, $breakOnFaillure ) = $validator;
+            $this->addValidator( $method, $options, $breakOnFaillure );
+        }
+        return $this;
     }
 
     public function addValidator( $method, $options, $breakOnFaillure = false ){
