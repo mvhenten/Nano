@@ -22,8 +22,16 @@ class Nano_View{
 
 
         foreach( $config as $name => $value ){
+            //@todo not a smart way to do things here
+            // may overwrite _layout as such, etc.
             if( ($property = '_' . $name) && property_exists( $this, $property ) ){
-                $this->$property = $value;
+                if( ($method = 'set' . ucfirst($name)) && method_exists( $this, $method ) ){
+                    $this->$method( $value );
+                }
+                else{
+                    $this->$property = $value;
+
+                }
             }
         }
     }
@@ -57,6 +65,7 @@ class Nano_View{
         }
 
         if( false !== ( $path = $this->getLayout() ) && ! empty( $path ) ){
+            //var_dump( $this );
             ob_start();
             require_once( $path );
             return ob_get_clean();
