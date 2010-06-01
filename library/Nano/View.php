@@ -129,12 +129,16 @@ class Nano_View{
         return $this->_request;
     }
 
+    public function headScript(){
+        return $this->getHelper( 'Script' );
+    }
+
     public function getHelper( $name ){
         if( null == $this->_helpers ){
             $this->_helpers = array();
         }
 
-        if( !in_array( $name, $this->_helpers ) ){
+        if( !key_exists( $name, $this->_helpers ) ){
             $base       = ucfirst( $name ) . '.php';
             $paths      = $this->getHelperPath();
             $className  = 'Helper_' . ucfirst($name);
@@ -154,7 +158,7 @@ class Nano_View{
                 $className = 'Nano_View_Helper_' . ucfirst($name);
                 // ok this will throw an exception
                 // but you should know this...
-                $helper = new $className;
+                $helper = new $className( $this );
             }
 
             $this->_helpers[$name] = $helper;
