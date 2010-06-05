@@ -48,8 +48,8 @@ class Nano_Db_Adapter_Mysql extends PDO{
 
      *  @return array $array with Objects.
      */
-    public function select( $table, $where = null, $values = null, $columns = null, $limit = null, $offset = 0 ){
-        $values = (array) $values;
+    public function select( $table, $where = null, $columns = null, $limit = null, $offset = 0 ){
+        $values = array();
 
         if( null !== $columns ){
             $columns = array_map( 'sprintf', array_fill( 0, count($columns), '`%s`'), $columns );
@@ -75,9 +75,10 @@ class Nano_Db_Adapter_Mysql extends PDO{
 
         if( null != $limit ){
             $select[] = 'LIMIT ' . intval( $limit );
-        }
-        if( null != $offset ){
-            $select[] = 'OFFSET ' . intval($offset);
+            
+            if( null != $offset ){
+                $select[] = 'OFFSET ' . intval($offset);
+            }
         }
 
         return $this->fetchAll( join("\n", $select), $values );

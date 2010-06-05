@@ -61,7 +61,7 @@ class Nano_Db_Mapper{
         $keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
         $values = array_combine( $keys, $values );
 
-        if( null == $model->$key ){
+        if( !isset($model->$key) ){
             $id = $this->getDb()->insert( $this->_tableName, $values );
             $model->$key = $id;
         }
@@ -91,18 +91,20 @@ class Nano_Db_Mapper{
      * @todo implement a paged-query
      *
      */
-    public function search( $model ){
+    public function search( $model, $limit = null, $offset = 0 ){
         $values = array_filter($model->toArray());
         $where  = null;
 
         unset( $values[$this->_primaryKey] );
+
+        //$table, $where = null, $values = null, $columns = null, $limit = null, $offset = 0
 
         if( count($values) > 0 ){
             $keys = array_map( array( $this, '_dasherize' ), array_keys($values) );
             $where = array_combine( $keys, $values );
         }
 
-        $results = $this->getDb()->select( $this->_tableName, $where );
+        $results = $this->getDb()->select( $this->_tableName, $where, null, $limit, $offset );
         $name    = get_class( $model );
         $collect = array();
 

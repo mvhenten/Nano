@@ -58,16 +58,16 @@ class Nano_View{
 
 
     public function __toString(){
-        if( false !== ( $path = $this->getViewScript() ) && ! empty($path) ){
-            ob_start();
-            require_once( $path );
-            $this->getContent()->viewScript = ob_get_clean(); // content is now a string!
-        }
+        if( false !== ( $layoutPath = $this->getLayout() ) && ! empty( $layoutPath ) ){
+            if( false !== ( $path = $this->getViewScript() ) && ! empty($path) ){
+                ob_start();
+                require_once( $path );
+                $this->getContent()->viewScript = ob_get_clean(); // content is now a string!
+            }
 
-        if( false !== ( $path = $this->getLayout() ) && ! empty( $path ) ){
             //var_dump( $this );
             ob_start();
-            require_once( $path );
+            require_once( $layoutPath );
             return ob_get_clean();
         }
 

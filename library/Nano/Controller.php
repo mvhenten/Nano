@@ -71,7 +71,7 @@ class Nano_Controller{
             $layout = 'default';
 
             //@todo this sets layout counter-intuitive.
-            if( $this->getRequest()->module !== '' ){
+            if( $this->getRequest()->module ){
                 $layout = $this->getRequest()->module;
             }
 
