@@ -1,5 +1,6 @@
 <?php
 class Nano_Form_Element_Select extends Nano_Form_Element_Abstract{
+    protected $decorator = 'Nano_Form_Decorator_Select';
     protected $_type      = 'select';
 
     /**
@@ -27,8 +28,12 @@ class Nano_Form_Element_Select extends Nano_Form_Element_Abstract{
 		}
 	}
 
-	public function addOption( $value, $label ){
-		$option = new Nano_Element('option', array('value'=>$value), $label);
+	public function addOption( $value, $label, array $attributes = array() ){
+        $attributes = array_merge( array(
+            'value' => $value
+        ), $attributes );
+
+		$option = new Nano_Element('option', $attributes, $label);
 
 		$this->addChild( $option );
 		return $option;
