@@ -31,6 +31,18 @@ class Nano_Gd{
         }
     }
 
+    public function crop( $x, $y, $width, $height ){
+        if( null !== ($gd = $this->getResource() ) ){
+            list( $w, $h ) = array_values( $this->getDimensions() );
+
+            $target = imagecreatetruecolor( $width, $height );
+
+            imagecopy( $target, $gd, 0, 0, $x, $y, $width, $height );
+
+            return new Nano_Gd( $target );
+        }
+    }
+
     public function resize( $x = null, $y = null){
         if( $x == null && $y == null ){
             throw new Exception( 'You must provide either Width or Height' );
@@ -156,13 +168,22 @@ class Nano_Gd{
 
     /**
      * Output as an PNG image
+     *
+     * @param string $path Optional path
      */
-    public function getImagePNG( $quality = 85, $path = null ){
-        return $this->imageOut( 'png', $quality, $path );
+    public function getImagePNG( $path = null ){
+        return $this->imageOut( 'png', 85, $path );
     }
 
+    /**
+     * Output as a jpeg image
+     */
     public function getImageJPEG( $quality = 85, $path = null ){
         return $this->imageOut( 'jpeg', $quality, $path );
+    }
+
+    public function getImageGIF( $quality = 85, $path = null ){
+        return $this->imageOut( 'gif', $quality, $path );
     }
 
     private function imageOut( $type, $quality = 85, $path = null ){
@@ -172,7 +193,7 @@ class Nano_Gd{
                 ob_start();
             }
 
-            $out = call_user_func( $cmd, $this->getResource(), $path, $quality );
+            $out = $cmd($this->getResource(), $path, $quality );
 
             if( strlen($path) == 0 ){
                 return ob_get_clean();
