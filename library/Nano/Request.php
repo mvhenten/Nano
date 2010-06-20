@@ -4,6 +4,7 @@ class Nano_Request{
     private $_post;
     private $_get;
     private $_router;
+    private $_headers;
 
     public function __construct( Nano_Router $router = null ){
         if( null !== $router ){
@@ -24,6 +25,21 @@ class Nano_Request{
 
     public function getRouter(){
         return $this->_router;
+    }
+    
+    public function isXmlHttpRequest(){
+        if( null == $this->_headers ){
+            $this->_headers = apache_request_headers();
+        }
+        //["X-Requested-With"]=>
+        //string(14) "XMLHttpRequest"
+        
+        if( isset( $this->_headers['X-Requested-With'] ) ){
+            if( $this->_headers['X-Requested-With'] == 'XMLHttpRequest' ){
+                return true;
+            }
+        }
+        return false;
     }
 
     public function isPost(){
