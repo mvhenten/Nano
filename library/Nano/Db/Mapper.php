@@ -61,8 +61,6 @@ class Nano_Db_Mapper{
         $keys 	= array_map( array( $this, '_dasherize' ), array_keys($values) );
         $values = array_combine( $keys, $values );
 
-
-
         if( null == $model->$key ){
             $id = $this->getDb()->insert( $this->_tableName, $values );
             $model->$key = $id;
