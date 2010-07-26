@@ -7,7 +7,10 @@
  *
  *
  */
-
+//@todo implement fetch into model
+//@todo implement delete
+//@todo implement update
+//@todo implement insert
 class Nano_Db_Query extends ArrayIterator{
     const FETCH_LIMIT = 25;
     const FETCH_OFFSET = 0;
