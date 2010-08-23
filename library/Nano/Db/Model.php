@@ -9,25 +9,74 @@
 
 class Nano_Db_Model extends ArrayObject{
     const FETCH_TABLENAME   = null;
-    const FETCH_PRIMARY_KEY = 'id';
+    const FETCH_PRIMARY_KEY = null;
     const FETCH_LIMIT = 25;
     const FETCH_OFFSET = 0;
 
+
     protected $_properties = array(
+        /* put model properties here */
     );
 
     protected $_settings = array(
+        /* model settings can be stored here dynamically */
         'tableName'  => self::FETCH_TABLENAME,
         'primaryKey' => self::FETCH_PRIMARY_KEY
     );
 
-    public function __construct( $settings = array(), $properties = array() ){
-        $this->_settings = array_merge( $this->_settings, $settings );
-        $this->_properties = array_merge( $this->_properties, $properties );
+
+    /**
+     * Factory function. Override this function with:
+     * return parent::get( __CLASS__, $key );
+     *
+     * Returns an instance of model $name, you *NEED* to override this
+     * function if you want to call ::get() for your models.
+     *
+     * @param string $name Name of the model.
+     * @param mixed $key Primary key or lookup properties for __construct
+     * @return Nano_Db_Model A Model object
+     */
+    public static function get( $key, $name = __CLASS__ ){
+        return new $name( $key );
     }
 
+    /**
+     * Class constructor. First argument must either be a valid value for
+     * the primary key, or an array of properties to search for.
+     *
+     * @param mixed $settings Primary key or array of search parameters
+     * @param mixed $properties Table properties or NULL
+     */
+    public function __construct( $properties = null, $settings = null ){
+        $this->_settings = array_merge( $this->_settings, (array) $settings );
+
+        if( is_scalar( $properties ) ){
+            $properties = array(
+                ($this->key()) => $properties
+            );
+        }
+
+        $this->_properties = array_merge( $this->_properties, (array) $properties );
+    }
+
+    /**
+     * Magic getter: returns model properties as class members.
+     *
+     * @param string $name Table column that may exist
+     * @return mixed $value Value or NULL
+     */
     public function __get( $name ){
-        if( in_array( $name, $this->_properties ) ){
+        if( isset( $this->_properties[$name] ) ){
+            return $this->_properties[$name];
+        }
+        else if( ($key = $this->_settings['primaryKey'] )
+                && isset( $this->_properties[$key] ) ){//triggers a database lookup
+
+            $query = new Nano_Db_Query( $this );
+            $this->_properties = $query->current()->properties();
+        }
+
+        if( isset( $this->_properties[$name] ) ){
             return $this->_properties[$name];
         }
     }
@@ -36,29 +85,14 @@ class Nano_Db_Model extends ArrayObject{
         $this->_properties[$name] = $value;
     }
 
-    /**
-     * Returns the first objeckt matching $key.
-     * Object will be an instance of $this based on class, primary key and table name
-     *
-     * @param mixed $key Value for the primary key
-     * @return Nano_Db_Model A Model object
-     */
-    public static function get( $key ){
-        $this->key( $key );
-
-        $qh = new Nano_Db_Query( $this );
-
-        foreach( $qh as $qr )
-            return $qr;
-    }
 
     /**
-     * Returns a Query object that fetches all entities of the kind corresponding
-     * to $this model
+     * Returns a Query object that fetches all entities of the kind
+     * corresponding to the keys set in the model
      *
      * @param $instance
      */
-    public function all( $instance = null ){
+    public function all( Nano_Db_Model $instance = null ){
         if( null == $instance ){
             $instance = $this;
         }
@@ -66,15 +100,16 @@ class Nano_Db_Model extends ArrayObject{
         return new Nano_Db_Query( $instance );
     }
 
+
     /**
      * Update or insert $instance or $this
      *
      * @param Nano_Db_Model $instance
      * @return integer $key
      */
-    public function put( $instance = null ){
-        if( $instance == null ){
-            $instance == $this;
+    public function put( Nano_Db_Model $instance = null ){
+        if( $instance === null ){
+            $instance = $this;
         }
 
         $qh = new Nano_Db_Query( $instance );
@@ -99,26 +134,14 @@ class Nano_Db_Model extends ArrayObject{
     }
 
     public function properties(){
-        return (object) $this->_properties();
+        return $this->_properties;
     }
 
-    public function primaryKey(){
-        //@todo include checks for key existance
+    public function key(){
         return $this->_settings['primaryKey'];
     }
 
     public function tableName(){
-        if( null == $this->_settings['tableName'] ){
-            $name = get_class( $this );
-
-            if( $name !== 'Nano_Db_Model' ){
-                $this->_settings['tableName'] = strtolower( $name );
-            }
-            else{
-                throw new Exception( 'Table name is not set' );
-            }
-        }
-
         return $this->_settings['tableName'];
     }
 

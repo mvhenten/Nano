@@ -11,7 +11,8 @@ class Nano_Router extends Nano_Collection{
     private function getRequestValues( $replace ){
         $url = $this->getRequestUri();
         $url = str_replace( $replace, '', $url );
-        return array_filter(explode( '/', array_shift( explode( '?', $url ) )));
+        $url = explode('?', $url );
+        return array_filter(explode( '/', array_shift( $url )));
     }
 
     private function getRoute( $routes ){
@@ -54,4 +55,3 @@ class Nano_Router extends Nano_Collection{
         return $router;
     }
 }
-

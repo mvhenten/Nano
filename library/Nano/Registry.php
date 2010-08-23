@@ -15,7 +15,7 @@ class Nano_Registry{
         return self::getInstance()->getValue( $name );
     }
 
-    public function getInstance(){
+    public static function getInstance(){
         if( null == self::$_instance ){
             self::$_instance = new Nano_Registry();
         }
