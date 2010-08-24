@@ -33,6 +33,8 @@
  *
  * @todo merge prepare/execute into one function (query?) that accepts sql and values
  * @todo rename execute to less ambiguous naming
+ * @todo filter shoud not use key => value pairs, to allow for multipel ids ( e.g. shuld follow array($key, $value))
+ * @todo put and delete must allow for filter-like syntax.
  */
 //@todo implement delete
 //@todo implement update
@@ -71,7 +73,7 @@ class Nano_Db_Query extends ArrayIterator{
      */
     public function valid(){
         if( $this->_sth === null ){
-            $this->execute();
+            $this->all();
         }
 
         if( $this->_sth !== false ){
@@ -181,13 +183,23 @@ class Nano_Db_Query extends ArrayIterator{
         $query = array();
 
         $keyname  = $model->key();
+        $table    = $model->tableName();
+        $props    = $model->properties();
+        $key      = $model->$keyname;
 
-        $table  = $model->tableName();
-        $props  =  $model->properties();
-        $key    = $model->$keyname;
+        unset( $props[$keyname] );
 
         if( $key ){
-
+            $set = array();
+            $query[] = sprintf('UPDATE `%s`', $model->tableName() );
+            
+            foreach( $props as $key => $value ){
+                $set[] = sprintf('`%s` = ?', $key );
+            }
+            
+            $query[] = 'SET' . join( ",\n", $set );
+            $query[] = sprintf('WHERE `%s` = ?', $keyname );
+            $props[] = $model->$keyname;
         }
         else{
             $keys = array_keys( $props );
@@ -199,16 +211,32 @@ class Nano_Db_Query extends ArrayIterator{
             $query[] = 'VALUES ( ' . join( ",", $values ) . ')';
         }
 
-
-        //$dbh = $this->getAdapter();
-        //$sth = $dbh->prepare( join("\n", $query) );
-
-        $this->prepare( join("\n", $query ) );
-
+        $this->query( join("\n", $query ), array_values($props) );
+        $model->id = $this->lastInsertId();
+    }
+    
+    public function delete(){
+        
+    }
+    
+    /**
+     * Prepare and execute query.
+     *
+     * This function uses 'prepare' and 'execute' for save parameter quoting
+     *
+     * @param string $sql SQL query to run
+     * @param array $values Values for variable substitution
+     * @return void
+     */
+    public function query( $sql, $values ){
+        $this->prepare( $sql );
         if( $this->_sth ){
-            $this->_sth->execute( array_values( $props ) );
-            $id = $this->lastInsertId();
-            $model->id = $id;
+            $this->_sth->execute( $values );
+            
+            if( $this->_sth->errorCode() !== '00000' ){
+                $info = $this->_sth->errorInfo();
+                throw new Exception( join( "\n", $info ) );
+            }
         }
     }
 
@@ -299,7 +327,7 @@ class Nano_Db_Query extends ArrayIterator{
         }
     }
 
-    private function execute(){
+    private function all(){
         list( $sql, $values, $query ) = $this->build();
 
         $sql = 'SELECT * ' . $sql;
@@ -309,7 +337,6 @@ class Nano_Db_Query extends ArrayIterator{
             $this->_sth->execute( $values );
         }
     }
-
 
     /**
      * Compose the actual SQL query

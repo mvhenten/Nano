@@ -1,12 +1,7 @@
 <?php
 /**
- * $model = new Nano_Db_Model( array(
- *      tableName = 'item',
- *      primaryKey = 'id'
- * ));
- *
+ * class Nano_Db_Model
  */
-
 class Nano_Db_Model extends ArrayObject{
     const FETCH_TABLENAME   = null;
     const FETCH_PRIMARY_KEY = null;
@@ -66,7 +61,10 @@ class Nano_Db_Model extends ArrayObject{
      * @return mixed $value Value or NULL
      */
     public function __get( $name ){
-        if( isset( $this->_properties[$name] ) ){
+        if( ( $method = 'get' . ucfirst($name) ) && method_exists($this, $method) ){
+            return $this->$method();
+        }
+        else if( isset( $this->_properties[$name] ) ){
             return $this->_properties[$name];
         }
         else if( ($key = $this->_settings['primaryKey'] )
@@ -82,7 +80,22 @@ class Nano_Db_Model extends ArrayObject{
     }
 
     public function __set( $name, $value ){
+        if( ( $method = 'set' . ucfirst($name) ) && method_exists($this, $method) ){
+            $this->$method( $value );
+        }
+        else{
+            $this->_properties[$name] = $value;         
+        }
+    }
+    
+    public final function setProperty( $name, $value ){
         $this->_properties[$name] = $value;
+    }
+    
+    public final function getProperty( $name ){
+        if( key_exists( $name, $this->_properties ) ){
+            return $this->_properties[$name];
+        }
     }
 
 
@@ -123,22 +136,46 @@ class Nano_Db_Model extends ArrayObject{
      * @param Nano_Db_Model $instance Instance to delete
      * @return bool $success Success
      */
-    public function delete( $instance = null ){
-        if( null == $instance ){
-            $instance = $this;
+    public function delete( $filter = array() ){
+        $qr = new Nano_Db_Query( $this );
+        
+        if( ! empty( $filter ) ){
+            $qr->filter($qr);
+        }
+        else if( ( $key = $this->getPrimaryKey() ) && null !== $key ){
+            if( ! is_array( $key ) ){//$key can be an array
+                $key = array( $this->keyName() => $key );
+            }
+            
+            foreach( $key as $name => $value ){
+                $qr->filter( sprintf('%s =', $name), $value );                     
+            }            
         }
 
-        $qh = new Nano_Db_Query( $instance );
-
-        return $qh->put();
+        return $qr->delete();
     }
 
     public function properties(){
         return $this->_properties;
     }
 
+    //@todo refactor; key should return key;
+    //@todo refactor; key may be an array; refactor query class to reflect this
     public function key(){
+        return $this->keyName();
+    }
+    
+    public function keyName(){
         return $this->_settings['primaryKey'];
+    }
+    
+    public function getPrimaryKey(){
+        $keyname = $this->_settings['primaryKey'];
+        $properties = $this->properties();
+        
+        if( isset( $properties[$keyname] ) ){
+            return $properties[$keyname];
+        }
     }
 
     public function tableName(){
