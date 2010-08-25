@@ -36,8 +36,6 @@
  * @todo filter shoud not use key => value pairs, to allow for multipel ids ( e.g. shuld follow array($key, $value))
  * @todo put and delete must allow for filter-like syntax.
  */
-//@todo implement delete
-//@todo implement update
 class Nano_Db_Query extends ArrayIterator{
     const FETCH_LIMIT = 25;
     const FETCH_OFFSET = 0;
@@ -47,6 +45,7 @@ class Nano_Db_Query extends ArrayIterator{
     private $_limit     = self::FETCH_LIMIT;
     private $_offset    = self::FETCH_OFFSET;
     private $_filter    = array();
+    private $_or        = array();
     private $_order     = array();
     private $_group     = array();
     private $_index     = 0;
@@ -192,11 +191,11 @@ class Nano_Db_Query extends ArrayIterator{
         if( $key ){
             $set = array();
             $query[] = sprintf('UPDATE `%s`', $model->tableName() );
-            
+
             foreach( $props as $key => $value ){
                 $set[] = sprintf('`%s` = ?', $key );
             }
-            
+
             $query[] = 'SET' . join( ",\n", $set );
             $query[] = sprintf('WHERE `%s` = ?', $keyname );
             $props[] = $model->$keyname;
@@ -214,11 +213,22 @@ class Nano_Db_Query extends ArrayIterator{
         $this->query( join("\n", $query ), array_values($props) );
         $model->id = $this->lastInsertId();
     }
-    
+
     public function delete(){
-        
+        list( $sql, $values, $query ) = $this->build();
+
+        $sql = 'DELETE ' . $sql;
+
+        $this->query( $sql, $values );
+        //
+        //$this->prepare( $sql );
+        //
+        //
+        //if( $this->_sth ){
+        //    $this->_sth->execute( $values );
+        //}
     }
-    
+
     /**
      * Prepare and execute query.
      *
@@ -232,7 +242,7 @@ class Nano_Db_Query extends ArrayIterator{
         $this->prepare( $sql );
         if( $this->_sth ){
             $this->_sth->execute( $values );
-            
+
             if( $this->_sth->errorCode() !== '00000' ){
                 $info = $this->_sth->errorInfo();
                 throw new Exception( join( "\n", $info ) );
@@ -288,14 +298,26 @@ class Nano_Db_Query extends ArrayIterator{
      */
     public function filter( $key, $value = null ){
         if( is_array( $key ) ){
-            foreach( $key as $op => $value ){
-                $this->_filter[] = array( $op, $value );
+            foreach( $key as $filter ){
+                $this->filter( $filter[0], $filter[1] );
             }
         }
         else{
             $this->_filter[] = array( $key, $value );
         }
 
+        return $this;
+    }
+
+    public function filterOr( $key, $value = null ){
+        if( is_array( $key ) ){
+            //foreach( $key as $filter ){
+            //    $this->_or[] = array( $filter[0], $filter[1] );
+            //}
+        }
+        else{
+            $this->_or[] = array( $key, $value );
+        }
         return $this;
     }
 
@@ -331,11 +353,8 @@ class Nano_Db_Query extends ArrayIterator{
         list( $sql, $values, $query ) = $this->build();
 
         $sql = 'SELECT * ' . $sql;
-        $this->prepare( $sql );
 
-        if( $this->_sth ){
-            $this->_sth->execute( $values );
-        }
+        $this->query( $sql, $values );
     }
 
     /**
@@ -356,12 +375,15 @@ class Nano_Db_Query extends ArrayIterator{
             $values[] = $key;
         }
         else{
+            $where = '';
+
             if( count( $this->_filter ) > 0){
-                $filter = array();
+                $where = array();
+
                 foreach( $this->_filter as $rule ){
                     list( $key, $value ) = $rule;
 
-                    if( ctype_alpha( $key ) ){//key is a simple string, add an operator
+                    if( strpos( $key, ' ') == false ){//key is a simple string, add an operator
                         $match = array(null, $key, '=' );
                     }
                     else{// if matching, key contains LIKE, NOT LIKE or a != or = operator
@@ -370,13 +392,75 @@ class Nano_Db_Query extends ArrayIterator{
 
                     if( count($match) > 2 ){
                         list( $full, $name, $op ) = $match;
-                        $filter[] = sprintf( "`%s` %s ?", $name, $op );
+                        $where[] = sprintf( "`%s` %s ?", $name, $op );
                         $values[] = $value;
                     }
                 }
 
-                $query[] = sprintf( 'WHERE %s', join( ' AND ', $filter ));
+                $where = join(' AND ', $where );
             }
+
+            if( count( $this->_or ) > 0 ){
+                foreach( $this->_or as $rule ){
+                    // rule is an array of filters
+                    // ->or( array( predicate => 1, predicate => 2) )
+                    $collect = array();
+                    $or = array();
+
+                    foreach( $rule as $sub ){
+                        // @todo fix this; it won't work for AND in an OR
+                        list( $key, $value ) = $sub;
+                        var_dump( $key, $value );
+                        if( strpos( $key, ' ') == false ){//key is a simple string, add an operator
+                            $match = array(null, $key, '=' );
+                        }
+                        else{// if matching, key contains LIKE, NOT LIKE or a != or = operator
+                            preg_match( '/^(\w+)\s((\W+)|(LIKE?)|(NOT\sLIKE?))?/', $key, $match );
+                        }
+
+                        if( count($match) > 2 ){
+                            list( $full, $name, $op ) = $match;
+                            $collect[] = sprintf( "`%s` %s ?", $name, $op );
+                            $values[] = $value;
+                        }
+
+                        $or[] = sprintf("(%s)", join( 'AND', $collect ) );
+                    }
+                }
+                $or = sprintf( "(%s)", join(' OR ', $or ));
+
+                if( !empty($where) ){
+                    $where = ' AND ' . $where;
+                }
+
+                $where = $or . $where;
+            }
+
+            //if( ! empty($where) ){
+            //    var_dump( $where );
+            //    $where = join( ' AND ', $where );
+            //}
+            //
+            //if( !empty( $or ) ){
+            //    var_dump( $where );
+            //    $where = empty($where) ? '' : $or . ' AND ' . $where;
+            //}
+            //
+
+            var_dump( $where ); exit;
+
+
+
+            if( ! empty( $filter ) ){
+                $query[] = sprintf( 'WHERE %s', join(" AND ", $filter ) );
+            }
+
+
+
+            var_dump( join( "\n", $query ) );
+            exit;
+
+
 
             if( count( $this->_group ) ){
                 $group = array();

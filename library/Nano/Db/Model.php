@@ -84,20 +84,19 @@ class Nano_Db_Model extends ArrayObject{
             $this->$method( $value );
         }
         else{
-            $this->_properties[$name] = $value;         
+            $this->_properties[$name] = $value;
         }
     }
-    
+
     public final function setProperty( $name, $value ){
         $this->_properties[$name] = $value;
     }
-    
+
     public final function getProperty( $name ){
         if( key_exists( $name, $this->_properties ) ){
             return $this->_properties[$name];
         }
     }
-
 
     /**
      * Returns a Query object that fetches all entities of the kind
@@ -110,7 +109,15 @@ class Nano_Db_Model extends ArrayObject{
             $instance = $this;
         }
 
-        return new Nano_Db_Query( $instance );
+        $qr = new Nano_Db_Query( $instance );
+
+        //@todo this is automagic. is this a good idea?
+        // adding properties of instance as filter
+        foreach( $this->properties() as $key => $value ){
+            $qr->filter( sprintf("%s =", $key), $value);
+        }
+
+        return $qr;
     }
 
 
@@ -138,7 +145,7 @@ class Nano_Db_Model extends ArrayObject{
      */
     public function delete( $filter = array() ){
         $qr = new Nano_Db_Query( $this );
-        
+
         if( ! empty( $filter ) ){
             $qr->filter($qr);
         }
@@ -146,10 +153,10 @@ class Nano_Db_Model extends ArrayObject{
             if( ! is_array( $key ) ){//$key can be an array
                 $key = array( $this->keyName() => $key );
             }
-            
+
             foreach( $key as $name => $value ){
-                $qr->filter( sprintf('%s =', $name), $value );                     
-            }            
+                $qr->filter( sprintf('%s =', $name), $value );
+            }
         }
 
         return $qr->delete();
@@ -164,15 +171,15 @@ class Nano_Db_Model extends ArrayObject{
     public function key(){
         return $this->keyName();
     }
-    
+
     public function keyName(){
         return $this->_settings['primaryKey'];
     }
-    
+
     public function getPrimaryKey(){
         $keyname = $this->_settings['primaryKey'];
         $properties = $this->properties();
-        
+
         if( isset( $properties[$keyname] ) ){
             return $properties[$keyname];
         }
