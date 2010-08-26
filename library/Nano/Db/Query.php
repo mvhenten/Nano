@@ -21,15 +21,24 @@
  *   // Model_Example is a class extending Nano_Db_Model
  *   $item = Model_Example::get(1); //fetch by id
  *   // fetch using filters
- *   $items = $item->all()->filter('type', 1)->filter(array('name LIKE'=>'%foo%', 'score <' => 5))
+ *   $items = $item->all()->where('type', 1)->filter(array('name LIKE'=>'%foo%', 'score <' => 5))
  *   // optional ordering and limit
- *   $items = $item->all()->filter('type !=', 1)->limit(100)->order('priority DESC');
+ *   $items = $item->all()->where('type !=', 1)->limit(100)->order('priority DESC');
+ *   // or
+ *   $items = $item->all()->where( 'type LIKE', 'amd%')->orWhere('name LIKE', '%x%')
+ *   // or complex
+ *   $items = $item->all()->where( array('foo',1), array('biz',2) )->orWhere('expired',1);
  *   // update item
  *   $item->name = "foobaz";
  *   $item->put()
  *   // create item
  *   $new = new Model_Example( array('name'=>'foobaz') ); // set properties in constructor
  *   $new->put();
+ *   // delete can take complex arguments that will be ran trough orWhere
+ *   $new = Model_Example::get()->delete(
+ *      array('id IN', array(1,2,3)),
+ *      array('name LIKE', '%a%')
+ *    );
  * ?>
  * </code>
  *
@@ -422,14 +431,22 @@ class Nano_Db_Query extends ArrayIterator{
                 $match = array(null, $key, '=' );
             }
             else{// if matching, key contains LIKE, NOT LIKE or a != or = operator
-                preg_match( '/^(\w+)\s((!=)|([<>=])|(LIKE?)|(NOT\sLIKE?))?/', $key, $match );
+                preg_match( '/^(\w+)\s((!=)|([<>=])|(like?)|(not\slike?)|(in)|(not\sin))?/', strtolower($key), $match );
             }
 
             if( count($match) > 2 ){
                 list( $full, $name, $op ) = $match;
-                $values[] = $value;
+                
+                if( ($op == 'in' || $op == 'not in') && is_array($value) ){
+                    $values = array_merge( $values, $value );
+                    $replace = sprintf( '(%s)',join(',', array_fill(0, count($value), '?')));
+                }
+                else{
+                    $values[] = $value;
+                    $replace = '?';
+                }
 
-                return sprintf( "`%s` %s ?", $name, $op );
+                return sprintf( "`%s` %s %s", $name, strtoupper($op), $replace );
             }
         }
     }
