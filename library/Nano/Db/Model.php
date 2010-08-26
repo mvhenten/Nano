@@ -143,23 +143,9 @@ class Nano_Db_Model extends ArrayObject{
      * @param Nano_Db_Model $instance Instance to delete
      * @return bool $success Success
      */
-    public function delete( $filter = array() ){
+    public function delete( $key = null, $value = null ){
         $qr = new Nano_Db_Query( $this );
-
-        if( ! empty( $filter ) ){
-            $qr->filter($qr);
-        }
-        else if( ( $key = $this->getPrimaryKey() ) && null !== $key ){
-            if( ! is_array( $key ) ){//$key can be an array
-                $key = array( $this->keyName() => $key );
-            }
-
-            foreach( $key as $name => $value ){
-                $qr->filter( sprintf('%s =', $name), $value );
-            }
-        }
-
-        return $qr->delete();
+        return $qr->delete( $key, $value );
     }
 
     public function properties(){
