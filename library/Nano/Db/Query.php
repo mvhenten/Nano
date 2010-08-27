@@ -6,7 +6,7 @@
  * Nano_Db_Query implements a minimal database abstraction layer, loosely
  * inspried by Google's Datastore API and Django's models.
  * It is intended to work in tango with Nano_Db_Model.
- * 
+ *
  * This implementation aims to ease 80% of most used database tasks, and not
  * a full query abstraction. It therefore allows for direct access to PDO
  * trough 'query' if desired.
@@ -60,6 +60,7 @@ class Nano_Db_Query extends ArrayIterator{
     private $_where    = array();
     private $_orwhere   = array();
     private $_order     = array();
+    private $_joinLeft  = array();
     private $_group     = array();
     private $_index     = 0;
     private $_model     = null;
@@ -69,10 +70,24 @@ class Nano_Db_Query extends ArrayIterator{
     /**
      * Class constructor
      *
+     * @todo most functions depend on $model for TableName
+     *
+     *
      * @param Nano_Db_Model $model A Nano_Db_Model instance
      */
     public function __construct( Nano_Db_Model $model ){
+        $this->_tableName = $model->tableName();
+
+        $this->setModel( $model );
+    }
+
+    public function setModel( Nano_Db_Model $model ){
         $this->_model = $model;
+        return $this;
+    }
+
+    public function getModel(){
+        return $this->_model;
     }
 
     /**
@@ -91,7 +106,7 @@ class Nano_Db_Query extends ArrayIterator{
         if( $this->_sth !== false ){
             $result = $this->fetch();
 
-            $model = $this->_model;
+            $model = $this->getModel();
 
             if( $result ){
                 $this[] = new $model( $result );
@@ -191,7 +206,6 @@ class Nano_Db_Query extends ArrayIterator{
             $model = $this->_model;
         }
 
-
         $query = array();
 
         $keyname  = $model->key();
@@ -201,7 +215,9 @@ class Nano_Db_Query extends ArrayIterator{
 
         unset( $props[$keyname] );
 
-        if( $key ){
+        // NOTE that __NONE__ is a workaround for tables without
+        // primary key. Primary key is used falsely here;
+        if(  $keyname !== '__NONE__' && $key ){
             $set = array();
             $query[] = sprintf('UPDATE `%s`', $model->tableName() );
 
@@ -224,22 +240,19 @@ class Nano_Db_Query extends ArrayIterator{
         }
 
         $this->query( join("\n", $query ), array_values($props) );
-        $model->id = $this->lastInsertId();
     }
 
     public function delete( $key = null, $value = null ){
         if( is_array($key) ){
             foreach( $key as $rule ){
-                $this->orWhere( $rule );                         
+                $this->orWhere( $rule );
             }
         }
         else if( $key && $value){
             $this->orWhere( $key, $value );
         }
-        
+
         list( $sql, $values, $query ) = $this->build();
-        
-        
         list( $from, $where ) = $query;
 
         $sql = sprintf('DELETE %s %s', $from, $where);
@@ -256,20 +269,9 @@ class Nano_Db_Query extends ArrayIterator{
      * @param array $values Values for variable substitution
      * @return void
      */
-    public function query( $sql, $values ){       
-        $sql = str_replace( '?', '%d', $sql );
-        $sql = vsprintf( $sql, $values );
-        
-        
-        var_dump( $sql );
-        exit();
-
-
-        $where = '';
-
-
-
+    public function query( $sql, $values ){
         $this->prepare( $sql );
+
         if( $this->_sth ){
             $this->_sth->execute( $values );
 
@@ -348,7 +350,7 @@ class Nano_Db_Query extends ArrayIterator{
 
     private function all(){
         list( $sql, $values, $query ) = $this->build();
-        
+
         $sql = 'SELECT * ' . $sql;
 
         $this->query( $sql, $values );
@@ -362,14 +364,17 @@ class Nano_Db_Query extends ArrayIterator{
      *
      * @return Nano_Db_Query $this Fluent interface
      */
-    public function where( $key, $value = null ){
+    public function where( $key, $value = null, $table = null ){
+        if( null == $table ){
+            $table = $this->_tableName;
+        }
         if( is_array( $key ) ){
             foreach( $key as $filter ){
-                $this->where( $filter[0], $filter[1] );
+                $this->where( $filter[0], $filter[1], $table );
             }
         }
         else{
-            $this->_where[] = array( $key, $value );
+            $this->_where[] = array( $key, $value, $table );
         }
 
         return $this;
@@ -380,25 +385,64 @@ class Nano_Db_Query extends ArrayIterator{
      *
      * Parens are added around the entire "OR" section, so an extra AND may
      * be used as extra filter
+     * @todo add table parameter
      *
      * @param mixed $key The key or an array of key/value pairs
      * @param mixed $value Value for key if key is a string, or null
      * @return Nano_Db_Query $this A fluent interface
      */
- 
-    public function orWhere( $key, $value = null ){
+    public function orWhere( $key, $value = null, $table = null ){
+        if( null == $table ){
+            $table = $this->_tableName;
+        }
         if( is_array( $key ) ){
-            $this->_orwhere[] = $key;            
+            // adding an array results in AND query with parenteses for OR
+            foreach( $key as $index => $filter ){
+                if( count($filter) < 3 ){
+                    array_push( $filter, $table );//add $table
+                }
+                $key[$index] = $filter;
+            }
+            $this->_orwhere[] = $key;
         }
         else if( is_string($key) && null !== $value ){
-            $this->_orwhere[] = array( array( $key, $value ) );            
+            $this->_orwhere[] = array( array( $key, $value, $table ) );
         }
         else{
             throw new Exception( 'invalid syntax: either a key,value pair of a list of pairs expected');
         }
         return $this;
     }
-    
+
+    /**
+     * Do a trivial left-join
+     *
+     * Basic left join to filter on items from a different table
+     *
+     * @param $table Name of the table to join
+     * @param $key Key from originating table
+     * @param $value Key from join table
+     */
+    public function leftJoin( $joinTable, $key, $value ){
+        if( strpos( $key, ' ') == false ){//key is a simple string, add an operator
+            $match = array(null, $key, '=' );
+        }
+        else{// if matching, key contains LIKE, NOT LIKE or a != or = operator
+            preg_match( '/^(\w+)\s((!=)|([<>=])|(like?)|(not\slike?))?/', strtolower($key), $match );
+        }
+
+        if( count($match) > 2 ){
+            list( $full, $key, $op ) = $match;
+
+            $table = $this->_tableName;
+
+            $this->_joinLeft[] = sprintf( "LEFT JOIN `%s` ON `%s`.`%s` %s `%s`.`%s`",
+                $joinTable, $joinTable, $key, strtoupper($op), $table, $value );
+        }
+
+        return $this;
+    }
+
     /**
      * Construct and validate filter pairs
      *
@@ -421,11 +465,11 @@ class Nano_Db_Query extends ArrayIterator{
                     $filter[] = $sub;
                 }
             }
-            
+
             return join( " AND ", $filter );
         }
         else{
-            list( $key, $value ) = $rule;
+            list( $key, $value, $table ) = $rule;
 
             if( strpos( $key, ' ') == false ){//key is a simple string, add an operator
                 $match = array(null, $key, '=' );
@@ -436,7 +480,7 @@ class Nano_Db_Query extends ArrayIterator{
 
             if( count($match) > 2 ){
                 list( $full, $name, $op ) = $match;
-                
+
                 if( ($op == 'in' || $op == 'not in') && is_array($value) ){
                     $values = array_merge( $values, $value );
                     $replace = sprintf( '(%s)',join(',', array_fill(0, count($value), '?')));
@@ -446,7 +490,7 @@ class Nano_Db_Query extends ArrayIterator{
                     $replace = '?';
                 }
 
-                return sprintf( "`%s` %s %s", $name, strtoupper($op), $replace );
+                return sprintf( "`%s`.`%s` %s %s", $table, $name, strtoupper($op), $replace );
             }
         }
     }
@@ -460,36 +504,43 @@ class Nano_Db_Query extends ArrayIterator{
         $query  = array();
         $values = array();
 
-        $query[] = sprintf( 'FROM `%s`', $this->_model->tableName());
+        $query[] = sprintf( 'FROM `%s`', $this->_tableName);
 
-        $model = $this->_model;
 
-        if( ($key = $model->{$model->key()} ) && null !== $key ){
-            $query[] = sprintf( 'WHERE `%s` = ?', $model->key() );
+
+
+        if( ($key = $this->_model->{$this->_model->key()} ) && null !== $key ){
+            $query[] = sprintf( 'WHERE `%s` = ?', $this->_model->key() );
             $values[] = $key;
             $sql = join( "\n", $query );
             return array( $sql, $values, $query);
         }
-        
+
         $filter = array();
-        
+
+        if( count( $this->_joinLeft ) > 0 ){
+            foreach( $this->_joinLeft as $join ){
+                $query[] = $join;
+            }
+        }
+
         if( count( $this->_orwhere ) > 0 ){
             $or = array();
             foreach( $this->_orwhere as $rules ){
                 $or[] = sprintf('( %s )', $this->buildFilter( $rules, $values ));
             }
-            
+
             $filter[] = sprintf( '( %s )', join( ' OR ', $or ));
         }
 
         if( count( $this->_where ) > 0 ){
             $filter[] = $this->buildFilter( $this->_where, $values );
         }
-        
+
         if( ! empty( $filter ) ){
-            $query[] = 'WHERE ' . join( ' AND ', $filter );            
+            $query[] = 'WHERE ' . join( ' AND ', $filter );
         }
-        
+
         if( count( $this->_group ) ){
             $group = array();
             foreach( $this->_group as $value ){

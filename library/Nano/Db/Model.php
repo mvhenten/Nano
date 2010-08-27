@@ -8,7 +8,6 @@ class Nano_Db_Model extends ArrayObject{
     const FETCH_LIMIT = 25;
     const FETCH_OFFSET = 0;
 
-
     protected $_properties = array(
         /* put model properties here */
     );
@@ -18,7 +17,6 @@ class Nano_Db_Model extends ArrayObject{
         'tableName'  => self::FETCH_TABLENAME,
         'primaryKey' => self::FETCH_PRIMARY_KEY
     );
-
 
     /**
      * Factory function. Override this function with:
@@ -114,7 +112,7 @@ class Nano_Db_Model extends ArrayObject{
         //@todo this is automagic. is this a good idea?
         // adding properties of instance as filter
         foreach( $this->properties() as $key => $value ){
-            $qr->filter( sprintf("%s =", $key), $value);
+            $qr->where( sprintf("%s =", $key), $value);
         }
 
         return $qr;
@@ -133,7 +131,6 @@ class Nano_Db_Model extends ArrayObject{
         }
 
         $qh = new Nano_Db_Query( $instance );
-
         return $qh->put();
     }
 
@@ -153,7 +150,8 @@ class Nano_Db_Model extends ArrayObject{
     }
 
     //@todo refactor; key should return key;
-    //@todo refactor; key may be an array; refactor query class to reflect this
+    //@todo refactor; key may be an array;
+    // @todo refactor query class to reflect this
     public function key(){
         return $this->keyName();
     }
@@ -174,6 +172,4 @@ class Nano_Db_Model extends ArrayObject{
     public function tableName(){
         return $this->_settings['tableName'];
     }
-
-
 }
