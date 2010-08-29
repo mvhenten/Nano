@@ -34,6 +34,7 @@ class Nano_Router extends Nano_Collection{
 
         $n       = preg_replace( '/\/(\w+)/', '', $route['route'] );
         $keys    = array_filter( explode( '/:', $n ));
+
         $router  = array_combine( $keys, array_pad( array(), count($keys), Null ) );
         $router  = array_merge( $router, $route['defaults'] );
         $request = $this->getRequestValues( $url );
@@ -48,7 +49,12 @@ class Nano_Router extends Nano_Collection{
             }
             $key = array_shift( $request );
             if( null !== $key ){
-                $router[$key] = array_shift( $request );
+                if( count($request) > 0 ){
+                    $router[$key] = array_shift( $request );
+                }
+                else{
+                    $router['extra'] = $key;
+                }
             }
         }
 

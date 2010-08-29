@@ -149,7 +149,7 @@ class Nano_View{
                 if( file_exists( $path ) ){
                     require_once( $path );
                     if( class_exists( $className ) ){
-                        $helper = new $className;
+                        $helper = new $className( $this );
                     }
                 }
             }

@@ -60,8 +60,8 @@ class Nano_Controller{
         return $this->_layout;
     }
 
-    protected function setView( $layout, $router ){
-        $view = new Nano_View( $layout, $router );
+    protected function setView( $layout, $request ){
+        $view = new Nano_View( $layout, $request );
 
         $this->_view = $view;
     }
@@ -78,17 +78,17 @@ class Nano_Controller{
             $layout = $this->getConfig()->layout[$layout];
             $request = $this->getRequest();
 
-            $this->setView( $layout, $request->getRouter() );
+            $this->setView( $layout, $request );
         }
 
         return $this->_view;
     }
-    
+
     public function _jsonOut( $data ){
         header('Cache-Control: no-cache, must-revalidate');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
         header('Content-type: application/json');
-        
+
         echo json_encode( $data );
         exit;
     }
