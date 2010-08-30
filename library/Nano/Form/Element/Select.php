@@ -14,12 +14,14 @@ class Nano_Form_Element_Select extends Nano_Form_Element_Abstract{
             'options'   => null
         ), $attributes );
 
-        if( $options = $attributes['options'] ){
-            $this->addOptions( $options );
-        }
+        $options = $attributes['options'];
 
         unset( $attributes['options'] );
         parent::__construct( $name, $attributes );
+
+        if( $options ){
+            $this->addOptions( $options );
+        }
     }
 
 	public function addOptions( array $options ){
@@ -32,6 +34,11 @@ class Nano_Form_Element_Select extends Nano_Form_Element_Abstract{
         $attributes = array_merge( array(
             'value' => $value
         ), $attributes );
+
+
+        if( $this->getValue() == $value ){
+            $attributes['selected'] = 'selected';
+        }
 
 		$option = new Nano_Element('option', $attributes, $label);
 
