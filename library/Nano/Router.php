@@ -1,10 +1,13 @@
 <?php
+/**
+ * @todo remove Nano_Colleciton dependency!
+ */
 class Nano_Router extends Nano_Collection{
     public function __construct( $routes ){
         parent::__construct( $this->getRoute( $routes ) );
     }
 
-    private function getRequestUri(){
+    public function getRequestUri(){
         return $_SERVER['REQUEST_URI'];
     }
 

@@ -26,14 +26,14 @@ class Nano_Request{
     public function getRouter(){
         return $this->_router;
     }
-    
+
     public function isXmlHttpRequest(){
         if( null == $this->_headers ){
             $this->_headers = apache_request_headers();
         }
         //["X-Requested-With"]=>
         //string(14) "XMLHttpRequest"
-        
+
         if( isset( $this->_headers['X-Requested-With'] ) ){
             if( $this->_headers['X-Requested-With'] == 'XMLHttpRequest' ){
                 return true;
@@ -62,5 +62,9 @@ class Nano_Request{
             $this->_request = new Nano_Collection( $_REQUEST );
         }
         return $this->_request;
+    }
+
+    public function getRequestUri(){
+        return $this->_router->getRequestUri();
     }
 }

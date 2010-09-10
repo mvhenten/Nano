@@ -240,6 +240,8 @@ class Nano_Db_Query extends ArrayIterator{
         }
 
         $this->query( join("\n", $query ), array_values($props) );
+
+        return $this->lastInsertId();
     }
 
     public function delete( $key = null, $value = null ){
