@@ -50,7 +50,7 @@
  * @todo put and delete must allow for filter-like syntax.
  */
 class Nano_Db_Query extends ArrayIterator{
-    const FETCH_LIMIT = 25;
+    const FETCH_LIMIT = 11;
     const FETCH_OFFSET = 0;
     const FETCH_ORDER  = null;
     const FETCH_FILTER = null;
@@ -279,7 +279,7 @@ class Nano_Db_Query extends ArrayIterator{
 
             if( $this->_sth->errorCode() !== '00000' ){
                 $info = $this->_sth->errorInfo();
-                throw new Exception( join( "\n", $info ) );
+                throw new Exception( join( "\n", $info ) . "\n---\n" . $sql );
             }
         }
     }
@@ -309,6 +309,14 @@ class Nano_Db_Query extends ArrayIterator{
     public function limit( $int ){
         $this->_limit = $int;
         return $this;
+    }
+    
+    public function getLimit(){
+        return $this->_limit;
+    }
+    
+    public function getOffset(){
+        return $this->_offset;
     }
 
     /**

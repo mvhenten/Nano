@@ -27,7 +27,7 @@ class Nano_Form_Decorator_Textarea extends Nano_Form_Decorator_Abstract{
                 'for'   => $element->getAttribute('id')
             ));
 
-            $content = $this->renderElement( $labelElement->addContent( $label . $content ) );
+            $content = $this->renderElement( $labelElement->addContent( $label ) ) . $content;
         }
 
         $content = $this->renderElement( $wrapper->addContent( $content ) );

@@ -36,10 +36,18 @@ class Nano_Form_Decorator_Abstract extends Nano_Element_Decorator{
 
         if( null !== $label ){//generate label around element
             $labelElement = new Nano_Element( 'label', array(
-                'for'   => $element->getAttribute('id')
+                'for'   => $element->getAttribute('id'),
+                'class' => "label-" . $element->getAttribute('type')
             ));
+            
+            // checkbuttons and radios have a label on the right. saves gazillions of css.
+            if( in_array( $element->getAttribute('type'), array( 'checkbox', 'radio' ) ) ){
+                $content = $content . $this->renderElement( $labelElement->addContent( $label ) );                
+            }
+            else{
+                $content = $this->renderElement( $labelElement->addContent( $label ) ) . $content;                
+            }
 
-            $content = $this->renderElement( $labelElement->addContent( $label . $content ) );
         }
 
         if( $type !== 'hidden' && !empty($wrapper) ){
