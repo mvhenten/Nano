@@ -17,6 +17,7 @@ class Nano_View_Helper_Script{
             list( $content, $attributes ) = $script;
 
             $element = new Nano_Element( 'script', $attributes, trim($content) );
+            $element->setVertile();
 
             $elements[] = preg_replace( '/\s{2,}/', '', (string) $element );//$element;//$element->isVertile();
         }

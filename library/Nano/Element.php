@@ -58,11 +58,11 @@ class Nano_Element{
         return $this->content;
     }
 
-    public function setContent( $value ){
+    public function setContent( $value = null ){
         if( $value instanceof Nano_Element ){
             $this->addChild( $value );
         }
-        else if( null !== $value ){
+        else if( null != $value ){
             $this->content = new Nano_Collection();
             $this->addContent( $value );
         }

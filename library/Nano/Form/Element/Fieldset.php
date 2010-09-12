@@ -28,6 +28,7 @@ class Nano_Form_Element_Fieldset extends Nano_Form_Element_Abstract{
         }
 
         parent::__construct( null, $attributes );
+        $this->setVertile();
     }
 
 

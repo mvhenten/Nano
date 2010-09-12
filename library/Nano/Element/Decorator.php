@@ -37,9 +37,9 @@ class Nano_Element_Decorator{
             $element->addContent( rtrim((string) $child) );
         }
 
+        $content = $element->getContent();
 
-        if( null !== ( $content = $element->getContent() )
-           || $element->vertile() ){
+        if( $element->vertile() || !empty($content) ){
             if( null !== $content ){
                 $content = (array) $content;
                 $with = array_fill( 0, count($content), "\n");

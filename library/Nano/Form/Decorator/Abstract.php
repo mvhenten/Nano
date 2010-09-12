@@ -40,6 +40,8 @@ class Nano_Form_Decorator_Abstract extends Nano_Element_Decorator{
                 'class' => "label-" . $element->getAttribute('type')
             ));
             
+            $labelElement->setVertile();
+            
             // checkbuttons and radios have a label on the right. saves gazillions of css.
             if( in_array( $element->getAttribute('type'), array( 'checkbox', 'radio' ) ) ){
                 $content = $content . $this->renderElement( $labelElement->addContent( $label ) );                
