@@ -5,7 +5,7 @@
 class Nano_Db_Model extends ArrayObject{
     const FETCH_TABLENAME   = null;
     const FETCH_PRIMARY_KEY = null;
-    const FETCH_LIMIT = 25;
+    const FETCH_LIMIT = 50;
     const FETCH_OFFSET = 0;
 
     protected $_properties = array(

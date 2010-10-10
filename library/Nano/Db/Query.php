@@ -50,7 +50,7 @@
  * @todo put and delete must allow for filter-like syntax.
  */
 class Nano_Db_Query extends ArrayIterator{
-    const FETCH_LIMIT = 11;
+    const FETCH_LIMIT = 50;
     const FETCH_OFFSET = 0;
     const FETCH_ORDER  = null;
     const FETCH_FILTER = null;
@@ -310,11 +310,11 @@ class Nano_Db_Query extends ArrayIterator{
         $this->_limit = $int;
         return $this;
     }
-    
+
     public function getLimit(){
         return $this->_limit;
     }
-    
+
     public function getOffset(){
         return $this->_offset;
     }
