@@ -131,7 +131,10 @@ class Nano_Db_Model extends ArrayObject{
         }
 
         $qh = new Nano_Db_Query( $instance );
-        $this->id = $qh->put();
+
+        $last_insert = $qh->put();
+
+        $this->{$this->key()} = $last_insert;
 
         return $this;
     }
@@ -154,7 +157,7 @@ class Nano_Db_Model extends ArrayObject{
     //@todo refactor; key should return key;
     //@todo refactor; key may be an array;
     // @todo refactor query class to reflect this
-    public function key(){
+    public function key($value=null){
         return $this->keyName();
     }
 
