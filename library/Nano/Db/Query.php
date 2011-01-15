@@ -171,6 +171,21 @@ class Nano_Db_Query extends ArrayIterator{
     }
 
     /**
+     * 'Pluck' a property: foreach result in this query, return the requested property(ies)
+     *
+     * @param string $property A property from the model requested
+     */
+    public function pluck( $property ){
+        $collect = array();
+
+        foreach( $this as $obj ){
+            $collect[] = $obj->$property;
+        }
+
+        return $collect;
+    }
+
+    /**
      * Returns current query's row count
      *
      * @return integer $count Row count

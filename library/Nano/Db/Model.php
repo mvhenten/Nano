@@ -131,7 +131,9 @@ class Nano_Db_Model extends ArrayObject{
         }
 
         $qh = new Nano_Db_Query( $instance );
-        return $qh->put();
+        $this->id = $qh->put();
+
+        return $this;
     }
 
     /**
