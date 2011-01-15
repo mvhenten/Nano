@@ -81,6 +81,41 @@ class Nano_Db_Query extends ArrayIterator{
         $this->setModel( $model );
     }
 
+    /**
+     * Factory method: Creates a query for $model. This function
+     * will also instantiate $model for you to allow quick chaining.
+     *
+     * @param mixed $model Model name or $model instance
+     * @param array $construct Constructor variables for $model
+     */
+    static public function get( $model, $construct = null ){
+        if( is_scalar( $model )){
+            if( class_exists( $model ) ){
+                $instance = new $model( $construct );
+            }
+            else if( class_exists( "Model_" . $model ) ){
+                $model = "Model_" . $model;
+                $instance = new $model( $construct );
+            }
+            else{
+                throw new Exception( "$model cannot be resolved" );
+            }
+        }
+        else{
+            $instance = $model;
+        }
+
+        $qr = new Nano_Db_Query( $instance );
+
+        //@todo this is automagic. is this a good idea?
+        // adding properties of instance as filter
+        foreach( $instance->properties() as $key => $value ){
+            $qr->where( sprintf("%s =", $key), $value);
+        }
+
+        return $qr;
+    }
+
     public function setModel( Nano_Db_Model $model ){
         $this->_model = $model;
         return $this;

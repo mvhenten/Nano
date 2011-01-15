@@ -107,15 +107,17 @@ class Nano_Db_Model extends ArrayObject{
             $instance = $this;
         }
 
-        $qr = new Nano_Db_Query( $instance );
+        return Nano_Db_Query::get( $instance );
 
-        //@todo this is automagic. is this a good idea?
-        // adding properties of instance as filter
-        foreach( $this->properties() as $key => $value ){
-            $qr->where( sprintf("%s =", $key), $value);
-        }
-
-        return $qr;
+        //$qr = new Nano_Db_Query( $instance );
+        //
+        ////@todo this is automagic. is this a good idea?
+        //// adding properties of instance as filter
+        //foreach( $this->properties() as $key => $value ){
+        //    $qr->where( sprintf("%s =", $key), $value);
+        //}
+        //
+        //return $qr;
     }
 
 
