@@ -67,4 +67,26 @@ class Nano_Request{
     public function getRequestUri(){
         return $this->_router->getRequestUri();
     }
+
+    public function url( array $url = array() ){
+        $base = (array) $this->getRouter();
+
+        $route = array_merge( $base, $url );
+
+        $base = array_intersect_key( $route, $base );//holds controller,etc
+        $second = array_diff_key( $route, $base );//key value pairs url
+
+        $module = isset( $base['module'] ) ? '/' . $base['module'] : '';
+        unset( $base['module'] );
+
+        foreach( $second as $key => $value ){
+            $base[] = $key;
+            $base[] = $value;
+        }
+
+        $url = $module . '/' . join("/", $base );
+
+        return rtrim( $url, '/');
+    }
+
 }

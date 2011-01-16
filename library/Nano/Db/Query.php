@@ -322,7 +322,14 @@ class Nano_Db_Query extends ArrayIterator{
      * @return void
      */
     public function query( $sql, $values ){
+        //var_dump( $values );
+
+        //var_dump( $sql );
+        //var_dump( array_keys( $values ) );
+        $values = (array) $values;
         $this->prepare( $sql );
+
+        //var_dump( $values );
 
         if( $this->_sth ){
             $this->_sth->execute( $values );

@@ -136,7 +136,9 @@ class Nano_Db_Model extends ArrayObject{
 
         $last_insert = $qh->put();
 
-        $this->{$this->key()} = $last_insert;
+        if( $last_insert > 0 ){
+            $this->{$this->key()} = $last_insert;
+        }
 
         return $this;
     }
