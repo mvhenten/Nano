@@ -1,5 +1,5 @@
 <?php
-class Nano_View_Helper_Style extends Nano_View_Helper{    
+class Nano_View_Helper_Style extends Nano_View_Helper{
     private $_styles;
 
     public function Style(){
@@ -13,16 +13,16 @@ class Nano_View_Helper_Style extends Nano_View_Helper{
             //var_dump( $style );
             list( $content, $attributes ) = $style;
             $tag = empty($content) ? 'link' : 'style';
-            
-            
+
+
             if( $tag == 'link' ){
                 $content = null;
             }
-            
-            //$element->setVertile(false);   
-            
+
+            //$element->setVertile(false);
+
             //$tag == 'link' ? $content = null : '';
-            
+
             $element = new Nano_Element( $tag, $attributes, trim($content) );
 
             $elements[] = preg_replace( '/\s{2,}/', '', (string) $element );//$element;//$element->isVertile();

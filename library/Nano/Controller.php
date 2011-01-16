@@ -5,6 +5,9 @@ class Nano_Controller{
     private $_view;
     private $_layout;
 
+    private $_response;
+    private $_template;
+
     public function __construct( $request, $config ){
         $this->setRequest( $request );
         $this->setConfig( $config );
@@ -26,16 +29,40 @@ class Nano_Controller{
         }
 
         $this->postDispatch();
-        $this->renderView();
+
+        $this->response()->out();
+        //$this->renderTemplate();
+        //$this->renderView();
     }
 
     public function setLayout( $name ){
         $this->_layout = $name;
     }
 
-    public function setHelperPath( $path ){
-        $this->getView()->setHelperPath( $path );
+    //public function addHelperPath( $path ){
+    //    $this->template()->addHelperPath();
+    //}
+
+    public function response(){
+        if( null == $this->_response ){
+            $this->_response = new Nano_Response();
+        }
+
+        return $this->_response;
     }
+
+    public function template(){
+        if( null == $this->_template ){
+            $this->_template = new Nano_Template( $this->getRequest() );
+        }
+
+        return $this->_template;
+    }
+
+
+    //public function setHelperPath( $path ){
+    //    $this->getView()->setHelperPath( $path );
+    //}
 
     protected function setConfig( Nano_Config $config ){
         $this->_config = $config;
@@ -53,49 +80,55 @@ class Nano_Controller{
         return $this->_request;
     }
 
-    protected function getLayout(){
-        if( null == $this->_layout ){
-            $this->_layout = 'default';
-        }
-        return $this->_layout;
-    }
+    //protected function getLayout(){
+    //    if( null == $this->_layout ){
+    //        $this->_layout = 'default';
+    //    }
+    //    return $this->_layout;
+    //}
+    //
+    //protected function setView( $layout, $request ){
+    //    $view = new Nano_View( $layout, $request );
+    //
+    //    $this->_view = $view;
+    //}
 
-    protected function setView( $layout, $request ){
-        $view = new Nano_View( $layout, $request );
-
-        $this->_view = $view;
-    }
-
-    protected function getView(){
-        if( null == $this->_view ){
-            $layout = 'default';
-
-            //@todo this sets layout counter-intuitive.
-            if( $this->getRequest()->module ){
-                $layout = $this->getRequest()->module;
-            }
-
-            $layout = $this->getConfig()->layout[$layout];
-            $request = $this->getRequest();
-
-            $this->setView( $layout, $request );
-        }
-
-        return $this->_view;
-    }
+    //protected function getView(){
+    //    if( null == $this->_view ){
+    //        $layout = 'default';
+    //
+    //        //@todo this sets layout counter-intuitive.
+    //        if( $this->getRequest()->module ){
+    //            $layout = $this->getRequest()->module;
+    //        }
+    //
+    //        $layout = $this->getConfig()->layout[$layout];
+    //        $request = $this->getRequest();
+    //
+    //        $this->setView( $layout, $request );
+    //    }
+    //
+    //    return $this->_view;
+    //}
 
     public function _jsonOut( $data ){
-        header('Cache-Control: no-cache, must-revalidate');
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-        header('Content-type: application/json');
+        $this->response()->pushContent( json_encode( $data ) );
+        $this->response()->addHeader( 'Content-type: application/json' );
+        $this->response()->out();
 
-        echo json_encode( $data );
-        exit;
+        //
+        //header('Cache-Control: no-cache, must-revalidate');
+        //header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        //header('Content-type: application/json');
+        //
+        //echo json_encode( $data );
+        //exit;
     }
 
     protected function _pageNotFound( $content ){
-        header("HTTP/1.0 404 Not Found", true, 404);
-        echo $content;
+        $this->response()->setHeaders( array("HTTP/1.0 404 Not Found", true, 404) )
+                        ->pushContent( $content )
+                        ->out();
         exit;
     }
 
