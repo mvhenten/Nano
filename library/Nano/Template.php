@@ -70,6 +70,22 @@ class Nano_Template{
         return ob_get_clean();
     }
 
+    public function renderViewScript( Nano_Request $request ){
+        $path = array_filter( array(
+            ':module'       => $request->module,
+            ':dir'          => 'template',
+            ':controller'   => $request->controller,
+            ':action'       => $request->action
+        ) );
+
+
+        $path = join( '/', $path );
+        $path = '/Application/' . $path;
+
+        $this->__set( 'viewScript', $this->render( $path ) );
+        return $this->__get( 'viewScript' );
+    }
+
     public function getRequest(){
         return $this->_request;
     }
