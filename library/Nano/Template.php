@@ -70,7 +70,28 @@ class Nano_Template{
         return ob_get_clean();
     }
 
-    public function renderViewScript( Nano_Request $request ){
+    //public function startBlock( $name ){
+    //    ob_start();
+    //}
+
+
+
+    //public function renderRequestLayout( Nano_Request $request ){
+    //    $path = array_filter( array(
+    //        ':module'       => $request->module,
+    //        ':dir'          => 'template'
+    //    ) );
+    //
+    //
+    //    $path = join( '/', $path );
+    //    $path = '/Application/' . $path;
+    //
+    //    $this->__set( 'viewScript', $this->render( $path ) );
+    //    return $this->__get( 'viewScript' );
+    //
+    //}
+
+    public function renderRequestAction( Nano_Request $request ){
         $path = array_filter( array(
             ':module'       => $request->module,
             ':dir'          => 'template',
