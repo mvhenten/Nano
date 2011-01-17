@@ -1,17 +1,23 @@
 <?php
 /**
- * Minimal Template loader. loads template files, and acts as a proxy/scope for
- * helper functions within template files.
+ * Nano's Simple Template Engine. The template class provides two things:
  *
+ *  1) an inheritance based template engine based on similar concepts as Django's
+ *      templating engine from the python world
+ *  2) an execution scope for templates; variables within the template can be accessed
+ *      as members of this class, and helper classes can be accessed as methods of this class
  */
 if( ! defined( 'APPLICATION_PATH' ) )
     define( 'APPLICATION_PATH', '/' . trim( dirname( __FILE__ ), ' ./\\') );
 
 class Nano_Template{
+    protected $_parents = array();
+    protected $_blocks  = array();
+
     protected $_request;
     protected $_helpers = array();
     protected $_values = array();
-    protected $_templatePath = '';
+    protected $_templatePath = 'Application';
     protected $_helperPath   = array(
         'Application/helper'
     );
@@ -32,6 +38,10 @@ class Nano_Template{
         }
     }
 
+    /**
+     * Any values you need to carry over to the template are proxied trough
+     * magical __set and __get
+     */
     public function __set( $key, $value ){
         if( ($method = 'set' . ucfirst($key) ) && method_exists( $this, $method ) ){
             $this->$method( $value );
@@ -44,6 +54,10 @@ class Nano_Template{
         }
     }
 
+    /**
+     * Any values you need to carry over to the template are proxied trough
+     * magical __set and __get
+     */
     public function __get( $key ){
         if( ($member = "_$key") && property_exists( $this, $member ) ){
             return $this->$member;
@@ -54,44 +68,100 @@ class Nano_Template{
     }
 
     /**
-     * Templates operate within the scope of this class; helper functions may be
-     * called as methods from this class
+     * The template class acts as a proxy for helper classes. A helper class may
+     * be factored by calling it's short name as a method of the current template
+     * class. The template class then takes care of loading and instantiating
+     * the helper.
+     *
+     * @param string $name Helper name, like 'url' for the url helper
+     * @param mixed $arguments Optional creation arguments for url helpers
+     *
+     * @return void
     */
     public function __call( $name, $arguments ){
         $helper = $this->getHelper( $name );
         return call_user_func_array( array($helper, $name), $arguments );
     }
 
-    public function render( $template ){
-        $path = $this->expandPath( $template );
+    /**
+     * Renders the template; also cascades up to the templates
+     * this template may inherit from. Template names may be in the form of
+     * :modulename/:templatepath/:actionpath/:templatename, but without any
+     * file suffix and relative to the project directory
+     *
+     * @param $name Simple template name
+     * @return string $rendered_output Rendered output
+     */
+    public function render( $name ){
+        $this->_parents = array( $name );
 
-        ob_start();
-        require_once( $path );
-        return ob_get_clean();
+        while( count( $this->_parents ) > 0 ){
+            $tpl = array_pop( $this->_parents );
+            $path = $this->expandPath( $tpl );
+
+            ob_start();
+            include( $path );
+            $content = ob_get_clean();
+        }
+
+        return $content;
     }
 
-    //public function startBlock( $name ){
-    //    ob_start();
-    //}
+    /**
+     * Demarcates the start of a named content block in a template.
+     * Note that only the top parent template can render content outside
+     * of block regions.
+     *
+     * @param string $name Name of the content region, such as "title", "navbar"
+     */
+    public function block( $name ){
+        ob_start();
+        if( ! key_exists( $name, $this->_blocks ) ){
+            $this->_blocks[$name] = array();
+        }
+    }
 
+    /**
+     * Announces the end of a named content block, adds the accumulated buffer
+     * to the _blocks array and flushes buffer.
+     *
+     * N.B. you must properly close each content region.
+     * N.B. This function produces output, altough during render output is buffered
+     *
+     * @param string $name Name of the content region
+     * @param bool $append=True Should content be inserted at the start or appended
+     * @return void
+     */
+    public function endBlock( $name, $append=True ){
+        $content = ob_get_clean();
 
+        if( $append ){
+            array_unshift( $this->_blocks[$name], $content );
+        }
+        else{
+            $this->_blocks[$name][] = $content;
+        }
 
-    //public function renderRequestLayout( Nano_Request $request ){
-    //    $path = array_filter( array(
-    //        ':module'       => $request->module,
-    //        ':dir'          => 'template'
-    //    ) );
-    //
-    //
-    //    $path = join( '/', $path );
-    //    $path = '/Application/' . $path;
-    //
-    //    $this->__set( 'viewScript', $this->render( $path ) );
-    //    return $this->__get( 'viewScript' );
-    //
-    //}
+        $string = join( "\n", array_reverse($this->_blocks[$name]) );
+        echo $string;
+    }
 
-    public function renderRequestAction( Nano_Request $request ){
+    /**
+     * Adds a parent template to the list of templates that must be rendered
+     * @param string $name Relative template name. full path and suffix are added
+     */
+    public function inherit( $name ){
+        $this->_parents[] = $name;
+    }
+
+    /**
+     * Convenience method: parses a request object to determine a possibly valid
+     * template name for a /module/xxx/controller/action style layout.
+     *
+     * @param Nano_Request $request A nano request object
+     * @param string $base_path Relative template name.
+     */
+    public function getPathFromRequest( Nano_Request $request, $base_path = 'template'){
         $path = array_filter( array(
             ':module'       => $request->module,
             ':dir'          => 'template',
@@ -101,20 +171,38 @@ class Nano_Template{
 
 
         $path = join( '/', $path );
-        $path = '/Application/' . $path;
-
-        $this->__set( 'viewScript', $this->render( $path ) );
-        return $this->__get( 'viewScript' );
+        return $path;
     }
 
-    public function getRequest(){
-        return $this->_request;
+    /**
+     * Expands a template name into a template path
+     *
+     * @param string $name Basic name, like 'edit'. Omit file suffix. Nested names can be page/edit
+     * @return string $path Full path to /APPLICATION/$name.phtml
+     */
+    private function expandPath( $name ){
+        $name = trim( $name, ' /\\');
+        $path = APPLICATION_PATH . '/'
+            . join( '/', array_filter(
+            array(trim( $this->_templatePath, ' /\\'),
+            "$name.phtml"
+        )));
+        return $path;
     }
 
+    /**
+     * Wrapper around the script helper
+    */
     public function headScript(){
         return $this->getHelper( 'Script' );
     }
 
+    /**
+     * Retrieves a helper class based on the single name for that helper
+     *
+     * @param string $name Plain name; e.g. Nano_Helper_Script becomes 'script'
+     * @return Nano_Helper $helper
+     */
     public function getHelper( $name ){
         if( ! key_exists($name ,$this->_helpers)  ){
             $this->loadHelper( $name );
@@ -123,6 +211,16 @@ class Nano_Template{
         return $this->_helpers[strtolower($name)];
     }
 
+    /**
+     * Performs a lookup, and instantiates a helper class with the simple name $name.
+     * e.g. 'script' will be expanded to match either 'Helper_Script' or even 'Nano_View_Helper'
+     *
+     * Classes that can be accessed trough $_helperPath will get precedence over
+     * classes from Nano_View_Helper_*
+     *
+     * @param string $name Simple helper name, e.g. like 'url'
+     * @return void
+     */
     public function loadHelper( $name ){
         $name = ucfirst( $name );
 
@@ -152,8 +250,14 @@ class Nano_Template{
         }
     }
 
+    /** various getters and setters **/
+
     public function setValues( array $values = array() ){
         $this->_values = $values;
+    }
+
+    public function getValues(){
+        return $this->_values;
     }
 
     public function clearValues(){
@@ -168,10 +272,7 @@ class Nano_Template{
         $this->_helperPath = $paths;
     }
 
-    private function expandPath( $name ){
-        $name = trim( $name, ' /\\');
-        $path = APPLICATION_PATH .
-            sprintf( "%s/%s.phtml", trim( $this->_templatePath, ' /\\'), $name );
-        return $path;
+    public function getRequest(){
+        return $this->_request;
     }
 }
