@@ -7,8 +7,10 @@
  *  2) an execution scope for templates; variables within the template can be accessed
  *      as members of this class, and helper classes can be accessed as methods of this class
  */
-if( ! defined( 'APPLICATION_PATH' ) )
-    define( 'APPLICATION_PATH', '/' . trim( dirname( __FILE__ ), ' ./\\') );
+if( ! defined( 'APPLICATION_ROOT' ) ){
+    $nano_root = dirname( __FILE__ );
+    define( 'APPLICATION_ROOT', dirname($nano_root) );
+}
 
 class Nano_Template{
     protected $_parents = array();
@@ -17,10 +19,8 @@ class Nano_Template{
     protected $_request;
     protected $_helpers = array();
     protected $_values = array();
-    protected $_templatePath = 'Application';
-    protected $_helperPath   = array(
-        'Application/helper'
-    );
+    protected $_templatePath = '';
+    protected $_helperPath   = array('helper');
 
     /**
      * Class constructor.
@@ -175,18 +175,25 @@ class Nano_Template{
     }
 
     /**
-     * Expands a template name into a template path
+     * Expands a template name into a template path; e.g. call templates by
+     * using a relative path starting at the application root.
      *
      * @param string $name Basic name, like 'edit'. Omit file suffix. Nested names can be page/edit
      * @return string $path Full path to /APPLICATION/$name.phtml
      */
     private function expandPath( $name ){
         $name = trim( $name, ' /\\');
-        $path = APPLICATION_PATH . '/'
-            . join( '/', array_filter(
-            array(trim( $this->_templatePath, ' /\\'),
-            "$name.phtml"
+
+        //$path = array(trim( $this->_templatePath, ' /\\'), );
+        //$path = join( '/', array_filter($path));
+        //return APPLICATION_PATH . '/' . $path;
+
+        $path = join( '/', array_filter( array(
+            APPLICATION_ROOT,
+            trim( $this->_templatePath, ' /\\'),
+            $name . '.phtml'
         )));
+
         return $path;
     }
 
@@ -204,7 +211,8 @@ class Nano_Template{
      * @return Nano_Helper $helper
      */
     public function getHelper( $name ){
-        if( ! key_exists($name ,$this->_helpers)  ){
+
+        if( ! key_exists(strtolower($name) ,$this->_helpers)  ){
             $this->loadHelper( $name );
         }
 
@@ -223,15 +231,13 @@ class Nano_Template{
      */
     public function loadHelper( $name ){
         $name = ucfirst( $name );
-
         $klass = "Helper_" . $name;
 
         if( ! class_exists( $klass ) ){
             $basename = sprintf( "%s.php", $name );
 
             foreach( $this->_helperPath as $path ){
-                $path = APPLICATION_PATH . '/' . $path . '/' . $basename;
-                //print $path . "<br/>\n";
+                $path = join( '/', array(APPLICATION_ROOT,$path,$basename));
                 if( file_exists( $path ) ){
                     require_once( $path );
                 }
