@@ -45,6 +45,11 @@ class Nano_Response{
         echo $content;
     }
 
+    public function redirect( $where, $how = 303 ){
+        header( sprintf( 'Location: %s', $where, $how ));
+        exit(1);
+    }
+
     public function unshiftContent( $content ){
         array_unshift( $this->_content, $content );
         return $this;
@@ -63,7 +68,6 @@ class Nano_Response{
         array_pop( $this->_content[] );
         return $content;
     }
-
 
     public function setStatus( $code = 200 ){
         $this->_status = $code;

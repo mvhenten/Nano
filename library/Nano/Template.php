@@ -16,11 +16,12 @@ class Nano_Template{
     protected $_parents = array();
     protected $_blocks  = array();
 
-    protected $_request;
     protected $_helpers = array();
     protected $_values = array();
     protected $_templatePath = '';
     protected $_helperPath   = array('helper');
+
+    private $_templates = array();
 
     /**
      * Class constructor.
@@ -30,9 +31,7 @@ class Nano_Template{
      * @param Nano_Reuqest $request A nano request object
      * @param array $config A key/value array
      */
-    public function __construct( Nano_Request $request, array $config = array() ){
-        $this->_request = $request;
-
+    public function __construct( array $config = array() ){
         foreach( $config as $key => $value ){
             $this->__set( $key, $value );
         }
@@ -83,6 +82,32 @@ class Nano_Template{
         return call_user_func_array( array($helper, $name), $arguments );
     }
 
+    public function __toString(){
+        return $this->toString();
+    }
+
+    public function toString(){
+        $collect = '';
+        foreach( $this->_templates as $template ){
+            $this->_parents = array( $template );
+
+            while( count( $this->_parents ) > 0 ){
+                $tpl = array_pop( $this->_parents );
+                $path = $this->expandPath( $tpl );
+
+                ob_start();
+                require( $path );
+                $content = ob_get_clean();
+            }
+
+            $collect .= $content;
+        }
+
+        return $collect;
+    }
+
+
+
     /**
      * Renders the template; also cascades up to the templates
      * this template may inherit from. Template names may be in the form of
@@ -93,18 +118,9 @@ class Nano_Template{
      * @return string $rendered_output Rendered output
      */
     public function render( $name ){
-        $this->_parents = array( $name );
+        $this->_templates[] = $name;
 
-        while( count( $this->_parents ) > 0 ){
-            $tpl = array_pop( $this->_parents );
-            $path = $this->expandPath( $tpl );
-
-            ob_start();
-            include( $path );
-            $content = ob_get_clean();
-        }
-
-        return $content;
+        return $this;
     }
 
     /**
@@ -161,10 +177,10 @@ class Nano_Template{
      * @param Nano_Request $request A nano request object
      * @param string $base_path Relative template name.
      */
-    public function getPathFromRequest( Nano_Request $request, $base_path = 'template'){
+    public function path( Nano_Request $request, $base_path = 'template'){
         $path = array_filter( array(
             ':module'       => $request->module,
-            ':dir'          => 'template',
+            ':dir'          => $base_path,
             ':controller'   => $request->controller,
             ':action'       => $request->action
         ) );
@@ -278,7 +294,15 @@ class Nano_Template{
         $this->_helperPath = $paths;
     }
 
-    public function getRequest(){
-        return $this->_request;
+    public function setTemplate( $template ){
+        $this->_templates = (array) $template;
     }
+
+    public function setTemplates( $templates ){
+        $this->_templates = (array) $template;
+    }
+
+    //public function getRequest(){
+    //    return $this->_request;
+    //}
 }
