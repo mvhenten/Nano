@@ -6,7 +6,7 @@
  * cases: call the appropriate function for get{YourAction} or simply 'get'
  * or 'post'. It keeps track of the template and response object, and tries
  * not to get in the way.
- * 
+ *
  */
 abstract class Nano_Controller{
     //private $_config;
@@ -59,6 +59,27 @@ abstract class Nano_Controller{
      */
     protected function get( $request, $config ){
         return;
+    }
+
+
+    /**
+     * Convenience method: parses a request object to determine a possibly valid
+     * template name for a /module/xxx/controller/action style layout.
+     *
+     * @param Nano_Request $request A nano request object
+     * @param string $base_path Relative template name.
+     */
+    public function templatePath( $request = null, $base_path = 'template' ){
+        $path = array_filter( array(
+            ':module'       => $request->module,
+            ':dir'          => $base_path,
+            ':controller'   => $request->controller,
+            ':action'       => $request->action
+        ) );
+
+
+        $path = join( '/', $path );
+        return $path;
     }
 
     //public function dispatch(){

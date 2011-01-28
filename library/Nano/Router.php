@@ -4,7 +4,7 @@
  */
 class Nano_Router extends Nano_Collection{
     public function __construct( $routes ){
-        parent::__construct( $this->getRoute( $routes ) );
+        parent::__construct( (array) $this->getRoute( $routes ) );
     }
 
     public function getRequestUri(){
@@ -37,8 +37,10 @@ class Nano_Router extends Nano_Collection{
         //@todo cache these calculations so they don't have to be done for plugins
         list( $match, $matches, $pattern ) = $this->parseRoute( $route );
 
+
         if( intval($match) > 0 ){
             $match = preg_match( "/^$pattern/", $uri, $matches2 );
+
             if( $match > 0 ){
                 $rest   = explode( '/', trim( $uri ) );
                 $offset = count( explode( '/', trim( $route['route'] )));
@@ -75,6 +77,6 @@ class Nano_Router extends Nano_Collection{
             }
         }
 
-        return $match;
+        return (array) $match;
     }
 }

@@ -88,6 +88,7 @@ class Nano_Template{
 
     public function toString(){
         $collect = '';
+
         foreach( $this->_templates as $template ){
             $this->_parents = array( $template );
 
@@ -95,9 +96,9 @@ class Nano_Template{
                 $tpl = array_pop( $this->_parents );
                 $path = $this->expandPath( $tpl );
 
-                ob_start();
-                require( $path );
-                $content = ob_get_clean();
+                @ob_start();
+                include( $path );
+                $content = @ob_get_clean();
             }
 
             $collect .= $content;
@@ -105,8 +106,6 @@ class Nano_Template{
 
         return $collect;
     }
-
-
 
     /**
      * Renders the template; also cascades up to the templates
@@ -168,26 +167,6 @@ class Nano_Template{
      */
     public function inherit( $name ){
         $this->_parents[] = $name;
-    }
-
-    /**
-     * Convenience method: parses a request object to determine a possibly valid
-     * template name for a /module/xxx/controller/action style layout.
-     *
-     * @param Nano_Request $request A nano request object
-     * @param string $base_path Relative template name.
-     */
-    public function path( Nano_Request $request, $base_path = 'template'){
-        $path = array_filter( array(
-            ':module'       => $request->module,
-            ':dir'          => $base_path,
-            ':controller'   => $request->controller,
-            ':action'       => $request->action
-        ) );
-
-
-        $path = join( '/', $path );
-        return $path;
     }
 
     /**
