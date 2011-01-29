@@ -2,22 +2,21 @@
 /**
  * @file Controller.php
  *
- * Base class for a simple "controller" part of the MVC. It generalises two
+ * Base class for a simple "view" part of the MVT. It generalises two
  * cases: call the appropriate function for get{YourAction} or simply 'get'
  * or 'post'. It keeps track of the template and response object, and tries
  * not to get in the way.
  *
  */
 abstract class Nano_Controller{
-    //private $_config;
-    //private $_request;
     private $_response;
     private $_template;
-    //private $_view;
-    //private $_layout;
+    private $_request;
 
 
     public function __construct( Nano_Request $request, Nano_Config $config ){
+        $this->_request = $request;
+
         if( $request->isPost() ){
             $this->post( $request, $config );
         }
@@ -82,34 +81,6 @@ abstract class Nano_Controller{
         return $path;
     }
 
-    //public function dispatch(){
-    //    $this->preDispatch();
-    //
-    //    $request = $this->getRequest();
-    //
-    //    if( ($method = sprintf('%sAction', $request->action) )
-    //       && method_exists($this, $method) ){
-    //        call_user_func( array( $this, sprintf("%sAction", $request->action)));
-    //    }
-    //    else{
-    //        throw new Exception( sprintf('Action %s not defined', $request->action) );
-    //    }
-    //
-    //    $this->postDispatch();
-    //
-    //    //$this->response()->out();
-    //    //$this->renderTemplate();
-    //    //$this->renderView();
-    //}
-
-    //public function setLayout( $name ){
-    //    $this->_layout = $name;
-    //}
-
-    //public function addHelperPath( $path ){
-    //    $this->template()->addHelperPath();
-    //}
-
     public function response(){
         if( null == $this->_response ){
             $this->_response = new Nano_Response();
@@ -120,79 +91,15 @@ abstract class Nano_Controller{
 
     public function template(){
         if( null == $this->_template ){
-            $this->_template = new Nano_Template();
+            $this->_template = new Nano_Template(array('request'=>$this->request()));
         }
 
         return $this->_template;
     }
 
-    //protected function setConfig( Nano_Config $config ){
-    //    $this->_config = $config;
-    //}
-
-    //protected function setRequest( Nano_Request $request ){
-    //    $this->_request = $request;
-    //}
-
-    //protected function config(){
-    //    return $this->_config;
-    //}
-    //
-    //protected function request(){
-    //    return $this->_request;
-    //}
-
-    //protected function getLayout(){
-    //    if( null == $this->_layout ){
-    //        $this->_layout = 'default';
-    //    }
-    //    return $this->_layout;
-    //}
-    //
-    //protected function setView( $layout, $request ){
-    //    $view = new Nano_View( $layout, $request );
-    //
-    //    $this->_view = $view;
-    //}
-
-    //protected function getView(){
-    //    if( null == $this->_view ){
-    //        $layout = 'default';
-    //
-    //        //@todo this sets layout counter-intuitive.
-    //        if( $this->getRequest()->module ){
-    //            $layout = $this->getRequest()->module;
-    //        }
-    //
-    //        $layout = $this->getConfig()->layout[$layout];
-    //        $request = $this->getRequest();
-    //
-    //        $this->setView( $layout, $request );
-    //    }
-    //
-    //    return $this->_view;
-    //}
-
-    //public function _jsonOut( $data ){
-    //    $this->response()->pushContent( json_encode( $data ) );
-    //    $this->response()->addHeader( 'Content-type: application/json' );
-    //    $this->response()->out();
-    //
-    //    //
-    //    //header('Cache-Control: no-cache, must-revalidate');
-    //    //header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-    //    //header('Content-type: application/json');
-    //    //
-    //    //echo json_encode( $data );
-    //    //exit;
-    //}
-    //
-    //protected function _pageNotFound( $content ){
-    //    $this->response()->setHeaders( array("HTTP/1.0 404 Not Found", true, 404) )
-    //                    ->pushContent( $content )
-    //                    ->out();
-    //    exit;
-    //}
+    public function request(){
+        return $this->_request;
+    }
 
 
     /**
@@ -230,18 +137,4 @@ abstract class Nano_Controller{
     //    $this->postDispatch();
     //    $this->renderView();
     //}
-    //
-    //protected function _helper( $name, $arguments ){
-    //    $arguments = func_get_args();
-    //
-    //    $name = array_shift( $arguments );
-    //
-    //    return $this->getView()->__call( $name, $arguments );
-    //}
-
-
-    ////protected function renderView(){ echo $this->getView(); }
-    //protected function preDispatch(){}
-    //protected function postDispatch(){}
-    //protected function init(){}
 }
