@@ -89,6 +89,8 @@ class Nano_Template{
     public function toString(){
         $collect = '';
 
+        extract( $this->_values, EXTR_SKIP&EXTR_REFS  );
+
         foreach( $this->_templates as $template ){
             $this->_parents = array( $template );
 

@@ -18,19 +18,6 @@ class Nano_Router extends Nano_Collection{
         return array_filter(explode( '/', array_shift( $url )));
     }
 
-    function parseRoute( $route ){
-        $match = preg_match_all( '/\/:(\w+)/', $route['route'], $matches );
-
-        if( intval($match) > 0 ){
-            //echo count($matches[1]);
-            $replace = array_fill( 0, count($matches[1]), '/(\w+)');
-            $pattern = str_replace( $matches[0], $replace, $route['route'] );
-            $pattern = str_replace( '/', '\/', $pattern );
-        }
-
-        return array( $match, $matches, $pattern );
-    }
-
     function matchRoute( $uri, $route ){
         $uri = addslashes(rtrim( $uri, '/' ));
 
@@ -42,7 +29,6 @@ class Nano_Router extends Nano_Collection{
 
         // each uri component is optional until matched
         do{
-            //print('/'.join('\/', $pattern).'/') . "\n";
             preg_match_all( '/'.join('\/', $pattern).'/', $uri, $matches );
 
             if( ! empty($matches[0] ) ){

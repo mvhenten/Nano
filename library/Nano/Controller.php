@@ -23,11 +23,12 @@ abstract class Nano_Controller{
         else{
             $method = sprintf('get%s', ucfirst($request->action));
             if( method_exists( $this, $method ) ){
-                $this->$method( $request, $config );
+                $response = $this->$method( $request, $config );
             }
             else{
-                $this->get( $request, $config );
+                $response = $this->get( $request, $config );
             }
+            $this->response()->push($response);
         }
     }
 
@@ -68,18 +69,18 @@ abstract class Nano_Controller{
      * @param Nano_Request $request A nano request object
      * @param string $base_path Relative template name.
      */
-    public function templatePath( $request = null, $base_path = 'template' ){
-        $path = array_filter( array(
-            ':module'       => $request->module,
-            ':dir'          => $base_path,
-            ':controller'   => $request->controller,
-            ':action'       => $request->action
-        ) );
-
-
-        $path = join( '/', $path );
-        return $path;
-    }
+    //public function templatePath( $request = null, $base_path = 'template' ){
+    //    $path = array_filter( array(
+    //        ':module'       => $request->module,
+    //        ':dir'          => $base_path,
+    //        ':controller'   => $request->controller,
+    //        ':action'       => $request->action
+    //    ) );
+    //
+    //
+    //    $path = join( '/', $path );
+    //    return $path;
+    //}
 
     public function response(){
         if( null == $this->_response ){
