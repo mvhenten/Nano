@@ -32,37 +32,30 @@ class Nano_Router extends Nano_Collection{
     }
 
     function matchRoute( $uri, $route ){
-        $uri = rtrim( $uri, '/' );
+        $uri = addslashes(rtrim( $uri, '/' ));
 
-        //@todo cache these calculations so they don't have to be done for plugins
-        list( $match, $matches, $pattern ) = $this->parseRoute( $route );
+        $pattern = preg_replace('/:\w+/', '(\w+)', $route['route']);
+        preg_match_all('/:(\w+)/', $route['route'], $keys );
 
+        $keys = isset($keys[1])?$keys[1]:array();
+        $pattern = explode('/', trim($pattern, '/'));
 
-        if( intval($match) > 0 ){
-            $match = preg_match( "/^$pattern/", $uri, $matches2 );
+        // each uri component is optional until matched
+        do{
+            //print('/'.join('\/', $pattern).'/') . "\n";
+            preg_match_all( '/'.join('\/', $pattern).'/', $uri, $matches );
 
-            if( $match > 0 ){
-                $rest   = explode( '/', trim( $uri ) );
-                $offset = count( explode( '/', trim( $route['route'] )));
-                $rest   = array_slice( $rest, $offset, -1 );
-                $chunks = array_chunk( $rest, 2 );
-
-                $route_match = array();
-
-                foreach( $chunks as $chunk ){
-                    list( $key, $value ) = array_pad($chunk, 2, True);
-                    $route_match["$key"] = $value;
+            if( ! empty($matches[0] ) ){
+                if( !empty($matches[1] ) && (count($keys) == count($matches[1])) ){
+                    $route['defaults'] = array_combine( $keys, $matches[1] ) + $route['defaults'];
                 }
-
-                array_shift($matches2);
-                $keys = $matches[1];
-
-                $route_match = array_merge( array_combine( $keys, $matches2 ), $route_match);
-                $route_match = array_merge( $route['defaults'], $route_match );
-
-                return $route_match;
+                return $route['defaults'];
             }
+
+            array_pop($pattern);
+            array_pop($keys);
         }
+        while($pattern);
     }
 
     private function getRoute( $routes ){
