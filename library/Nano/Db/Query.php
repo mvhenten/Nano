@@ -322,14 +322,8 @@ class Nano_Db_Query extends ArrayIterator{
      * @return void
      */
     public function query( $sql, $values ){
-        //var_dump( $values );
-
-        //var_dump( $sql );
-        //var_dump( array_keys( $values ) );
         $values = (array) $values;
         $this->prepare( $sql );
-
-        //var_dump( $values );
 
         if( $this->_sth ){
             $this->_sth->execute( $values );
@@ -490,22 +484,30 @@ class Nano_Db_Query extends ArrayIterator{
      * @param $key Key from originating table
      * @param $value Key from join table
      */
-    public function leftJoin( $joinTable, $key, $value ){
-        if( strpos( $key, ' ') == false ){//key is a simple string, add an operator
-            $match = array(null, $key, '=' );
-        }
-        else{// if matching, key contains LIKE, NOT LIKE or a != or = operator
-            preg_match( '/^(\w+)\s((!=)|([<>=])|(like?)|(not\slike?))?/', strtolower($key), $match );
+    public function leftJoin( $joinTable, $column, $value = null ){
+        if( ! is_array( $column ) ){
+            $column = array($column=>$value);
         }
 
-        if( count($match) > 2 ){
-            list( $full, $key, $op ) = $match;
+        $table = $this->_tableName;
+        $joins = array();
+        foreach( $column as $key => $value ){
+            if( strpos( $key, ' ') == false ){//key is a simple string, add an operator
+                $match = array(null, $key, '=' );
+            }
+            else{// if matching, key contains LIKE, NOT LIKE or a != or = operator
+                preg_match( '/^(\w+)\s((!=)|([<>=])|(like?)|(not\slike?))?/', strtolower($key), $match );
+            }
 
-            $table = $this->_tableName;
-
-            $this->_joinLeft[] = sprintf( "LEFT JOIN `%s` ON `%s`.`%s` %s `%s`.`%s`",
-                $joinTable, $joinTable, $key, strtoupper($op), $table, $value );
+            if( count($match) > 2 ){
+                list( $full, $key, $op ) = $match;
+                $joins[] = sprintf("`%s`.`%s` %s `%s`.`%s`",
+                    $joinTable, $key, strtoupper($op), $table, $value );
+            }
         }
+
+        $this->_joinLeft[] = sprintf( "LEFT JOIN `%s` ON %s",
+            $joinTable, join( 'AND', $joins ) );
 
         return $this;
     }
