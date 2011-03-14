@@ -23,28 +23,6 @@ class Nano_Form extends Nano_Form_Element_Abstract{
         parent::__construct( null, $attributes );
     }
 
-    ///**
-    // * factory function... create form elements... not sure if I want this...
-    // */
-    //public function __call( $name, $arguments ){
-    //    if( strpos( $name, 'get' ) == 0 ){
-    //        $className = sprintf('Nano_Form_Element_%s', substr($name, 3 ));
-    //
-    //        if( class_exists( $className ) ){
-    //            list( $name, $attributes ) = $arguments;
-    //            return new $className( $name, $attributes );
-    //        }
-    //    }
-    //}
-    //
-    /**
-     * Factory function: return a new fieldset. must be appended afterwards!
-     *
-     * @param string $name Name of the fieldset
-     * @param array $attributes Array op optional attributes
-     *
-     * @return Nano_Form_Element_Fieldset
-     */
     public function getFieldset( $name, $attributes = array() ){
         return new Nano_Form_Element_Fieldset( $name, $attributes );
     }
