@@ -86,9 +86,7 @@ class Nano_Element{
     }
 
     public function addChild( $args ){
-        $children = $this->getChildren();
         $args = func_get_args();
-
         $element = array_shift( $args );
 
         if( ! $element instanceof Nano_Element ){
@@ -98,7 +96,13 @@ class Nano_Element{
             $element = new Nano_Element( $element, $attributes, $content );
         }
 
+        $children = $this->children();
+
         $children[] = $element;
+
+        $this->children = $children;
+
+        $element->setParent($this);
 
         return $this;
     }
@@ -114,7 +118,6 @@ class Nano_Element{
         if( ! is_array( $children ) ){
             return;
         }
-
 
         foreach( $children as $type => $attributes ){
             $config = (object) array_merge(array(
@@ -134,61 +137,67 @@ class Nano_Element{
         return $this;
     }
 
-    /**
-     * Collect children of this element defined by $select
-     * Note that this function returns any match!
-     *
-     * @param array $select Select may contain 'type', or any other attribute
-     */
-    public function findChildren( array $select = array() ){
-        $children = $this->getChildren();
-
-        if( count( $select ) == 0 ){
-            return $children;
+    public function children( $selectors = array() ){
+        if( null == $this->children ){
+            $this->children = array();
         }
 
-        $config = (object) array_merge( array(
-            'type'  => null,
-            'id'    => null,
-            'className' => null,
-            'attributes' => null
-        ), $select );
-
-        unset( $select['type'] );
-        unset( $select['id'] );
-        unset( $select['id'] );
-
-        $config->attributes = $select;
-        $collect  = array();
-
-        foreach( $children as $child ){
-            if( ( $config->type && $child->getType() == $config->type )
-               || ($config->id && $child->getAttribute('id') == $config->id)
-               || ($config->className && $child->getAttribute('class') == $config->clasName )
-            ){
-                $collect[] = $child;
-            }
-            else if( count($config->attributes) > 0 ){
-                foreach( $config->attributes as $key => $value ){
-                    if( $child->getAttribute( $key ) == $value ){
-                        $collect[] = $child;
-                        break;
-                    }
-                }
-            }
+        if( empty($selectors) ){
+            return $this->children;
         }
 
+        $collect = array();
+        $stack = (array) $this->children;
+
+        while($stack){
+            $child = array_pop($stack);
+            $diff = array_diff($selectors, $child->attributes());
+
+            if(empty($diff)){
+                $collect[]=$child;
+            }
+
+            if( $child->hasChildren() ){
+                $stack = array_merge($stack, $child->children());
+            }
+        }
         return $collect;
     }
 
-    public function recursivelyFindChildren( array $select = array() ){
-        $collect = $this->findChildren( $select );
-
-        foreach( $this->getChildren() as $child ){
-            array_merge( $collect, $child->recursivelyFindChildren($select));
+    public function removeChildren( $selectors = array() ){
+        if( null == $this->children ){
+            $this->children = array();
         }
 
+        if( empty($selectors) ){
+            return $this->children;
+        }
+
+        $collect = array();
+        $stack = $this->children;
+
+        while($stack){
+            $child = array_pop($stack);
+            $diff = array_diff($selectors, $child->attributes());
+
+            if(empty($diff)){
+                $child = $child->getParent()->removeChild($child);
+                $collect[] = $child;
+            }
+            else if( $child->hasChildren() ){
+                $stack = array_merge($stack, $child->children());
+            }
+        }
         return $collect;
+    }
+
+    public function removeChild( $child ){
+        $children = $this->children();
+        $key = array_search( $child, $children );
+        if( false !== $key ){
+            unset($this->children[$key]);
+        }
+        return $child;
     }
 
     public function setParent( Nano_Element $element ){
@@ -201,18 +210,18 @@ class Nano_Element{
     }
 
     public function getChildren(){
-        if( null === $this->children ){
-            $this->children = new Nano_Collection();
-        }
+        return $this->children();
+    }
 
-        return $this->children;
+    public function attributes(){
+        if( null === $this->attributes ){
+            $this->attributes = array();
+        }
+        return $this->attributes;
     }
 
     public function getAttributes(){
-        if( null === $this->attributes ){
-            $this->attributes = new Nano_Collection();
-        }
-        return $this->attributes;
+        return $this->attributes();
     }
 
     public function setAttributes( array $attributes ){
@@ -226,25 +235,25 @@ class Nano_Element{
         $attributes = $this->getAttributes();
         $attributes[$name] = $value;
 
+        $this->attributes = $attributes;
         return $this;
     }
 
     public function getAttribute( $name ){
-        return $this->getAttributes()->$name;
+        $attr = $this->attributes();
+        if( isset($attr[$name])){
+            return $attr[$name];
+        }
     }
 
     public function removeAttribute( $name ){
-        $attr = $this->getAttributes();
-        $value = $attr->$name;
-        $attr->$name = null;
-        return $value;
+        $attr = $this->attributes();
+        unset($attr[$name]);
+        $this->attributes = $attr;
     }
 
     public function hasChildren(){
-        return true;
-        if( count( $this->getChildren() ) > 0 ){
-            return true;
-        }
-        return false;
+        $children = $this->children();
+        return !empty($children);
     }
 }
