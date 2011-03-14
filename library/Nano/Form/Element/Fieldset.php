@@ -20,6 +20,7 @@ class Nano_Form_Element_Fieldset extends Nano_Form_Element_Abstract{
 
         if( ($legend = $attributes['legend']) || ($legend = $attributes['label']) ){
             $this->addChild( new Nano_Element( 'legend', null, $legend ) );
+            unset($attributes['label']);
         }
 
         if( ( $tagname = $attributes['tagname'] ) ){

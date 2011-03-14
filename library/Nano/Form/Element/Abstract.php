@@ -43,34 +43,6 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
     }
 
     /**
-     * Add a child element. This function can act as a factory, by supplying
-     * constructor arguments for Nano_Element. If the first argument is an instance
-     * of Nano_Element, the element is appended as is
-     *
-     * @param mixed $args Mixed, may be a Nano_Element or the element type,
-     * @param string $attributes If $args is not a Nano_Element, optional attributes
-     * @param string $content If $args not Nano_Element, content of the element
-     * @return Nano_Form_Element $this
-     */
-    public function addChild( $args ){
-        $children = $this->getChildren();
-        $args = func_get_args();
-
-        $element = array_shift( $args );
-
-        if( ! $element instanceof Nano_Element ){
-            $attributes = array_shift( $args );
-            $content    = array_shift( $args );
-
-            $element = new Nano_Element( $element, $attributes, $content );
-        }
-
-        $children[] = $element;
-
-        return $this;
-    }
-
-    /**
      * Add a form element. This method is different from add child,
      * since it takes in account that the element is one of the Form_
      * family, and may default to Input
@@ -85,26 +57,22 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
         if( count($attributes) == 0 ) return true;
 
         $klass = 'Nano_Form_Element_Input';
-        
-        //if( $attributes instanceof Nano_Element ){
-        //    $this->addChild( $attributes );
-        //      return $attributes
-        //}
+
         if( $name instanceof Nano_Element ){
             $this->addChild( $name );
             return $name;
         }
-        
+
         if( isset( $attributes['type'] ) ){
             $k =  sprintf('Nano_Form_Element_%s', ucfirst($attributes['type']));
             if( class_exists( $k ) ){// input/type can be a separate class.
                 $klass = $k;
             }
         }
-        
+
         $element = new $klass( $name, $attributes );
         $this->addChild( $element );
-        
+
         return $element;
     }
 
@@ -189,11 +157,10 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
         if( count( $this->_errors ) > 0 ){
             $this->setAttribute( 'class', trim($this->getAttribute('class') . ' error'));
         }
-        
+
         return $this->_errors;
-        //return (bool) count($this->_errors);
     }
-    
+
     /**
      * Check if form is valid. This function will return FALSE if the form
      * has not yet been validated!
