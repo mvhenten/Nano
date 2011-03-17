@@ -69,6 +69,10 @@ class Nano_Request{
     }
 
     public function url( array $url = array() ){
+        if( empty($url) ){
+            return $this->getRequestUri();
+        }
+        
         $base = (array) $this->getRouter();
 
         $route = array_merge( $base, $url );

@@ -18,7 +18,7 @@ abstract class Nano_Controller{
         $this->_request = $request;
 
         if( $request->isPost() ){
-            $this->post( $request, $config );
+            $response = $this->post( $request, $config );
         }
         else{
             $method = sprintf('get%s', ucfirst($request->action));
@@ -28,8 +28,8 @@ abstract class Nano_Controller{
             else{
                 $response = $this->get( $request, $config );
             }
-            $this->response()->push($response);
         }
+        $this->response()->push($response);
     }
 
     /**

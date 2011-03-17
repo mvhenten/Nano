@@ -258,6 +258,7 @@ class Nano_Db_Query extends ArrayIterator{
 
         $query = array();
 
+
         $keyname  = $model->key();
         $table    = $model->tableName();
         $props    = $model->properties();
@@ -297,7 +298,8 @@ class Nano_Db_Query extends ArrayIterator{
     public function delete( $key = null, $value = null ){
         if( is_array($key) ){
             foreach( $key as $rule ){
-                $this->orWhere( $rule );
+                list($key, $value) = $rule;
+                $this->orWhere( $key, $value );
             }
         }
         else if( $key && $value){
@@ -322,6 +324,9 @@ class Nano_Db_Query extends ArrayIterator{
      * @return void
      */
     public function query( $sql, $values ){
+        //print_r(str_replace("?", '"%s"', $sql));
+        //print_r(vsprintf(str_replace("?", '"%s"', $sql), $values ));
+        //print_r(sprintf(, $values));
         $values = (array) $values;
         $this->prepare( $sql );
 
@@ -567,16 +572,13 @@ class Nano_Db_Query extends ArrayIterator{
     /**
      * Compose the actual SQL query
      */
-    private function build(){
+    public final function build(){
         $adapter = Nano_Db::getAdapter( 'default' );
 
         $query  = array();
         $values = array();
 
         $query[] = sprintf( 'FROM `%s`', $this->_tableName);
-
-
-
 
         if( ($key = $this->_model->{$this->_model->key()} ) && null !== $key ){
             $query[] = sprintf( 'WHERE `%s` = ?', $this->_model->key() );
