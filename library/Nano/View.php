@@ -1,6 +1,6 @@
 <?php
 /**
- * @file Controller.php
+ * @file View.php
  *
  * Base class for a simple "view" part of the MVT. It generalises two
  * cases: call the appropriate function for get{YourAction} or simply 'get'
@@ -8,7 +8,7 @@
  * not to get in the way.
  *
  */
-abstract class Nano_Controller{
+abstract class Nano_View{
     private $_response;
     private $_template;
     private $_request;
@@ -64,7 +64,7 @@ abstract class Nano_Controller{
 
     /**
      * Convenience method: parses a request object to determine a possibly valid
-     * template name for a /module/xxx/controller/action style layout.
+     * template name for a /module/xxx/view/action style layout.
      *
      * @param Nano_Request $request A nano request object
      * @param string $base_path Relative template name.
@@ -73,7 +73,7 @@ abstract class Nano_Controller{
     //    $path = array_filter( array(
     //        ':module'       => $request->module,
     //        ':dir'          => $base_path,
-    //        ':controller'   => $request->controller,
+    //        ':view'   => $request->view,
     //        ':action'       => $request->action
     //    ) );
     //
@@ -104,31 +104,31 @@ abstract class Nano_Controller{
 
 
     /**
-     * Forward the entire request to a different action/controller
+     * Forward the entire request to a different action/view
      * @param string $action Actual name of the action (whitout Action)
-     * @param mixed $controller Controller name or object
+     * @param mixed $view View name or object
      */
-    //protected function forward( $action, $controller = null ){
-    //    //@todo implement forward to different controller:
+    //protected function forward( $action, $view = null ){
+    //    //@todo implement forward to different view:
     //    // do we need to post-dspatch too?
     //    $request = $this->getRequest();
     //
-    //    if( null == $controller ){
-    //        $controller = $this;
+    //    if( null == $view ){
+    //        $view = $this;
     //    }
-    //    else if ( is_string( $controller ) ){
-    //        $controller = new $controller( $this->getRequest(), $this->getConfig() );
+    //    else if ( is_string( $view ) ){
+    //        $view = new $view( $this->getRequest(), $this->getConfig() );
     //    }
-    //    else if( !$controller instanceof Nano_Controller ){
-    //        throw new Exception( 'Controller must be a propper class name or instance of Nano_Controller');
+    //    else if( !$view instanceof Nano_View ){
+    //        throw new Exception( 'View must be a propper class name or instance of Nano_View');
     //    }
     //
     //
-    //    $controller->preDispatch();
+    //    $view->preDispatch();
     //
     //
     //    if( ($method = sprintf('%sAction', $action) )
-    //       && method_exists($controller, $method) ){
+    //       && method_exists($view, $method) ){
     //        call_user_func( array( $this, sprintf("%sAction", $action)));
     //    }
     //    else{

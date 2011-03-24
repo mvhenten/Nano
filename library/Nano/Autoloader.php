@@ -1,4 +1,8 @@
 <?php
+if( ! defined( APPLICATION_PATH ) )
+    define(APPLICATION_PATH, dirname(__FILE__) );
+
+
 class Nano_Autoloader{
     private static $instance;
     private $namespaces = array();
@@ -8,6 +12,7 @@ class Nano_Autoloader{
 
     public static function register(){
         spl_autoload_register( 'Nano_Autoloader::autoLoad' );
+        Nano_Autoloader::registerNamespace( 'Nano', dirname(__FILE__) );
     }
 
     public static function getInstance(){
@@ -32,23 +37,33 @@ class Nano_Autoloader{
 
     private function load( $name ){
         $pieces = explode( '_', $name );
-//        $namespace = array_shift( $pieces );
+
         foreach( $this->namespaces as $key => $value ){
             if( strpos( $name, $key ) === 0 && strlen($name) > $key ){
                 $file = array_filter( explode('_',substr( $name, strlen($key) )) );
                 $path = sprintf( '%s/%s.php', $value, join( '/', $file ));
-                $this->includePath( $path );
+                return $this->includePath( $path );
             }
         }
+
+        $path = sprintf( '%s/%s.php', APPLICATION_ROOT, join( '/', $pieces ));
+        return $this->includePath( $path, false );
     }
 
     private function includePath( $path, $fail = false ){
         if( file_exists( $path ) ){
             require_once( $path );
+            $fail = false;
         }
-        else if( $fail ){
+        else if( ($lower = strtolower($path)) && file_exists( $lower) ){
+            require_once( $lower );
+            $fail = false;
+        }
+
+        if( $fail ){
             throw new Exception( sprintf( 'File does not exist "%s"', $path ));
         }
+        return $fail;
     }
 
 
