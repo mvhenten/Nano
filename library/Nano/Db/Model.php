@@ -48,8 +48,12 @@ class Nano_Db_Model extends ArrayObject{
                 ($this->key()) => $properties
             );
         }
-
-        $this->_properties = array_merge( $this->_properties, (array) $properties );
+        
+        if( is_array($properties) ){
+            foreach( $properties as $key => $value ){
+                $this->__set( $key, $value );
+            }
+        }
     }
 
     /**
@@ -108,16 +112,6 @@ class Nano_Db_Model extends ArrayObject{
         }
 
         return Nano_Db_Query::get( $instance );
-
-        //$qr = new Nano_Db_Query( $instance );
-        //
-        ////@todo this is automagic. is this a good idea?
-        //// adding properties of instance as filter
-        //foreach( $this->properties() as $key => $value ){
-        //    $qr->where( sprintf("%s =", $key), $value);
-        //}
-        //
-        //return $qr;
     }
 
 

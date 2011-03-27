@@ -624,15 +624,19 @@ class Nano_Db_Query extends ArrayIterator{
         if( count( $this->_order) > 0 ){
             $order = array();
             foreach( $this->_order as $value ){
-                preg_match( '/(^[-+])(\w+)|(^\w+)?/', $value, $match );
+                if( strpos( strtolower($value), 'rand' ) == 0 ){
+                    $order[] = 'RAND()';
+                }
+                else if( preg_match( '/(^[-+])(\w+)|(^\w+)?/', $value, $match ) ){
+                    list( $full, $mod, $value ) = $match;
+    
+                    if( strlen($mod) == 0 ){
+                        $value = $match[3];
+                    }
 
-                list( $full, $mod, $value ) = $match;
-
-                if( strlen($mod) == 0 ){
-                    $value = $match[3];
+                    $order[] = sprintf('%s`%s`', $mod, $value );                    
                 }
 
-                $order[] = sprintf('%s`%s`', $mod, $value );
             }
 
             $query[] = sprintf( 'ORDER BY %s', join(",", $order ));
@@ -641,7 +645,7 @@ class Nano_Db_Query extends ArrayIterator{
         $query[] = sprintf( 'LIMIT %d, %d', $this->_offset, $this->_limit );
 
         $sql = join( "\n", $query );
-
+        
         return array( $sql, $values, $query);
     }
 }
