@@ -13,6 +13,6 @@ class Nano_Form_Decorator_Textarea extends Nano_Form_Decorator_Abstract{
         // whitespace is added to content and this is bad.
         preg_match( '/^(.+<textarea.+?>)(.+?)(<\/textarea.+)/s', $str, $match );
         list( $none, $a, $b, $c ) = $match;        
-        return join( "", array($a, trim(htmlentities($b)), $c));        
+        return join( "", array($a, trim(htmlspecialchars($b)), $c));        
     }
 }

@@ -68,8 +68,8 @@ class Nano_Element_Decorator{
         $attributes = array_merge( $attributes, array_filter( $attr )); // catch the rest
 
         if( count( $attributes ) ){
-            $values = array_map('htmlentities', $attributes);
-            $keys   = array_map('htmlentities', array_keys($values));
+            $values = array_map('htmlspecialchars', $attributes);
+            $keys   = array_map('htmlspecialchars', array_keys($values));
 
             $attributes = array_map( 'sprintf', array_fill(0, count($keys), ' %s="%s"'), $keys, $values);
         }

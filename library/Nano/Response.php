@@ -32,6 +32,7 @@ class Nano_Response{
 
         $this->addHeaders(
             //array( 'Expires: ' . date( 'r', strtotime('+1 Month', $inserted ) ) ),
+            array( 'Content-Type:text/html; charset=UTF-8'),
             array( 'Cache-Control: max-age=36000, must-revalidate' ),
             array( 'Content-Length: ' . strlen($content), True ),
             array( 'Pragma: cache' )
