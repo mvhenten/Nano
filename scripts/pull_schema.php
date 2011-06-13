@@ -29,6 +29,12 @@ foreach( $tables as $table ){
     $collect[$table] = $dbh->fetchAll(sprintf('DESCRIBE `%s`;', $table), null, PDO::FETCH_ASSOC);
 }
 
+//$collect = array('item_content' => $collect['item_content'] );
+//var_dump($collect['item_content']);
+//
+//exit();
+
+
 $template = '<?
 class %s_Schema_%s extends Nano_Db_Schema {
     private $_tableName = \'%s\';
@@ -39,10 +45,14 @@ class %s_Schema_%s extends Nano_Db_Schema {
     private $primary_key = array(
         array( %s )
     );
+
+%s
+
 }';
 
 foreach( $collect as $table => $schema ){
     $primary_key = array();
+    $keys        = array();
     $tbl_schema   = array();
 
     foreach( $schema as $col ){
@@ -68,20 +78,44 @@ foreach( $collect as $table => $schema ){
         if( $key == 'PRI' ){
             $primary_key[] = "'$field'";
         }
+        else if( $key == 'MUL' ){
+            $keys[$field] = $field;
+        }
     }
 
     $klass = join('',array_map( 'ucfirst', explode( '_', $table )));
 
-    $sc = sprintf($template,
-        $namespace, $klass, $table,
-        join(",\n", $tbl_schema ),
-        join(',', $primary_key)
+    $functions = array();
+
+    foreach( $keys as $col ){
+        if( preg_match( '/(\w+)_(\w+)/', $col, $matches ) ){
+            list( $field, $table, $col ) = $matches;
+
+            $functions [] = preg_replace( '/^\s{13}/m', '', (sprintf("
+                private function _get_%s(){
+                    return \$this->has_a(array(
+                        'key'         => '%s',
+                        'table'       => '%s',
+                        'foreign_key' => '%s'
+                    ));
+                }
+            ", $table,$field, $table, $col
+            )));
+        }
+    }
+
+
+    $sc = vsprintf($template,
+        array(
+            $namespace, $klass, $table,
+            join(",\n", $tbl_schema ),
+            join(',', $primary_key),
+            join("\n", $functions )
+        )
     );
+
+    //var_dump($sc);
 
     file_put_contents( "$klass.php", $sc );
 }
 
-
-
-
-//var_dump($collect);
