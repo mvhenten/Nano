@@ -3,6 +3,7 @@ abstract class Nano_Db_Schema{
     protected $_tableName   = null;
     protected $_schema      = null;
     protected $_primary_key = array();
+    protected $_columns     = null;
 
     public function schema(){
         return $this->_schema;
@@ -13,14 +14,18 @@ abstract class Nano_Db_Schema{
     }
 
     public function columns(){
-        return array_keys( $this->schema() );
+        if( null == $this->_columns ){
+            $this->_columns = array_keys( $this->schema() );
+        }
+
+        return $this->_columns;
     }
 
     public function table(){
         return $this->_tableName();
     }
 
-    protected function __call( $method, $args ){
+    public final function __call( $method, $args ){
         if( ($method = '_get_' . $method ) && method_exists( $method, $this ) ){
             return $this->$method();
         }

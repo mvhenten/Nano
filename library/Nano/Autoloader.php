@@ -1,6 +1,6 @@
 <?php
-if( ! defined( APPLICATION_PATH ) )
-    define(APPLICATION_PATH, dirname(__FILE__) );
+if( ! defined( 'APPLICATION_PATH' ) )
+    define('APPLICATION_PATH', dirname(__FILE__) );
 
 
 class Nano_Autoloader{

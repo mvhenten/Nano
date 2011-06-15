@@ -37,12 +37,12 @@ foreach( $tables as $table ){
 
 $template = '<?
 class %s_Schema_%s extends Nano_Db_Schema {
-    private $_tableName = \'%s\';
+    protected $_tableName = \'%s\';
 
-    private $schema = array(%s
+    protected $_schema = array(%s
     );
 
-    private $primary_key = array(
+    protected $_primary_key = array(
         array( %s )
     );
 
