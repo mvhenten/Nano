@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2009 Matthijs van Henten
  */
 class Nano_Db{
-    private $_adapters;
+    private $_adapters = array();
     private static $_instance;
 
     public static function setAdapter( $config, $name = 'default' ){
@@ -36,7 +36,7 @@ class Nano_Db{
         }
 
         if( stripos( 'mysql', $config->dsn ) == 0 ){
-            $adapter = new Nano_Db_Adapter_Mysql( $config );
+            $adapter = new Nano_Db_Adapter( $config->dsn, $config->username, $config->password );
         }
         else{
             throw new Exception( sprintf( '@TODO: implement %s', $config->dsn ) );
@@ -48,6 +48,9 @@ class Nano_Db{
     private function _getAdapter( $name ){
         if( key_exists( $name, $this->_adapters ) ){
             return $this->_adapters[$name];
+        }
+        else{
+            throw new Exception( 'Adapater does not exist: ' . $name );
         }
     }
 }

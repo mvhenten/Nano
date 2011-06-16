@@ -9,7 +9,7 @@ abstract class Nano_Db_Schema{
         return $this->_schema;
     }
 
-    public function primaryKey(){
+    public function key(){
         return $this->_primary_key;
     }
 
@@ -21,13 +21,28 @@ abstract class Nano_Db_Schema{
         return $this->_columns;
     }
 
+    public function values(){
+        $keys = $this->columns();
+
+        return array();
+    }
+
     public function table(){
-        return $this->_tableName();
+        return $this->_tableName;
     }
 
     public final function __call( $method, $args ){
-        if( ($method = '_get_' . $method ) && method_exists( $method, $this ) ){
-            return $this->$method();
+        static $schema;
+
+        if( method_exists( 'Nano_Db_Schema_Mapper', $method ) ){
+            //array_unshift( $args, $this );
+
+            if( null == $schema ){
+                $schema = new Nano_Db_Schema_Mapper();
+            }
+
+            return $schema->$method( $this, current($args) );
+
         }
     }
 
@@ -36,17 +51,17 @@ abstract class Nano_Db_Schema{
     }
 
     protected function _has_a( $relation ){
-        list( $key, $table, $foreign_key ) = array(
-            $relation['key'], $relation['table'], $relation['foreign_key']
-        );
-
-        $schema = $this->_get_schema( $table );
-
-        $schema->getRow()->where( array(
-            sprintf('`%s`.`%s`', $table, $foreign_key ) => $this->$key
-        ));
-
-
+        //list( $key, $table, $foreign_key ) = array(
+        //    $relation['key'], $relation['table'], $relation['foreign_key']
+        //);
+        //
+        //$schema = $this->_get_schema( $table );
+        //
+        //$schema->getRow()->where( array(
+        //    sprintf('`%s`.`%s`', $table, $foreign_key ) => $this->$key
+        //));
+        //
+        //
     }
 
     protected function _has_many(){}

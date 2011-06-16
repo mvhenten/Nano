@@ -49,7 +49,7 @@
  * @todo filter shoud not use key => value pairs, to allow for multipel ids ( e.g. shuld follow array($key, $value))
  * @todo put and delete must allow for filter-like syntax.
  */
-class Nano_Db_Query extends ArrayIterator{
+class Nano_Db_Query_Builder extends ArrayIterator{
     const FETCH_LIMIT = 50;
     const FETCH_OFFSET = 0;
     const FETCH_ORDER  = null;
@@ -629,12 +629,12 @@ class Nano_Db_Query extends ArrayIterator{
                 }
                 else if( preg_match( '/(^[-+])(\w+)|(^\w+)?/', $value, $match ) ){
                     list( $full, $mod, $value ) = $match;
-    
+
                     if( strlen($mod) == 0 ){
                         $value = $match[3];
                     }
 
-                    $order[] = sprintf('%s`%s`', $mod, $value );                    
+                    $order[] = sprintf('%s`%s`', $mod, $value );
                 }
 
             }
@@ -645,7 +645,7 @@ class Nano_Db_Query extends ArrayIterator{
         $query[] = sprintf( 'LIMIT %d, %d', $this->_offset, $this->_limit );
 
         $sql = join( "\n", $query );
-        
+
         return array( $sql, $values, $query);
     }
 }
