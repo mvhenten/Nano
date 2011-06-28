@@ -34,28 +34,8 @@ class Nano_Db_Schema_Mapper{
     private $_offset    = self::FETCH_OFFSET;
 
     protected $_adapter = 'default';
+    protected $_last_arguments = null;
 
-    /**
-     * Fetch object properties into the model
-     *
-     * @param Some_Model $model Model to fetch into
-     * @return void
-     */
-    public function find( Nano_Db_Schema $schema, $id ){
-        $where = $id;
-        $key   = $schema->key();
-        $klass = get_class( $schema );
-
-        if( is_numeric( $id ) ){
-            $where = array( $key => $id );
-        }
-
-        $result = $this->getAdapter()
-            ->select( $schema->columns(), $schema->table(), $where, 1 )
-            ->fetchObject( $klass );
-
-        return $result;
-    }
 
     /**
      * update or insert this model into the database
@@ -71,12 +51,10 @@ class Nano_Db_Schema_Mapper{
 
                 unset( $values[$key] );
 
-                $this->getAdapter()
-                    ->update( $schema->table(), $values, $where );
+                $this->_update( $schema->table(), $values, $where );
             }
             else{
-                $id = $this->getAdapter()
-                    ->insert( $schema->table(), $values );
+                $id = $this->_insert( $schema->table(), $values );
                 $schema->$key = $id;
             }
         }
@@ -95,8 +73,7 @@ class Nano_Db_Schema_Mapper{
         $where  = array( $key => $value );
 
         if( $key && $value ){
-            $this->getAdapter()
-                ->delete( $schema->table(), $where );
+            $this->_delete( $schema->table(), $where );
         }
 
         $schema = null;
@@ -116,10 +93,198 @@ class Nano_Db_Schema_Mapper{
         $from = $schema->table();
         $what = $schema->columns();
 
-        $sth = $this->getAdapter()
-            ->select( $what, $from, $where, $limit );
+        $sth = $this->_select( $what, $from, $where, $limit );
 
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
+        return $sth;
+    }
+
+    /**
+     * Fetch object properties into the model
+     *
+     * @param Some_Model $model Model to fetch into
+     * @return void
+     */
+    public function find( Nano_Db_Schema $schema, $id ){
+        $where = $id;
+        $key   = $schema->key();
+        $klass = get_class( $schema );
+
+        if( is_numeric( $id ) ){
+            $where = array( $key => $id );
+        }
+
+        $sth = $this->_select( $schema->columns(), $schema->table(), $where, 1 );
+
+        $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
+
+        return $sth->fetch();
+    }
+
+
+    public function pager( Nano_Db_Schema $schema, $arguments = array() ){
+        /**
+         * @todo implement a pager that can fallback on the arguments
+         * provided by search. Current argumetns may override thosee.
+         * Should return a Nano_Db_Pager class that does the grunt work of
+         * handligin the SQL
+         *
+         */
+    }
+
+    private function _insert( $table, array $values ){
+        $keys   = array();
+
+        $columns = array_map(
+            'sprintf',
+            array_fill(0, count($values), '`%s`'),
+            array_keys( $values )
+        );
+
+        $keys = array_map(
+            'sprintf',
+            array_fill(0, count($values), ':%s'),
+            array_keys($values)
+        );
+
+        $values = array_combine( $keys, $values );
+
+        $query = array();
+        $query[] = 'INSERT INTO';
+        $query[] = '`' . $table . '`';
+        $query[] = '(' . join(',', $columns ) . ')';
+        $query[] = 'VALUES';
+        $query[] = '(' . join(',', $keys ) . ')';
+
+        $sth = $this->prepare( join("\n", $query ) );
+        $this->_saveExecute( $query, $values );
+
+        return $this->lastInsertId();
+    }
+
+    private function _update( $table, array $fields, array $where ){
+        $field_values = array();
+
+        foreach( $fields as $key => $value ){
+            $query_set = sprintf( '`%s` = ?', $key );
+        }
+
+        list( $where_key, $where_value ) = $where;
+
+        $query_values = array_values( $fields );
+        $query_values[] = $where_value;
+
+        $sql = sprintf('
+            UPDATE `%s`
+            SET
+                %s
+            WHERE `%s` = :key
+        ', $table,
+            join( "", $query_set ),
+            $where_key
+        );
+
+        $sth = $this->prepare( $sql );
+        $this->_saveExecute( $query, $values );
+
+        return $this->lastInsertId();
+    }
+
+    private function _select( array $what = array(), $from, array $where = array(), $limit = null ){
+        $select_columns = $this->_buildSelectColumns( $what, $from );
+        $limit_clause   = $this->_buildLimitClause( $limit );
+
+        list( $where_clause, $values ) = $this->_buildWhereClause( $where, $from );
+
+        $query = sprintf('SELECT %s FROM `%s`', join( ",\n", $select_columns ), $from );
+
+        if( ! empty( $where_clause ) ){
+            $query .= "\nWHERE " . join( "AND", $where_clause );
+        }
+
+        if( ! empty( $limit_clause ) ){
+            list( $offset, $limit ) = $limit_clause;
+            $query .= sprintf("\nLIMIT %d OFFSET %d", $limit, $offset );
+        }
+
+        return $this->_saveExecute( $query, $values );
+    }
+
+    private function _delete( $from, array $where ){
+        list( $where_clause, $values ) = $this->_buildWhereClause( $where, $from );
+
+        $query = sprintf('DELETE FROM `%s` WHERE %s', $from, join( "AND", $where_clause ) );
+        return $this->_saveExecute( $query, $values );
+    }
+
+
+    private function _buildLimitClause( $limit ){
+        $limit_clause = array();
+
+        if( ! empty($limit) ){
+            $limit_clause = (array) $limit;
+            if( count($limit_clause) == 1 ){
+                array_unshift($limit_clause, 0);
+            }
+        }
+
+        return $limit_clause;
+    }
+
+    private function _buildSelectColumns( $what, $from ){
+        $what = !empty($what) ? $what : array('*');
+        $select_columns = array();
+
+        foreach( $what as $column ){
+            $select_columns[] = sprintf('`%s`.`%s`', $from, $column );
+        }
+
+        return $select_columns;
+    }
+
+    private function _buildWhereClause( $where, $from ){
+        $where_clause = array();
+        $where_values = array();
+
+        foreach( $where as $key => $value ){
+            $op = '=';
+
+            if( is_array( $value ) ){
+                list( $op, $nvalue ) = $value;
+                $value = $nvalue;
+            }
+
+            if( $op == 'IN' && is_array($value) ){
+                $where_in = array_fill( 0, count($value), '?' );
+
+                $where_clause[] = sprintf('`%s`.`%s`  IN (%s)', $from, $key, join(',', $where_in));
+                $where_values = array_merge( $where_values, $value );
+            }
+            else{
+                if( ! in_array( $op, array( 'LIKE', '>', '<', '=', '!=', 'NOT' ) ) ){
+                    throw new Exception( 'Unsupported operator: ' . $op );
+                }
+
+                $where_clause[] = sprintf( '`%s`.`%s` %s ?', $from, $key, $op );
+                $where_values[] = $value;
+            }
+        }
+
+        return array( $where_clause, $where_values );
+    }
+
+    private function _saveExecute( $query, $values ){
+        $sth = $this->getAdapter()->prepare( $query );
+
+       if( false == $sth ){
+            $error = print_r( $this->errorInfo(), true );
+            throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
+        }
+        else if( !$sth->execute( $values ) ){
+            $error = print_r( $sth->errorInfo(), true );
+            throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
+        }
+
         return $sth;
     }
 

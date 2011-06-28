@@ -24,6 +24,8 @@ class Nano_Db{
     }
 
     private function _setAdapter( $config, $name ){
+        $this->_adapters[$name] = null;
+
         if( is_array( $config ) ){
             $config = (object) $config;
         }
@@ -35,13 +37,7 @@ class Nano_Db{
             throw new Exception( 'DB config: DSN is not set!');
         }
 
-        if( stripos( 'mysql', $config->dsn ) == 0 ){
-            $adapter = new Nano_Db_Adapter( $config->dsn, $config->username, $config->password );
-        }
-        else{
-            throw new Exception( sprintf( '@TODO: implement %s', $config->dsn ) );
-        }
-
+        $adapter = new PDO( $config->dsn, $config->username, $config->password );
         $this->_adapters[$name] = $adapter;
     }
 
