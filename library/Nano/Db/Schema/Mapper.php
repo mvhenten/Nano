@@ -93,6 +93,7 @@ class Nano_Db_Schema_Mapper{
         $from = $schema->table();
         $what = $schema->columns();
 
+        // @todo refactor with builder
         $sth = $this->_select( $what, $from, $where, $limit );
 
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
@@ -190,89 +191,6 @@ class Nano_Db_Schema_Mapper{
         return $this->lastInsertId();
     }
 
-    private function _select( array $what = array(), $from, array $where = array(), $limit = null ){
-        $select_columns = $this->_buildSelectColumns( $what, $from );
-        $limit_clause   = $this->_buildLimitClause( $limit );
-
-        list( $where_clause, $values ) = $this->_buildWhereClause( $where, $from );
-
-        $query = sprintf('SELECT %s FROM `%s`', join( ",\n", $select_columns ), $from );
-
-        if( ! empty( $where_clause ) ){
-            $query .= "\nWHERE " . join( "AND", $where_clause );
-        }
-
-        if( ! empty( $limit_clause ) ){
-            list( $offset, $limit ) = $limit_clause;
-            $query .= sprintf("\nLIMIT %d OFFSET %d", $limit, $offset );
-        }
-
-        return $this->_saveExecute( $query, $values );
-    }
-
-    private function _delete( $from, array $where ){
-        list( $where_clause, $values ) = $this->_buildWhereClause( $where, $from );
-
-        $query = sprintf('DELETE FROM `%s` WHERE %s', $from, join( "AND", $where_clause ) );
-        return $this->_saveExecute( $query, $values );
-    }
-
-
-    private function _buildLimitClause( $limit ){
-        $limit_clause = array();
-
-        if( ! empty($limit) ){
-            $limit_clause = (array) $limit;
-            if( count($limit_clause) == 1 ){
-                array_unshift($limit_clause, 0);
-            }
-        }
-
-        return $limit_clause;
-    }
-
-    private function _buildSelectColumns( $what, $from ){
-        $what = !empty($what) ? $what : array('*');
-        $select_columns = array();
-
-        foreach( $what as $column ){
-            $select_columns[] = sprintf('`%s`.`%s`', $from, $column );
-        }
-
-        return $select_columns;
-    }
-
-    private function _buildWhereClause( $where, $from ){
-        $where_clause = array();
-        $where_values = array();
-
-        foreach( $where as $key => $value ){
-            $op = '=';
-
-            if( is_array( $value ) ){
-                list( $op, $nvalue ) = $value;
-                $value = $nvalue;
-            }
-
-            if( $op == 'IN' && is_array($value) ){
-                $where_in = array_fill( 0, count($value), '?' );
-
-                $where_clause[] = sprintf('`%s`.`%s`  IN (%s)', $from, $key, join(',', $where_in));
-                $where_values = array_merge( $where_values, $value );
-            }
-            else{
-                if( ! in_array( $op, array( 'LIKE', '>', '<', '=', '!=', 'NOT' ) ) ){
-                    throw new Exception( 'Unsupported operator: ' . $op );
-                }
-
-                $where_clause[] = sprintf( '`%s`.`%s` %s ?', $from, $key, $op );
-                $where_values[] = $value;
-            }
-        }
-
-        return array( $where_clause, $where_values );
-    }
-
     private function _saveExecute( $query, $values ){
         $sth = $this->getAdapter()->prepare( $query );
 
@@ -295,6 +213,10 @@ class Nano_Db_Schema_Mapper{
      */
     protected function getAdapter(){
         return Nano_Db::getAdapter( $this->_adapter );
+    }
+
+    private function _builder(){
+        return new Nano_Db_Query_Builder();
     }
 
     private function _buildLimit( $arguments ){
