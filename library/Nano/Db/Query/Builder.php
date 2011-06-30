@@ -5,12 +5,12 @@ class Nano_Db_Query_Builder{
     private $_where  = null;
     private $_group  = null;
     private $_order  = null;
-    private $_limit  = null;
 
     private $_selectColumns = null;
     private $_tableAlias    = array();
     private $_bindings      = array();
-
+    private $_limitOffset   = array(null, null);
+    private $_aliasPool     = null;
 
     public function __toString(){
         return $this->_buildSql();
@@ -39,6 +39,20 @@ class Nano_Db_Query_Builder{
 
         return $this;
     }
+
+    public function update(){
+        return $this;
+    }
+
+    public function insert(){
+        return $this;
+    }
+
+    public function delete(){
+        $this->_action = 'delete';
+        return $this;
+    }
+
 
     public function from( $where ){
         if( is_array( $where ) ){
@@ -91,18 +105,6 @@ class Nano_Db_Query_Builder{
         return $this;
     }
 
-    public function update(){
-        return $this;
-    }
-
-    public function insert(){
-        return $this;
-    }
-
-    public function delete(){
-        return $this;
-    }
-
     public function andWhere(){
         return $this;
     }
@@ -119,7 +121,16 @@ class Nano_Db_Query_Builder{
         return $this;
     }
 
-    public function limit(){
+    public function limit( $limit, $offset=0 ){
+        $this->_limitOffset = array( $limit, $offset );
+
+        return $this;
+    }
+
+    public function offset( $offset ){
+        list( $limit, $oldOffset ) = $this->_limitOffset;
+        $this->_limitOffset = array( $limit, $offset );
+
         return $this;
     }
 
@@ -134,10 +145,13 @@ class Nano_Db_Query_Builder{
             case 'select':
                 $sql[] = $this->_buildSelect();
                 break;
+            case 'delete':
+                $sql[] = 'DELETE';
         }
 
         $sql[] = $this->_buildFrom();
         $sql[] = $this->_buildWhere();
+        $sql[] = $this->_buildLimitOffset();
 
         return join( "\n", $sql );
     }
@@ -180,6 +194,7 @@ class Nano_Db_Query_Builder{
                 $placeholders = array_fill( 0, count($value), '?' );
                 $value = sprintf( '(%s)', join(',', $placeholders ));
                 $this->_addBindings( $value );
+                $where[] = sprintf('%s %s %s', $col, $op, $value);
             }
             else if( ! in_array( $op, array( 'LIKE', '>', '<', '=', '!=', 'NOT' ) ) ){
                 throw new Exception( 'Unsupported operator: ' . $op );
@@ -189,25 +204,62 @@ class Nano_Db_Query_Builder{
             }
             else{
                 $this->_addBindings( $value );
+                $where[] = sprintf('%s %s ?', $col, $op);
             }
 
-            $where[] = sprintf('%s %s %s', $col, $op, $value );
         }
 
-        return 'WHERE ' . join( 'AND', $where );
+        return 'WHERE ' . join( ' AND ', $where );
     }
 
-    private function _buildLimit(){
-        $limit = $this->_limit;
+    private function _buildLimitOffset(){
+        list( $limit, $offset ) = $this->_limitOffset;
+        $sql = '';
 
-        if( ! empty($limit) ){
-            $limit_clause = (array) $limit;
-            if( count($limit_clause) == 1 ){
-                array_unshift($limit_clause, 0);
+        if( is_integer($limit) && $limit > 0 ){
+            $sql = sprintf( 'LIMIT %d', $limit );
+            if( is_integer($offset) && $offset > 0 ){
+                $sql = sprintf( '%s OFFSET %d', $sql, $offset );
             }
         }
 
-        return $limit_clause;
+        return $sql;
+    }
+
+    private function _buildGroup(){
+        $group = array();
+
+        foreach( $this->_group as $clause ){
+            if( is_array( $clause )
+               && isset($clause['table'])
+               && isset($clause['col'])){
+                $group[] =
+
+            }
+
+        }
+    }
+
+    private function _buildOrder(){
+        $order = array();
+
+        foreach( $this->_order as $clause ){
+            if( is_array( $clause )
+               && isset( $clause['table'] )
+               && isset( $clause['col'] ) ){
+                $alias = $this->_getTableAlias( $clause['table'] );
+
+                $order[] = sprintf('%s.`%s`', $alias, $clause['col'] );
+            }
+            else if( is_string($clause) && in_array( $clause, array('RAND()')) ){
+                $order[] = 'RAND()';
+            }
+            else if( is_string( $clause ) ){
+                $order[] = sprintf('`%s`', $clause );
+            }
+        }
+
+        return 'ORDER BY ' . join(',', $order );
     }
 
     private function _buildFrom(){
@@ -215,8 +267,15 @@ class Nano_Db_Query_Builder{
         $collect = array();
 
         foreach( $from as $table ){
-            $alias = $this->_getTableAlias($table);
-            $collect[] = sprintf('`%s` %s', $table, $alias );
+            if( $table instanceof Nano_Db_Query_Builder ){
+                $alias = $this->_getTableAlias( (string) $table );
+
+                $collect[] = sprintf('( %s ) %s', (string) $table, $alias );
+            }
+            else{
+                $alias = $this->_getTableAlias( md5((string) $table) );
+                $collect[] = sprintf('`%s` %s', $table, $alias );
+            }
         }
 
         return 'FROM ' . join( ",", $collect );
@@ -230,12 +289,11 @@ class Nano_Db_Query_Builder{
             foreach( $this->_selectColumns as $selectColumn ){
                 $column   = sprintf('`%s`', $selectColumn['column']);
                 if( $selectColumn['table'] ){
-                    $alias = $this->_getTableAlias( $selectColumn['table'] );
+                    $alias = $this->_getTableAlias( (string) $selectColumn['table'] );
                     $column = sprintf('%s.%s', $alias, $column );
                 }
 
                 if( $selectColumn['operator'] ){
-                    var_dump($column);
                     $column = $this->_buildOperator( $selectColumn['operator'], $column );
                 }
 
@@ -244,7 +302,6 @@ class Nano_Db_Query_Builder{
             }
 
             return 'SELECT ' .  join( ',', $select );
-
         }
 
         return 'SELECT *';
@@ -264,6 +321,10 @@ class Nano_Db_Query_Builder{
         return sprintf( '%s(%s)', $op,  $body);
     }
 
+    private function _buildTableCol( $tableCol ){
+        $alias = $this->_getTableAlias( $clause['table'] );
+        return sprintf('%s.`%s`', $alias, $clause['col'] );
+    }
 
     private function _getTableAlias( $tableName ){
 
@@ -275,13 +336,11 @@ class Nano_Db_Query_Builder{
     }
 
     private function _generateTableAlias(){
-        static $index = null;
-
-        if( ! $index ){
-            $index = range( 'a', 'z' );
+        if( ! $this->_aliasPool ){
+            $this->_aliasPool = range( 'a', 'z' );
         }
 
-        return array_shift( $index );
+        return array_shift( $this->_aliasPool );
     }
 
     //private function _delete( $from, array $where ){

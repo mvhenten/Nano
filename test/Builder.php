@@ -5,16 +5,16 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
     protected function setUp(){
         require_once( dirname(dirname(__FILE__)) . '/library/Nano/Autoloader.php');
         Nano_Autoloader::register();
-        //require_once(dirname(dirname(__FILE__)) . '/library/Nano/Db/Schema.php');
-        require_once('schema/Item.php');
-
-        $this->config = array(
-            'dsn'      => 'mysql:dbname=pico;host=127.0.0.1',
-            'username' => 'pico',
-            'password' => 'pico'
-        );
-
-        Nano_Db::setAdapter( $this->config );
+        ////require_once(dirname(dirname(__FILE__)) . '/library/Nano/Db/Schema.php');
+        //require_once('schema/Item.php');
+        //
+        //$this->config = array(
+        //    'dsn'      => 'mysql:dbname=pico;host=127.0.0.1',
+        //    'username' => 'pico',
+        //    'password' => 'pico'
+        //);
+        //
+        //Nano_Db::setAdapter( $this->config );
     }
 
     public function testConstruct(){
@@ -28,18 +28,36 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
             ->from( 'item' )
             ->where( array('id' => array('IN', range(40,70) ) ) );
 
-        echo "\n" . $builder;
+        printf("--\n%s\n", $builder );
 
         $builder->select( array('operator' => 'count') );
 
-        echo "\n" . $builder;
+        printf("--\n%s\n", $builder );
 
         $builder->where( array('id' => array('<', 100 ) ) );
-        echo "\n" . $builder;
+        printf("--\n%s\n", $builder );
 
 
         $builder->select( array('operator' => 'max', 'column' => 'id', 'table' => 'item') );
-        echo "\n" . $builder;
+        printf("--\n%s\n", $builder );
+
+        $builder->limit(10);
+        printf("--\n%s\n", $builder );
+
+        $builder->limit(10, 5);
+        printf("--\n%s\n", $builder );
+
+        $builder->offset(7);
+
+        $builder = new Nano_Db_Query_Builder();
+
+        $builder->delete()
+            ->from('frobnitz')
+            ->where(array('bla' => 1, 'biz' => 23 ));
+
+        printf("--\n%s\n", $builder );
+
+
 
     }
 }
