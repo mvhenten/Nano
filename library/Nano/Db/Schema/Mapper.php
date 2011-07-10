@@ -35,6 +35,7 @@ class Nano_Db_Schema_Mapper{
 
     protected $_adapter = 'default';
     protected $_last_arguments = null;
+    private $_builder;
 
 
     /**
@@ -87,15 +88,17 @@ class Nano_Db_Schema_Mapper{
      */
     public function search( Nano_Db_Schema $schema, $arguments = array() ){
         $arguments = (array) $arguments;
-        $limit = $this->_buildLimit( $arguments );
+        list( $offset, $limit ) = $this->_buildLimit( $arguments );
+
         $where = isset($arguments['where']) ? $arguments['where'] : array();
 
-        $from = $schema->table();
-        $what = $schema->columns();
+        $builder = $this->_builder()->select( $schema->columns() )
+            ->from( $schema->table() )
+            ->where( $where )
+            ->limit( $limit, $offset );
 
-        // @todo refactor with builder
-        $sth = $this->_select( $what, $from, $where, $limit );
 
+        $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
         return $sth;
     }
@@ -111,13 +114,15 @@ class Nano_Db_Schema_Mapper{
         $key   = $schema->key();
         $klass = get_class( $schema );
 
-        if( is_numeric( $id ) ){
-            $where = array( $key => $id );
-        }
 
-        $sth = $this->_select( $schema->columns(), $schema->table(), $where, 1 );
+        $builder = $this->_builder()
+            ->select( $schema->columns() )
+            ->from( $schema->table() )
+            ->where( array( $key => $id ) );
 
-        $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
+        $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
+        $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
+                           get_class( $schema ) );
 
         return $sth->fetch();
     }
@@ -216,7 +221,11 @@ class Nano_Db_Schema_Mapper{
     }
 
     private function _builder(){
-        return new Nano_Db_Query_Builder();
+        if( null == $this->_builder ){
+            $this->_builder = new Nano_Db_Query_Builder();
+        }
+
+        return $this->_builder;
     }
 
     private function _buildLimit( $arguments ){

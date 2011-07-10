@@ -38,6 +38,7 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
         printf("--\n%s\n", $builder );
 
 
+
         $builder->select( array('operator' => 'max', 'column' => 'id', 'table' => 'item') );
         printf("--\n%s\n", $builder );
 
@@ -48,6 +49,10 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
         printf("--\n%s\n", $builder );
 
         $builder->offset(7);
+        $builder->groupBy( 'slug' );
+
+
+        printf("--\n%s\n", $builder );
 
         $builder = new Nano_Db_Query_Builder();
 

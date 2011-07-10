@@ -48,14 +48,14 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
 
         $this->assertType( 'PDOStatement', $sth );
 
-        print "RowCount: " . $sth->rowCount();
-        print "QUERY: " . $sth->queryString;
+        printf("ROWS: %s\n", $sth->rowCount());
+        printf("QUERY: %s\n", $sth->queryString);
 
 
-        $pager = new Nano_Db_Pager( $sth );
-
-        print 'COUNT: ' . $pager->count();
-
+        //$pager = new Nano_Db_Pager( $sth );
+        //
+        //print 'COUNT: ' . $pager->count();
+        //
 
 
 

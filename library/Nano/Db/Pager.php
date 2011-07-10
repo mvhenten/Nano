@@ -159,11 +159,11 @@ class Nano_Db_Pager{
             $dbh = Nano_Db::getAdapter();
             $sth = $dbh->query( $sql );
 
-            var_dump( $dbh->errorInfo() );
+            //var_dump( $dbh->errorInfo() );
 
             $count = $sth->fetch(0);
 
-            var_dump($sql);
+            //var_dump($sql);
         }
         catch( Exception $e ){
             throw new Exception( sprintf('FAIL: %s mumbl mumbl', $sql ) );
