@@ -16,24 +16,22 @@ class Model_Publication extends Nano_Db_Schema {
             'type'      => 'int',
             'length'    => 10,
             'default'   => '',
-            'name'      => 'item_id',
+            'name'      => 'author_id',
             'extra'     => '',
             'required'  => true,
         ),
 
-        'name' => array(
+        'title' => array(
             'type'      => 'varchar',
             'length'    => 255,
             'default'   => '',
-            'name'      => 'group',
+            'name'      => 'title',
             'extra'     => '',
             'required'  => true,
         ),
     );
 
-    protected $_primary_key = array(
-        array( 'id' )
-    );
+    protected $_primary_key = array( 'id' );
 
     public function author(){
         return $this->has_one( 'Model_Author', array(

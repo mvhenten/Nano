@@ -45,15 +45,6 @@ class Nano_Db_Query_Builder{
         return $this;
     }
 
-    public function update( array $columns ){
-        $this->_update = $columns;
-        $this->_action = 'update';
-    }
-
-    public function insert(){
-        return $this;
-    }
-
     public function delete(){
         $this->_action = 'delete';
         return $this;
@@ -150,9 +141,6 @@ class Nano_Db_Query_Builder{
         switch( $this->_action ){
             case 'select':
                 $sql[] = $this->_buildSelect();
-                break;
-            case 'update':
-                $sql[] = $this->_buildUpdate();
                 break;
             case 'delete':
                 $sql[] = 'DELETE';

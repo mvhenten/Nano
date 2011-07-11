@@ -26,18 +26,18 @@ class Nano_Db{
     private function _setAdapter( $config, $name ){
         $this->_adapters[$name] = null;
 
-        if( is_array( $config ) ){
-            $config = (object) $config;
+        if( $config instanceof PDO ){
+            $adapter = $config;
         }
-        if( !is_object( $config ) ){
-            throw new Exception( 'Invalid arguments passed: config, ', $config );
+        else if( is_array( $config ) && isset( $config['dsn'] ) ){
+            $config = array_merge( array(
+                'username' => null,
+                'password' => null ), $config
+            );
+
+            $adapter = new PDO( $config['dsn'], $config['username'], $config['password'] );
         }
 
-        if( ! isset( $config->dsn ) ){
-            throw new Exception( 'DB config: DSN is not set!');
-        }
-
-        $adapter = new PDO( $config->dsn, $config->username, $config->password );
         $this->_adapters[$name] = $adapter;
     }
 

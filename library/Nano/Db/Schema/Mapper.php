@@ -42,22 +42,20 @@ class Nano_Db_Schema_Mapper{
      * update or insert this model into the database
      * @param Nano_Db_Schema $schema
      */
-    public function put( Nano_Db_Schema $schema, array $values=array() ){
-        $key    = $schema->key();
-        $values = empty($values) ? $schema->values() : $values;
-        $where  = array( $key => $values[$key] );
+    public function put( Nano_Db_Schema $schema, $values = null ){
+        $primaryKey  = $schema->key();
 
-        if( ! empty( $values ) ){
-            if( isset( $values[$key] ) ){
-
-                unset( $values[$key] );
-
-                $this->_update( $schema->table(), $values, $where );
+        if( is_array( $values ) ){
+            foreach( $values as $key => $value ){
+                $schema->$key = $value;
             }
-            else{
-                $id = $this->_insert( $schema->table(), $values );
-                $schema->$key = $id;
-            }
+        }
+
+        if( null == $schema->$primaryKey ){
+            $this->_insert( $schema );
+        }
+        else{
+            $this->_update( $schema );
         }
 
         return $schema;
@@ -109,7 +107,7 @@ class Nano_Db_Schema_Mapper{
      * @param Some_Model $model Model to fetch into
      * @return void
      */
-    public function find( Nano_Db_Schema $schema, $id ){
+    public function find( Nano_Db_Schema $schema, $id, $fetchMode = PDO::FETCH_CLASS ){
         $where = $id;
         $key   = $schema->key();
         $klass = get_class( $schema );
@@ -121,89 +119,90 @@ class Nano_Db_Schema_Mapper{
             ->where( array( $key => $id ) );
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
-        $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
-                           get_class( $schema ) );
+
+        if( $fetchMode == PDO::FETCH_INTO ){
+            $sth->setFetchMode( PDO::FETCH_INTO, $schema );
+        }
+        else{
+            $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
+                get_class( $schema ) );
+
+        }
 
         return $sth->fetch();
     }
 
-
-    public function pager( Nano_Db_Schema $schema, $arguments = array() ){
-        /**
-         * @todo implement a pager that can fallback on the arguments
-         * provided by search. Current argumetns may override thosee.
-         * Should return a Nano_Db_Pager class that does the grunt work of
-         * handligin the SQL
-         *
-         */
+    public function load( Nano_Db_Schema $schema, $id ){
+        return $this->find( $schema, $id, PDO::FETCH_INTO );
     }
 
-    private function _insert( $table, array $values ){
-        $keys   = array();
 
-        $columns = array_map(
-            'sprintf',
-            array_fill(0, count($values), '`%s`'),
-            array_keys( $values )
+    public function pager( Nano_Db_Schema $schema, $arguments = array() ){}
+
+    private function _insert( Nano_Db_Schema $schema ){
+        $table   = $schema->table();
+        $key     = $schema->key();
+        $columns = $schema->columns();
+
+        $values = array();
+
+        foreach( $columns as $col ){
+            if( $key == $col ) continue;
+            $values["`$col`"] = $schema->$col;
+        }
+
+        $query = sprintf('
+            INSERT INTO `%s`
+            ( %s )
+            VALUES ( %s )
+        ', $table,
+            join(',', array_keys($values)),
+            join( ',', array_fill(0, count($values), '?'))
         );
 
-        $keys = array_map(
-            'sprintf',
-            array_fill(0, count($values), ':%s'),
-            array_keys($values)
-        );
-
-        $values = array_combine( $keys, $values );
-
-        $query = array();
-        $query[] = 'INSERT INTO';
-        $query[] = '`' . $table . '`';
-        $query[] = '(' . join(',', $columns ) . ')';
-        $query[] = 'VALUES';
-        $query[] = '(' . join(',', $keys ) . ')';
-
-        $sth = $this->prepare( join("\n", $query ) );
         $this->_saveExecute( $query, $values );
+        $this->load( $schema, $this->getAdapter()->lastInsertId() );
 
-        return $this->lastInsertId();
+        return $schema;
     }
 
     private function _update( $table, array $fields, array $where ){
-        $field_values = array();
+        $table   = $schema->table();
+        $key     = $schema->key();
+        $columns = $schema->columns();
 
-        foreach( $fields as $key => $value ){
-            $query_set = sprintf( '`%s` = ?', $key );
+        $values = array();
+
+        foreach( $columns as $col ){
+            if( $key == $col ) continue;
+            $values["`$col` = ?"] = $schema->$col;
         }
 
-        list( $where_key, $where_value ) = $where;
-
-        $query_values = array_values( $fields );
-        $query_values[] = $where_value;
-
-        $sql = sprintf('
+        $query = sprintf('
             UPDATE `%s`
-            SET
-                %s
-            WHERE `%s` = :key
+            SET %s
+            WHERE `%s` = ?
         ', $table,
-            join( "", $query_set ),
-            $where_key
+            join(',', array_keys($values)),
+            $schema->key()
         );
 
-        $sth = $this->prepare( $sql );
-        $this->_saveExecute( $query, $values );
+        $values[] = $schema->$key;
 
-        return $this->lastInsertId();
+        $this->_saveExecute( $query, $values );
+        $this->load( $schema, $this->getAdapter()->lastInsertId() );
+
+        return $schema;
     }
 
     private function _saveExecute( $query, $values ){
         $sth = $this->getAdapter()->prepare( $query );
 
        if( false == $sth ){
-            $error = print_r( $this->errorInfo(), true );
+            $error = print_r( $this->getAdapter()->errorInfo(), true );
             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }
-        else if( !$sth->execute( $values ) ){
+        else if( !$sth->execute( array_values($values) ) ){
             $error = print_r( $sth->errorInfo(), true );
             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }

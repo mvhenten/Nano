@@ -43,7 +43,7 @@ class %s_Schema_%s extends Nano_Db_Schema {
     );
 
     protected $_primary_key = array(
-        array( %s )
+        %s
     );
 
 %s
@@ -118,4 +118,3 @@ foreach( $collect as $table => $schema ){
 
     file_put_contents( "$klass.php", $sc );
 }
-

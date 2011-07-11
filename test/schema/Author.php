@@ -22,9 +22,7 @@ class Model_Author extends Nano_Db_Schema {
         ),
     );
 
-    protected $_primary_key = array(
-        array( 'id' )
-    );
+    protected $_primary_key = array( 'id' );
 
     public function books(){
         return $this->has_many( 'Model_Publication', array(

@@ -1,7 +1,8 @@
 <?php
-if( ! defined( 'APPLICATION_PATH' ) )
+if( ! defined( 'APPLICATION_PATH' ) ){
     define('APPLICATION_PATH', dirname(__FILE__) );
-
+    define( 'APPLICATION_ROOT', dirname(APPLICATION_PATH));
+}
 
 class Nano_Autoloader{
     private static $instance;
