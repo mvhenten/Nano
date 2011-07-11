@@ -1,6 +1,6 @@
 <?
-class Model_Schema_LinkGroup extends Nano_Db_Schema {
-    protected $_tableName = 'link_group';
+class Model_Publication extends Nano_Db_Schema {
+    protected $_tableName = 'publication';
 
     protected $_schema = array(
         'id' => array(
@@ -12,29 +12,32 @@ class Model_Schema_LinkGroup extends Nano_Db_Schema {
             'required'  => true,
         ),
 
-        'name' => array(
-            'type'      => 'varchar',
-            'length'    => 255,
+        'author_id' => array(
+            'type'      => 'int',
+            'length'    => 10,
             'default'   => '',
-            'name'      => 'name',
+            'name'      => 'item_id',
             'extra'     => '',
             'required'  => true,
         ),
 
-        'description' => array(
+        'name' => array(
             'type'      => 'varchar',
-            'length'    => 1024,
+            'length'    => 255,
             'default'   => '',
-            'name'      => 'description',
+            'name'      => 'group',
             'extra'     => '',
             'required'  => true,
-        )
+        ),
     );
 
     protected $_primary_key = array(
         array( 'id' )
     );
 
-
-
+    public function author(){
+        return $this->has_one( 'Model_Author', array(
+            'author_id' => 'id'
+        ));
+    }
 }
