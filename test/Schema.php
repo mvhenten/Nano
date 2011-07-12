@@ -6,6 +6,8 @@
         Nano_Autoloader::register();
         require_once('schema/Author.php');
         require_once('schema/Publication.php');
+        require_once('schema/Editor.php');
+        require_once('schema/EditorPublication.php');
 
         Nano_Db::setAdapter( array( 'dsn' => 'sqlite:test.db' ) );
 
@@ -25,6 +27,26 @@
             "title"  TEXT NOT NULL
             );
         ');
+
+        $dbh->query('
+            CREATE TABLE "editor_publication" (
+            "editor_id"  INTEGER NOT NULL,
+            "publication_id"  INTEGER NOT NULL
+            );
+        ');
+
+        $dbh->query('
+            CREATE UNIQUE INDEX "editor_to_publication"
+            ON "editor_publication" ("editor_id", "publication_id");
+        ');
+
+        $dbh->query('
+            CREATE TABLE "editor" (
+            "id"  INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            "name"  TEXT NOT NULL
+            );
+        ');
+
     }
 
     static function tearDownAfterClass(){
@@ -119,6 +141,32 @@
 
         foreach( $model->books() as $publication ){
             $this->assertType( 'Model_Publication', $publication );
+        }
+    }
+
+    /**
+     * @depends testPutMore
+     */
+    public function testPutRelations(){
+        $editors = explode(',', 'Joe Writer,Peter Publisher,Harry Howto,Eddie Editor');
+        $model = new Model_Publication();
+
+        $publications = $model->search();
+
+        foreach( $editors as $index => $name ){
+            $editor = new Model_Editor( array('name'=>$name) );
+            $editor->put();
+
+            $editors[$index] = $editor;
+
+            foreach( $publications as $pub ){
+                $editpub = new Model_EditorPublication( array(
+                    'editor_id' => $editor->id,
+                    'publication_id' => $pub->id
+                ));
+
+                $editpub->put();
+            }
         }
     }
 

@@ -51,7 +51,11 @@ class Nano_Db_Schema_Mapper{
             }
         }
 
-        if( null == $schema->$primaryKey ){
+        if( is_array( $primaryKey ) ){
+            $this->delete( $schema );
+            $this->_insert( $schema );
+        }
+        else if( null == $schema->$primaryKey ){
             $this->_insert( $schema );
         }
         else{
@@ -68,14 +72,20 @@ class Nano_Db_Schema_Mapper{
      */
     public function delete( Nano_Db_Schema $schema ){
         $key    = $schema->key();
-        $value  = $schema->$key;
-        $where  = array( $key => $value );
+        //$value  = $schema->$key;
 
-        if( $key && $value ){
-            $this->_delete( $schema->table(), $where );
-        }
-
-        $schema = null;
+        //if( is_array( $key ) ){
+        //
+        //}
+        //
+        //
+        //$where  = array( $key => $value );
+        //
+        //if( $key && $value ){
+        //    $this->_delete( $schema->table(), $where );
+        //}
+        //
+        //$schema = null;
     }
 
 
