@@ -26,7 +26,7 @@ class Model_Author extends Nano_Db_Schema {
 
     public function books(){
         return $this->has_many( 'Model_Publication', array(
-            'id' => 'author_id'
+            'author_id' => 'id'
         ));
     }
 }

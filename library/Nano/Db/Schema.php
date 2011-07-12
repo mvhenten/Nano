@@ -51,7 +51,7 @@ abstract class Nano_Db_Schema{
 
     public final function __construct( $id = null ){
         if( is_numeric( $id )
-           && ( int == substr( $this->columnType( $this->key() ), 0, 3))){
+           && ( 'int' == substr( $this->columnType( $this->key() ), 0, 3))){
             $this->load( $id );
         }
         else if( is_array( $id ) ){
@@ -69,18 +69,13 @@ abstract class Nano_Db_Schema{
 
     public final function __set( $name, $value ){
         if( in_array( $name, $this->columns() ) ){
-            //@TODO type checking maybe?
             $this->_values[$name] = $value;
         }
     }
 
     public final function __call( $method, $args ){
-        static $schema;
         if( method_exists( 'Nano_Db_Schema_Mapper', $method ) ){
-            if( null == $schema ){
-                $schema = new Nano_Db_Schema_Mapper();
-            }
-            return $schema->$method( $this, current($args) );
+            return $this->_getMapper()->$method( $this, current($args) );
         }
     }
 
@@ -88,9 +83,62 @@ abstract class Nano_Db_Schema{
         return sprintf("Nano_Db_%s", array_map( 'ucfirst', explode('_', $name ) ));
     }
 
-    protected function has_one( $schema, array $mapping ){}
+    protected function has_one( $schema, array $mapping ){
+        $key         = reset( $mapping );
+        $foreign_key = key( $mapping );
 
-    protected function has_many( $schema, array $mapping ){}
+
+        $sth = $this->_getMapper()->search( new $schema(), array(
+            'where' => array( $foreign_key => $this->$key ),
+            'limit' => 1
+        ));
+
+        return $sth->fetch();
+    }
+
+    protected function has_many( $schema, array $mapping ){
+        $key         = reset( $mapping );
+        $foreign_key = key( $mapping );
+
+        return $this->_getMapper()->search( new $schema(), array(
+            'where' => array( $foreign_key => $this->$key )
+        ));
+    }
+
+    protected function has_many_to_many( $schema, array $relation, $mapping ){
+        $schema = new $schema();
+
+        $relation_map = reset( $relation );
+        $klass = key( $relation );
+        $key   = current($mapping);
+
+        $relation = new $klass();
+
+        $query = sprintf('
+            SELECT *
+            FROM %s %s
+            LEFT JOIN %s %s ON %s.%s = %s.%s
+            WHERE %s.%s = ?
+        ',
+            $schema->table(), 'a',
+            $relation->table(), 'b',
+            'b', key( $relation_map ),
+            'a', current( $relation_map ),
+            'b', key( $mapping )
+        );
+
+        $this->_getMapper()->execute( $schema, $query, $this->$key );
+    }
+
+    private function _getMapper(){
+        static $schema;
+
+        if( null == $schema ){
+            $schema = new Nano_Db_Schema_Mapper();
+        }
+
+        return $schema;
+    }
 
 
 }

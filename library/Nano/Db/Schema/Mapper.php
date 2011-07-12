@@ -110,8 +110,6 @@ class Nano_Db_Schema_Mapper{
     public function find( Nano_Db_Schema $schema, $id, $fetchMode = PDO::FETCH_CLASS ){
         $where = $id;
         $key   = $schema->key();
-        $klass = get_class( $schema );
-
 
         $builder = $this->_builder()
             ->select( $schema->columns() )
@@ -164,6 +162,20 @@ class Nano_Db_Schema_Mapper{
         $this->load( $schema, $this->getAdapter()->lastInsertId() );
 
         return $schema;
+    }
+
+    public function execute( Nano_Db_Schema $schema, $sql, $bindings, $fetchMode = null){
+        $sth = $this->_saveExecute( (string) $sql, $bindings );
+
+        if( $fetchMode == PDO::FETCH_INTO ){
+            $sth->setFetchMode( PDO::FETCH_INTO, $schema );
+        }
+        else{
+            $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
+                get_class( $schema ) );
+        }
+
+        return $sth;
     }
 
     private function _update( $table, array $fields, array $where ){

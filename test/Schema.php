@@ -31,7 +31,6 @@
         unlink( 'test.db' );
     }
 
-
     public function testPut(){
         $names = array_map('trim', explode(',', 'Paul Auster, Tim Roth,
                             Haruki Murakami, Jonathan Safran Foer, Jonathan Franzen'));
@@ -77,7 +76,7 @@
     }
 
     /**
-     * @tepends testPutMore
+     * @depends testPutMore
      */
     public function testSearchMore(){
         $model = new Model_Publication();
@@ -103,39 +102,36 @@
         $this->assertGreaterThan( 1, $collect );
     }
 
+    /**
+     * @depends testPutMore
+     */
+    public function testHasOne(){
+        $model  = new Model_Publication(1);
+        $this->assertType( 'Model_Author', $model->author() );
+    }
 
-    //public function testSearchWhere(){
-    //    $model = new Model_Schema_Item();
+    /**
+     * @depends testPutMore
+     */
+    public function testHasMany(){
+        $model = new Model_Author(1);
+        $books = $model->books();
+
+        foreach( $model->books() as $publication ){
+            $this->assertType( 'Model_Publication', $publication );
+        }
+    }
+
+    /**
+     * @depends testPutMore
+     */
+    //public function testHasManyToMany(){
+    //    $model = new Model_Author(1);
+    //    $books = $model->books();
     //
-    //    foreach( $model->search( array('where' => array('slug' => 'schedule' )) ) as $item ){
-    //        $this->assertEquals( 'schedule', $item->slug, 'Search returns expected result' );
+    //    foreach( $model->books() as $publication ){
+    //        $this->assertType( 'Model_Publication', $publication );
     //    }
-    //
-    //    $ids = array();
-    //    foreach( $model->search( array('where' => array('id' => array('<', 99 ))) ) as $item ){
-    //        $this->assertLessThan( 99, $item->id, "ID is less then 99" );
-    //        $ids[] = $item->id;
-    //    }
-    //
-    //    foreach( $model->search( array('where' => array('id' => array('IN', $ids ))) ) as $item ){
-    //        $this->assertTrue( in_array($item->id, $ids ), 'ID expected to be in array');
-    //        $this->assertType( 'Model_Schema_Item', $item, 'ITEM is a Model_Schema_item' );
-    //    }
-    //
-    //    $sth = $model->search( array('where' => array('id' => array('<', 99 ))) );
-    //
-    //    $this->assertType( 'PDOStatement', $sth );
-    //
-    //    printf("ROWS: %s\n", $sth->rowCount());
-    //    printf("QUERY: %s\n", $sth->queryString);
-    //
-    //
-    //    //$pager = new Nano_Db_Pager( $sth );
-    //    //
-    //    //print 'COUNT: ' . $pager->count();
-    //    //
-    //
-    //
-    //
     //}
+
 }
