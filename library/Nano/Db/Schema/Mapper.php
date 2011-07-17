@@ -52,15 +52,21 @@ class Nano_Db_Schema_Mapper{
         }
 
         if( is_array( $primaryKey ) ){
+            //@TODO implement handling for composit keys
+            // EG. SELECT, DELETE, UPDATE.
             $this->delete( $schema );
             $this->_insert( $schema );
         }
-        else if( null == $schema->$primaryKey ){
-            $this->_insert( $schema );
-        }
         else{
-            $this->_update( $schema );
+            if( null == $schema->$primaryKey ){
+                $id = $this->_insert( $schema );
+            }
+            else{
+                $id = $this->_update( $schema );
+            }
+            $this->load( $schema, $id );
         }
+
 
         return $schema;
     }
@@ -111,6 +117,37 @@ class Nano_Db_Schema_Mapper{
         return $sth;
     }
 
+    public function many_to_many( Nano_Db_Schema $schema, $arguments = array() ){
+        $arguments = (array) $arguments;
+        list( $offset, $limit ) = $this->_buildLimit( $arguments );
+
+        $where = isset($arguments['where']) ? $arguments['where'] : array();
+
+        $join_clause = reset($arguments['join']);
+        $join_table  = key($arguments['join']);
+
+        //@FIXME Builder should support left_join
+        // so this printing of SQL is not needed
+        $query = sprintf('
+            SELECT *
+            FROM `%s` %s
+            LEFT JOIN `%s` %s ON %s.`%s` = %s.`%s`
+            WHERE %s.`%s` = ?
+        ',
+            $schema->table(), 'a',
+            $join_table, 'b',
+            'b', reset($join_clause), //foreign key
+            'a', key($join_clause),   // key of $schema->table
+            'b', key($where)          // $where clause is
+        );
+
+        $sth = $this->_saveExecute( $query, array(reset($where)) );
+        $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
+            get_class( $schema ) );
+
+        return $sth;
+    }
+
     /**
      * Fetch object properties into the model
      *
@@ -118,13 +155,27 @@ class Nano_Db_Schema_Mapper{
      * @return void
      */
     public function find( Nano_Db_Schema $schema, $id, $fetchMode = PDO::FETCH_CLASS ){
-        $where = $id;
         $key   = $schema->key();
 
         $builder = $this->_builder()
             ->select( $schema->columns() )
-            ->from( $schema->table() )
-            ->where( array( $key => $id ) );
+            ->from( $schema->table() );
+
+        if( is_string($key) ){
+            $builder->where( array( $key => $id ) );
+        }
+        else if( is_array($key) && (count($key) == count($id) )){
+            $where = array_combine( $key, $id );
+            foreach( $where as $key => $value ){
+                $builder->andWhere( array( $key => $value ));
+            }
+            //print debug_print_backtrace(false);
+        }
+        else{
+            //debug_print_backtrace();
+            throw new Exception( sprintf("%s, %s", print_r($key), print_r($id) ));
+
+        }
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
 
@@ -169,9 +220,7 @@ class Nano_Db_Schema_Mapper{
         );
 
         $this->_saveExecute( $query, $values );
-        $this->load( $schema, $this->getAdapter()->lastInsertId() );
-
-        return $schema;
+        return $this->getAdapter()->lastInsertId();
     }
 
     public function execute( Nano_Db_Schema $schema, $sql, $bindings, $fetchMode = null){
@@ -212,9 +261,7 @@ class Nano_Db_Schema_Mapper{
         $values[] = $schema->$key;
 
         $this->_saveExecute( $query, $values );
-        $this->load( $schema, $this->getAdapter()->lastInsertId() );
-
-        return $schema;
+        return $this->getAdapter()->lastInsertId();
     }
 
     private function _saveExecute( $query, $values ){

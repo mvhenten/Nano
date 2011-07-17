@@ -79,10 +79,12 @@ abstract class Nano_Db_Schema{
         }
     }
 
-    protected function _get_schema( $name ){
-        return sprintf("Nano_Db_%s", array_map( 'ucfirst', explode('_', $name ) ));
-    }
-
+    /**
+     * Defines a 'has_one' unique relation established trough $schema
+     *
+     * @param string $schema Name of the schema class that we have one
+     * @param array $mapping $foreign_key => $key relation (as in $schema->$foreign_key)
+     */
     protected function has_one( $schema, array $mapping ){
         $key         = reset( $mapping );
         $foreign_key = key( $mapping );
@@ -96,6 +98,12 @@ abstract class Nano_Db_Schema{
         return $sth->fetch();
     }
 
+    /**
+     * Defines a 'has_many' relation established trough $schema
+     *
+     * @param string $schema Name of the schema class that we have many of
+     * @param array $mapping $foreign_key => $key relation (as in $schema->$foreign_key)
+     */
     protected function has_many( $schema, array $mapping ){
         $key         = reset( $mapping );
         $foreign_key = key( $mapping );
@@ -105,29 +113,39 @@ abstract class Nano_Db_Schema{
         ));
     }
 
-    protected function has_many_to_many( $schema, array $relation, $mapping ){
+    /**
+     * Defines a 'many_to_many' relation established trough $schema
+     *
+     * @param string $relation Name of the 'belongs_to' function in $schema
+     * @param string $schema Name of the schema class that has the belongs_to
+     * @param array $mapping $foreign_key => $key relation (as in $schema->$foreign_key)
+     */
+    protected function has_many_to_many( $relation, $schema, $mapping ){
         $schema = new $schema();
 
-        $relation_map = reset( $relation );
-        $klass = key( $relation );
-        $key   = current($mapping);
+        $key         = reset( $mapping );
+        $foreign_key = key( $mapping );
 
-        $relation = new $klass();
+        list($relation, $mapping ) = $schema->$relation();
 
-        $query = sprintf('
-            SELECT *
-            FROM %s %s
-            LEFT JOIN %s %s ON %s.%s = %s.%s
-            WHERE %s.%s = ?
-        ',
-            $schema->table(), 'a',
-            $relation->table(), 'b',
-            'b', key( $relation_map ),
-            'a', current( $relation_map ),
-            'b', key( $mapping )
-        );
+        return $this->_getMapper()->many_to_many( new $relation(), array(
+            'join'  => array( $schema->table() => $mapping ),
+            'where' => array( $foreign_key => $this->$key )
+        ));
+    }
 
-        $this->_getMapper()->execute( $schema, $query, $this->$key );
+    /**
+     * Defines a 'belongs_to' relation for use in many_to_may relations
+     *
+     * @param string $schema Name of the schema class this table belongs to
+     * @param array $mapping $foreign_key => $key relation (as in $schema->$foreign_key)
+     */
+    protected function belongs_to( $schema, array $mapping ){
+        return array( new $schema(), $mapping );
+    }
+
+    protected function _get_schema( $name ){
+        return sprintf("Nano_Db_%s", array_map( 'ucfirst', explode('_', $name ) ));
     }
 
     private function _getMapper(){

@@ -157,6 +157,8 @@
             $editor = new Model_Editor( array('name'=>$name) );
             $editor->put();
 
+            //var_dump($editor);
+
             $editors[$index] = $editor;
 
             foreach( $publications as $pub ){
@@ -171,15 +173,18 @@
     }
 
     /**
-     * @depends testPutMore
+     * @depends testPutRelations
      */
-    //public function testHasManyToMany(){
-    //    $model = new Model_Author(1);
-    //    $books = $model->books();
-    //
-    //    foreach( $model->books() as $publication ){
-    //        $this->assertType( 'Model_Publication', $publication );
-    //    }
-    //}
+    public function testHasManyToMany(){
+        $model = new Model_Publication;
+
+        var_dump( $model->editors() );
+        //$model = new Model_Author(1);
+        //$books = $model->books();
+        //
+        //foreach( $model->books() as $publication ){
+        //    $this->assertType( 'Model_Publication', $publication );
+        //}
+    }
 
 }

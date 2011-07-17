@@ -40,11 +40,7 @@ class Model_Publication extends Nano_Db_Schema {
     }
 
     public function editors(){
-        $this->has_many_to_many( 'Model_Editor',
-            array( 'Model_Editor_Publication' => array(
-                'publication_id'    => 'id'
-            )),
-            array( 'editor_id' => 'id'
-        ));
+        return $this->has_many_to_many( 'editors', 'Model_EditorPublication',
+            array( 'publication_id' => 'id' ));
     }
 }
