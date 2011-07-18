@@ -41,15 +41,49 @@ class Nano_Db_Query_Builder{
 
         $this->_selectColumns = $selectColumns;
         $this->_action        = 'select';
-
         return $this;
     }
 
-    public function delete(){
+    public function update( $table, array $values ){
+        $update = array();
+
+        foreach( array_filter($values) as $key => $value ){
+            $update[] = array(
+                'column' => $key,
+                'value'  => $value,
+                'table'  => $table,
+            );
+        }
+
+        $this->_update = $update;
+        $this->_action = 'update';
+        return $this;
+    }
+
+
+    public function insert( $table, array $values ){
+        $insert = array();
+
+        foreach( array_filter($values) as $key => $value ){
+            $insert[] = array(
+                'column' => $key,
+                'value'  => $value,
+                'table'  => $table,
+            );
+        }
+
+        $this->_update = $insert;
+        $this->_action = 'update';
+        return $this;
+    }
+
+    public function delete( $table, array $where ){
+        $this->from( $table );
+        $this->where( $where );
+
         $this->_action = 'delete';
         return $this;
     }
-
 
     public function from( $where ){
         if( is_array( $where ) ){
@@ -102,32 +136,18 @@ class Nano_Db_Query_Builder{
         return $this;
     }
 
-    public function andWhere(){
-        return $this;
-    }
-
-    public function orWhere(){
-        return $this;
-    }
-
     public function groupBy( $group ){
         $this->_group = func_get_args();
     }
 
-    public function order(){
-        return $this;
-    }
-
     public function limit( $limit, $offset=0 ){
         $this->_limitOffset = array( $limit, $offset );
-
         return $this;
     }
 
     public function offset( $offset ){
         list( $limit, $oldOffset ) = $this->_limitOffset;
         $this->_limitOffset = array( $limit, $offset );
-
         return $this;
     }
 
@@ -137,11 +157,16 @@ class Nano_Db_Query_Builder{
 
     private function _buildSql(){
         $sql = array();
+        $this->_clearBindings();
 
         switch( $this->_action ){
             case 'select':
                 $sql[] = $this->_buildSelect();
                 break;
+            case 'insert':
+                $sql[] = $this->_buildInsert();
+            case 'update':
+                $sql[] = $this->_buildUpdate();
             case 'delete':
                 $sql[] = 'DELETE';
         }
@@ -182,10 +207,6 @@ class Nano_Db_Query_Builder{
         $this->_bindings = array();
     }
 
-    private function _buildUpdate(){
-
-    }
-
     private function _buildWhere(){
         $whereClauses = (array) $this->_where;
         $where = array();
@@ -223,7 +244,7 @@ class Nano_Db_Query_Builder{
         }
                 //$this->_addBindings( $value );
 
-        $this->_setBindings( $bindings );
+        $this->_addBindings( $bindings );
 
 
         if( count( $where ) > 0 ){
@@ -290,6 +311,7 @@ class Nano_Db_Query_Builder{
             }
         }
 
+        if( count($order) == 0 ) return '';
         return 'ORDER BY ' . join(',', $order );
     }
 
@@ -308,8 +330,8 @@ class Nano_Db_Query_Builder{
             }
         }
 
+        if( count($from) == 0 ) return '';
         return 'FROM ' . join( ",", $collect );
-
     }
 
     private function _buildSelect(){
@@ -338,7 +360,46 @@ class Nano_Db_Query_Builder{
         }
 
         return 'SELECT *';
+    }
 
+    private function _buildUpdate(){
+        $update   = array();
+        $bindings = array();
+
+        foreach( $this->_update as $col ){
+            $column = $col['column'];
+            $table  = $col['table'];
+
+            $alias = $this->_getTableAlias( (string) $table );
+            $update[] = sprintf('%s.`%s` = ?', $alias, $columns );
+            $bindings[] = $col['value'];
+        }
+
+        $this->_addBindings( $bindings );
+        return sprintf('UPDATE `%s` SET ' . join( ",\n", $update ) );
+    }
+
+    private function _buildInsert(){
+        $columns   = array();
+        $bindings = array();
+
+        foreach( $this->_insert as $col ){
+            $columns[] = '`' . $col['column'] . '`';
+            $bindings[] = $col['value'];
+        }
+
+        $table  = $col['table'];
+        $alias  = $this->_getTableAlias( $table );
+
+        $this->_addBindings( $bindings );
+        $values = array_fill( 0, count($bindings), '?' );
+
+        return sprintf('
+            INSERT INTO
+            `%s` %s ( %s )
+            VALUES ( %s )',
+            $table, $alias, join($columns), $values
+        );
     }
 
     private function _buildOperator( $op, $body ){
@@ -378,11 +439,4 @@ class Nano_Db_Query_Builder{
 
         return array_shift( $this->_aliasPool );
     }
-
-    //private function _delete( $from, array $where ){
-    //    list( $where_clause, $values ) = $this->_buildWhereClause( $where, $from );
-    //
-    //    $query = sprintf('DELETE FROM `%s` WHERE %s', $from, join( "AND", $where_clause ) );
-    //    return $this->_saveExecute( $query, $values );
-    //}
 }
