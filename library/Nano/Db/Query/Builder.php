@@ -3,7 +3,7 @@ class Nano_Db_Query_Builder{
     private $_action = null;
     private $_from   = null;
     private $_where  = null;
-    private $_update  = null;
+    private $_values  = null;
     private $_group  = null;
     private $_order  = null;
 
@@ -55,7 +55,7 @@ class Nano_Db_Query_Builder{
             );
         }
 
-        $this->_update = $update;
+        $this->_values = $update;
         $this->_action = 'update';
         return $this;
     }
@@ -72,15 +72,12 @@ class Nano_Db_Query_Builder{
             );
         }
 
-        $this->_update = $insert;
-        $this->_action = 'update';
+        $this->_values = $insert;
+        $this->_action = 'insert';
         return $this;
     }
 
-    public function delete( $table, array $where ){
-        $this->from( $table );
-        $this->where( $where );
-
+    public function delete(){
         $this->_action = 'delete';
         return $this;
     }
@@ -159,18 +156,9 @@ class Nano_Db_Query_Builder{
         $sql = array();
         $this->_clearBindings();
 
-        switch( $this->_action ){
-            case 'select':
-                $sql[] = $this->_buildSelect();
-                break;
-            case 'insert':
-                $sql[] = $this->_buildInsert();
-            case 'update':
-                $sql[] = $this->_buildUpdate();
-            case 'delete':
-                $sql[] = 'DELETE';
-        }
+        $method = '_build' . ucfirst($this->_action);
 
+        $sql[] = $this->$method();
         $sql[] = $this->_buildFrom();
         $sql[] = $this->_buildWhere();
         $sql[] = $this->_buildGroup();
@@ -366,24 +354,24 @@ class Nano_Db_Query_Builder{
         $update   = array();
         $bindings = array();
 
-        foreach( $this->_update as $col ){
+        foreach( $this->_values as $col ){
             $column = $col['column'];
             $table  = $col['table'];
 
             $alias = $this->_getTableAlias( (string) $table );
-            $update[] = sprintf('%s.`%s` = ?', $alias, $columns );
+            $update[] = sprintf('%s.`%s` = ?', $alias, $column );
             $bindings[] = $col['value'];
         }
 
         $this->_addBindings( $bindings );
-        return sprintf('UPDATE `%s` SET ' . join( ",\n", $update ) );
+        return sprintf("UPDATE `%s` SET\n%s", $table, join( ",\n", $update ) );
     }
 
     private function _buildInsert(){
         $columns   = array();
         $bindings = array();
 
-        foreach( $this->_insert as $col ){
+        foreach( $this->_values as $col ){
             $columns[] = '`' . $col['column'] . '`';
             $bindings[] = $col['value'];
         }
@@ -394,11 +382,11 @@ class Nano_Db_Query_Builder{
         $this->_addBindings( $bindings );
         $values = array_fill( 0, count($bindings), '?' );
 
-        return sprintf('
-            INSERT INTO
-            `%s` %s ( %s )
-            VALUES ( %s )',
-            $table, $alias, join($columns), $values
+
+        return sprintf("INSERT INTO\n"
+            . "`%s` %s ( %s )\n"
+            . "VALUES ( %s )",
+            $table, $alias, join(',',$columns), join(',',$values)
         );
     }
 

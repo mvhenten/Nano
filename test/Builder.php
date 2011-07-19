@@ -5,20 +5,54 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
     protected function setUp(){
         require_once( dirname(dirname(__FILE__)) . '/library/Nano/Autoloader.php');
         Nano_Autoloader::register();
-        ////require_once(dirname(dirname(__FILE__)) . '/library/Nano/Db/Schema.php');
-        //require_once('schema/Item.php');
-        //
-        //$this->config = array(
-        //    'dsn'      => 'mysql:dbname=pico;host=127.0.0.1',
-        //    'username' => 'pico',
-        //    'password' => 'pico'
-        //);
-        //
-        //Nano_Db::setAdapter( $this->config );
     }
 
     public function testConstruct(){
         $builder = new Nano_Db_Query_Builder();
+    }
+
+    private function _builder(){
+        return new Nano_Db_Query_Builder();
+    }
+
+    private function _print( $str ){
+        foreach( explode("\n", (string) $str ) as $s ){
+            print "\n$s";
+        }
+    }
+
+    public function testInsert(){
+        $values = array('start' => 1, 'finish' => 4, 'duration' => 3);
+        $table  = 'foobar';
+
+        $builder = $this->_builder()
+                ->insert( $table, $values );
+
+        $expect = "INSERT INTO\n"
+                . "`foobar` a ( `start`,`finish`,`duration` )\n"
+                . "VALUES ( ?,?,? )";
+
+        $this->assertEquals( (string) $builder, $expect );
+        $this->assertEquals( count($builder->bindings()), 3);
+        $this->assertEquals( $builder->bindings(), array(1,4,3));
+    }
+
+    public function testUpdate(){
+        $builder =
+            $this->_builder()
+            ->update('foobar', array('id'=>1, 'blaza'=>39))
+            ->where( array('fitz'=>13) );
+
+        $expect = "UPDATE `foobar` SET\n"
+                . "a.`id` = ?,\n"
+                . "a.`blaza` = ?\n"
+                . "WHERE `fitz` = ?";
+
+        $this->assertEquals( (string) $builder, $expect );
+        $this->assertEquals( count($builder->bindings()), 3);
+        $this->assertEquals( $builder->bindings(), array(1,39,13));
+
+        //$this->_print( $builder );
     }
 
     public function testBuildWhere(){
@@ -28,41 +62,43 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
             ->from( 'item' )
             ->where( array('id' => array('IN', range(40,70) ) ) );
 
-        printf("--\n%s\n", $builder );
+        #print $builder;
 
-        $builder->select( array('operator' => 'count') );
-
-        printf("--\n%s\n", $builder );
-
-        $builder->where( array('id' => array('<', 100 ) ) );
-        printf("--\n%s\n", $builder );
-
-
-
-        $builder->select( array('operator' => 'max', 'column' => 'id', 'table' => 'item') );
-        printf("--\n%s\n", $builder );
-
-        $builder->limit(10);
-        printf("--\n%s\n", $builder );
-
-        $builder->limit(10, 5);
-        printf("--\n%s\n", $builder );
-
-        $builder->offset(7);
-        $builder->groupBy( 'slug' );
-
-
-        printf("--\n%s\n", $builder );
-
-        $builder = new Nano_Db_Query_Builder();
-
-        $builder->delete()
-            ->from('frobnitz')
-            ->where(array('bla' => 1, 'biz' => 23 ));
-
-        printf("--\n%s\n", $builder );
-
-
+        //printf(">>\n%s\n", $builder );
+        //
+        //$builder->select( array('operator' => 'count') );
+        //
+        //printf("--\n%s\n", $builder );
+        //
+        //$builder->where( array('id' => array('<', 100 ) ) );
+        //printf("--\n%s\n", $builder );
+        //
+        //
+        //
+        //$builder->select( array('operator' => 'max', 'column' => 'id', 'table' => 'item') );
+        //printf("--\n%s\n", $builder );
+        //
+        //$builder->limit(10);
+        //printf("--\n%s\n", $builder );
+        //
+        //$builder->limit(10, 5);
+        //printf("--\n%s\n", $builder );
+        //
+        //$builder->offset(7);
+        //$builder->groupBy( 'slug' );
+        //
+        //
+        //printf("--\n%s\n", $builder );
+        //
+        //$builder = new Nano_Db_Query_Builder();
+        //
+        //$builder->delete()
+        //    ->from('frobnitz')
+        //    ->where(array('bla' => 1, 'biz' => 23 ));
+        //
+        //printf("--\n%s\n", $builder );
+        //
+        //
 
     }
 }
