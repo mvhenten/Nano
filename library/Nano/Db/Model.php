@@ -48,11 +48,12 @@ class Nano_Db_Model extends ArrayObject{
                 ($this->key()) => $properties
             );
         }
-        
+
         if( is_array($properties) ){
-            foreach( $properties as $key => $value ){
-                $this->__set( $key, $value );
-            }
+            $this->_properties = $properties;
+            //foreach( $properties as $key => $value ){
+            //    $this->__set( $key, $value );
+            //}
         }
     }
 
@@ -73,7 +74,10 @@ class Nano_Db_Model extends ArrayObject{
                 && isset( $this->_properties[$key] ) ){//triggers a database lookup
 
             $query = new Nano_Db_Query( $this );
-            $this->_properties = $query->current()->properties();
+            $result = $query->current();
+            if( $result ){
+                $this->_properties = $query->current()->properties();
+            }
         }
 
         if( isset( $this->_properties[$name] ) ){

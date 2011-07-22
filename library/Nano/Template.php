@@ -95,11 +95,14 @@ class Nano_Template{
             $this->_parents = array( $template );
 
             while( count( $this->_parents ) > 0 ){
-                $tpl = array_pop( $this->_parents );                
+                $tpl = array_pop( $this->_parents );
                 $relative = preg_replace( '/^' . str_replace( '/', '\/', APPLICATION_PATH ) . '/', '', $tpl );
                 $path = $this->expandPath( $relative );
 
                 @ob_start();
+                ini_set( 'log_errors', 1 );
+                ini_set( 'display_errors', 0);
+
                 include( $path );
                 $content = @ob_get_clean();
             }
@@ -194,10 +197,10 @@ class Nano_Template{
 
         return $path;
     }
-    
+
     public function templateExists( $template ){
         $path = $this->expandPath( $template );
-                
+
         return file_exists( $path );
     }
 
