@@ -20,13 +20,15 @@ $config = array(
 Nano_Db::setAdapter( $config );
 
 $dbh = Nano_Db::getAdapter();
-$tables = $dbh->fetchAll('show tables;', null, PDO::FETCH_ASSOC);
+$sth = $dbh->query('show tables;');
+
+$tables = $sth->fetchAll(PDO::FETCH_ASSOC);
 $tables = array_map( 'current' , $tables );
 
 $collect = array();
 
 foreach( $tables as $table ){
-    $collect[$table] = $dbh->fetchAll(sprintf('DESCRIBE `%s`;', $table), null, PDO::FETCH_ASSOC);
+    $collect[$table] = $dbh->query(sprintf('DESCRIBE `%s`;', $table))->fetchAll(PDO::FETCH_ASSOC);
 }
 
 //$collect = array('item_content' => $collect['item_content'] );

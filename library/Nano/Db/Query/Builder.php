@@ -15,7 +15,14 @@ class Nano_Db_Query_Builder{
     private $_aliasPool     = null;
 
     public function __toString(){
-        return $this->_buildSql();
+        try{
+            $sql = $this->_buildSql();
+        }
+        catch( Exception $e ){
+            throw new Exception( 'what went wrong?' );
+
+        }
+        return $sql;
     }
 
     public function select( $column ){
@@ -159,10 +166,17 @@ class Nano_Db_Query_Builder{
         $method = '_build' . ucfirst($this->_action);
 
         $sql[] = $this->$method();
-        $sql[] = $this->_buildFrom();
-        $sql[] = $this->_buildWhere();
-        $sql[] = $this->_buildGroup();
-        $sql[] = $this->_buildLimitOffset();
+
+        if( $this->_action != 'insert' && $this->_action != 'update' ){
+            $sql[] = $this->_buildFrom();
+            $sql[] = $this->_buildWhere();
+            $sql[] = $this->_buildGroup();
+            $sql[] = $this->_buildLimitOffset();
+        }
+
+        if( $this->_action == 'update' ){
+            $sql[] = $this->_buildWhere();
+        }
 
         return join( "\n", array_filter($sql) );
     }
@@ -358,8 +372,7 @@ class Nano_Db_Query_Builder{
             $column = $col['column'];
             $table  = $col['table'];
 
-            $alias = $this->_getTableAlias( (string) $table );
-            $update[] = sprintf('%s.`%s` = ?', $alias, $column );
+            $update[] = sprintf('`%s` = ?',  $column );
             $bindings[] = $col['value'];
         }
 
@@ -377,16 +390,16 @@ class Nano_Db_Query_Builder{
         }
 
         $table  = $col['table'];
-        $alias  = $this->_getTableAlias( $table );
+        //$alias  = $this->_getTableAlias( $table );
 
         $this->_addBindings( $bindings );
         $values = array_fill( 0, count($bindings), '?' );
 
 
         return sprintf("INSERT INTO\n"
-            . "`%s` %s ( %s )\n"
+            . "`%s` ( %s )\n"
             . "VALUES ( %s )",
-            $table, $alias, join(',',$columns), join(',',$values)
+            $table, join(',',$columns), join(',',$values)
         );
     }
 

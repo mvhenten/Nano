@@ -7,6 +7,38 @@ abstract class Nano_Db_Schema{
 
     private $_values      = array();
 
+    public final function __construct( $id = null ){
+        if( is_numeric( $id )
+           && ( 'int' == substr( $this->columnType( $this->key() ), 0, 3))){
+            $this->load( $id );
+        }
+        else if( is_array( $id ) ){
+            $this->setValues( $id );
+        }
+    }
+
+    public final function __get( $name ){
+        if( in_array( $name, $this->columns() ) ){
+            if( isset( $this->_values[$name] ) ){
+                return $this->_values[$name];
+            }
+        }
+    }
+
+    public final function __set( $name, $value ){
+        if( in_array( $name, $this->columns() ) ){
+            $this->_values[$name] = $value;
+        }
+    }
+
+    public final function __call( $method, $args ){
+        if( method_exists( 'Nano_Db_Schema_Mapper', $method ) ){
+            return $this->_getMapper()->$method( $this, current($args) );
+        }
+        else{
+            throw new Exception( "$method is not supported" );
+        }
+    }
     public function schema(){
         return $this->_schema;
     }
@@ -36,7 +68,18 @@ abstract class Nano_Db_Schema{
     }
 
     public function values(){
-        return $this->_values;
+        $values = array();
+        foreach( $this->_values as $key => $value ){
+            $values[$key] = $this->filter( $key, $value );
+        }
+        return $values;
+    }
+
+    public function filter( $name, $value ){
+        if( ( $method = '_filter_' . $name ) && method_exists( $this, $method ) ){
+            return $this->$method( $value );
+        }
+        return $value;
     }
 
     public function setValues( array $values ){
@@ -47,36 +90,6 @@ abstract class Nano_Db_Schema{
 
     public function table(){
         return $this->_tableName;
-    }
-
-    public final function __construct( $id = null ){
-        if( is_numeric( $id )
-           && ( 'int' == substr( $this->columnType( $this->key() ), 0, 3))){
-            $this->load( $id );
-        }
-        else if( is_array( $id ) ){
-            $this->setValues( $id );
-        }
-    }
-
-    public final function __get( $name ){
-        if( in_array( $name, $this->columns() ) ){
-            if( isset( $this->_values[$name] ) ){
-                return $this->_values[$name];
-            }
-        }
-    }
-
-    public final function __set( $name, $value ){
-        if( in_array( $name, $this->columns() ) ){
-            $this->_values[$name] = $value;
-        }
-    }
-
-    public final function __call( $method, $args ){
-        if( method_exists( 'Nano_Db_Schema_Mapper', $method ) ){
-            return $this->_getMapper()->$method( $this, current($args) );
-        }
     }
 
     /**

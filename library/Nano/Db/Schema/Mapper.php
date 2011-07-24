@@ -121,6 +121,31 @@ class Nano_Db_Schema_Mapper{
     }
 
     /**
+     * Performs a simple count query
+     *
+     * @param Nano_Db_Schema $schema The schema to fetch "as"
+     * @param array $arguments Optional array array( 'where' =>, 'limit' => )
+     *
+     * @return PdoStatement $sth
+     */
+    public function count( Nano_Db_Schema $schema, $arguments = array() ){
+        $arguments = (array) $arguments;
+        list( $offset, $limit ) = $this->_buildLimit( $arguments );
+
+        $where = isset($arguments['where']) ? $arguments['where'] : array();
+
+        $builder = $this->_builder()->select( 'COUNT(*)' )
+            ->from( $schema->table() )
+            ->where( $where )
+            ->limit( $limit, $offset );
+
+
+        $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
+        $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
+        return $sth;
+    }
+
+    /**
      * Performs a many_to_many query
      * @FIXME @TODO implement this trough builder
      *
@@ -231,9 +256,14 @@ class Nano_Db_Schema_Mapper{
      * @param Nano_Db_Schema $schema
      * @return int $id Last-insert id
      */
-    public function update( Nano_Db_Schema $schema, array $where ){
+    public function update( Nano_Db_Schema $schema, array $keys ){
+        $values = $schema->values();
+
+        $where = array_intersect_key( $values, array_flip($keys) );
+        $values = array_diff_key($values, $where);
+
         $builder = $this->_builder()
-            ->update( $schema->table(), $schema->values() )
+            ->update( $schema->table(), $values )
             ->where( $where );
 
         return $this->_saveExecute( (string) $builder, $builder->bindings() );

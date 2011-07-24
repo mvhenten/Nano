@@ -29,13 +29,10 @@ class Nano_Db{
         if( $config instanceof PDO ){
             $adapter = $config;
         }
-        else if( is_array( $config ) && isset( $config['dsn'] ) ){
-            $config = array_merge( array(
-                'username' => null,
-                'password' => null ), $config
-            );
-
-            $adapter = new PDO( $config['dsn'], $config['username'], $config['password'] );
+        else{
+            $username = isset($config['username']) ? $config['username'] : null;
+            $password = isset($config['password']) ? $config['password'] : null;
+            $adapter = new PDO( $config['dsn'], $username, $password );
         }
 
         $this->_adapters[$name] = $adapter;

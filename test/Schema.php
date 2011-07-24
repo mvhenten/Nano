@@ -1,4 +1,10 @@
-<?php class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
+<?php
+ini_set('display_errors', "true");
+ini_set('display_warnings', "true");
+ini_set('upload_max_filesize', '16M');
+ini_set('post_max_size', '16M');
+
+class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
     private $config;
 
     static function setUpBeforeClass(){
@@ -60,7 +66,7 @@
         foreach( $names as $name ){
             $author = new Model_Author();
             $author->name = $name;
-            $author->put();
+            $author->store();
         }
 
         return $names;
@@ -80,6 +86,7 @@
         return $author->search();
     }
 
+
     /**
      * @depends testSearch
      */
@@ -89,10 +96,8 @@
             foreach( range(0,rand(0,10)) as $n ){
                 shuffle( $words );
                 $title = ucfirst( vsprintf('%s %s %s %s', array_slice($words, 0, 4)));
-                $book = new Model_Publication();
-                $book->put( array('author_id' => $author->id, 'title' => $title ));
-
-                //printf( "%d: %s: %s\n", $book->id, $book->title, $author->name );
+                $book = new Model_Publication(array('author_id' => $author->id, 'title' => $title ));
+                $val = $book->store();
             }
         }
     }
@@ -155,36 +160,48 @@
 
         foreach( $editors as $index => $name ){
             $editor = new Model_Editor( array('name'=>$name) );
-            $editor->put();
-
-            //var_dump($editor);
+            $editor->id = $editor->store();
 
             $editors[$index] = $editor;
 
             foreach( $publications as $pub ){
-                $editpub = new Model_EditorPublication( array(
-                    'editor_id' => $editor->id,
-                    'publication_id' => $pub->id
-                ));
-
-                $editpub->put();
+                $editpub = new Model_EditorPublication();
+                $editpub->insert($editpub->values());
             }
         }
+
     }
 
     /**
      * @depends testPutRelations
      */
-    public function testHasManyToMany(){
-        $model = new Model_Publication;
+    public function testUpdateRelations(){
+        $model = new Model_Editor();
+        foreach( $model->search() as $editor ){
+            $editor->name = 'updated ' . $editor->name;
+            $editor->store();
+        }
 
-        var_dump( $model->editors() );
-        //$model = new Model_Author(1);
-        //$books = $model->books();
-        //
-        //foreach( $model->books() as $publication ){
-        //    $this->assertType( 'Model_Publication', $publication );
-        //}
+        $model = new Model_Editor();
+        foreach( $model->search() as $editor ){
+            $this->assertEquals( 'updated', substr( $editor->name, 0, 7) );
+        }
+
     }
+
+    /**
+     * @depends testPutRelations
+     */
+    //public function testHasManyToMany(){
+    //    $model = new Model_Publication;
+    //
+    //    var_dump( $model->editors() );
+    //    //$model = new Model_Author(1);
+    //    //$books = $model->books();
+    //    //
+    //    //foreach( $model->books() as $publication ){
+    //    //    $this->assertType( 'Model_Publication', $publication );
+    //    //}
+    //}
 
 }
