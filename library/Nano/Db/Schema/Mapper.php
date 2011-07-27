@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL | E_STRICT);
 /**
  * @file Nano/Db/Schema/Mapper.php
  *
@@ -219,18 +220,12 @@ class Nano_Db_Schema_Mapper{
      * @param Nano_Db_Schema $schema
      * @return PdoStatement $sth Statement when updating, last-insert id otherwise
      */
-    public function store( Nano_Db_Schema $schema ){
-        $keys  = (array) $schema->key();
-        $where = array_flip( $keys );
-
-        $where = array_intersect_key( $schema->values(), $where );
-        $where = array_filter( $where );
-
-        if( count($where) == count($keys) ){
-            return $this->update( $schema, $keys );
+    public function store( Nano_Db_Schema $schema, $where = array() ){
+        if( is_array( $where ) && count( $where ) > 0 ){
+            return $this->_update( $schema, $schema->values(), $where );
         }
         else{
-            return $this->insert( $schema, $schema->values() );
+            return $this->_insert( $schema, $schema->values() );
         }
     }
 
@@ -241,7 +236,7 @@ class Nano_Db_Schema_Mapper{
      * @param Nano_Db_Schema $schema
      * @return int $id Last-insert id
      */
-    public function insert( Nano_Db_Schema $schema, array $values ){
+    private function _insert( Nano_Db_Schema $schema, array $values ){
         $builder = $this->_builder()
                 ->insert( $schema->table(), $schema->values() );
 
@@ -256,10 +251,8 @@ class Nano_Db_Schema_Mapper{
      * @param Nano_Db_Schema $schema
      * @return int $id Last-insert id
      */
-    public function update( Nano_Db_Schema $schema, array $keys ){
-        $values = $schema->values();
-
-        $where = array_intersect_key( $values, array_flip($keys) );
+    private function _update( Nano_Db_Schema $schema, array $values, array $where ){
+        //$where = array_intersect_key( $values, array_flip($keys) );
         $values = array_diff_key($values, $where);
 
         $builder = $this->_builder()

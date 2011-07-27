@@ -3,6 +3,7 @@ ini_set('display_errors', "true");
 ini_set('display_warnings', "true");
 ini_set('upload_max_filesize', '16M');
 ini_set('post_max_size', '16M');
+error_reporting(E_ALL | E_STRICT);
 
 class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
     private $config;
@@ -67,6 +68,7 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
             $author = new Model_Author();
             $author->name = $name;
             $author->store();
+
         }
 
         return $names;
@@ -98,6 +100,21 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
                 $title = ucfirst( vsprintf('%s %s %s %s', array_slice($words, 0, 4)));
                 $book = new Model_Publication(array('author_id' => $author->id, 'title' => $title ));
                 $val = $book->store();
+            }
+        }
+
+        return $authors;
+    }
+
+        /**
+     * @depends testPutMore
+     */
+    public function testStoreFilterWorks( $authors ){
+        foreach( $authors as $author ){
+            $books = $author->books();
+            foreach( $books as $book ){
+                $this->assertType( 'Model_Publication', $book );
+                $this->assertStringEndsWith( $author->name, $book->title );
             }
         }
     }
@@ -164,9 +181,13 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
 
             $editors[$index] = $editor;
 
+
             foreach( $publications as $pub ){
                 $editpub = new Model_EditorPublication();
-                $editpub->insert($editpub->values());
+                $editpub->editor_id = $editor->id;
+                $editpub->publication_id = $pub->id;
+
+                $editpub->store();
             }
         }
 
@@ -179,7 +200,7 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
         $model = new Model_Editor();
         foreach( $model->search() as $editor ){
             $editor->name = 'updated ' . $editor->name;
-            $editor->store();
+            $editor->store(array( 'id' => $editor->id));
         }
 
         $model = new Model_Editor();
@@ -192,16 +213,14 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
     /**
      * @depends testPutRelations
      */
-    //public function testHasManyToMany(){
-    //    $model = new Model_Publication;
-    //
-    //    var_dump( $model->editors() );
-    //    //$model = new Model_Author(1);
-    //    //$books = $model->books();
-    //    //
-    //    //foreach( $model->books() as $publication ){
-    //    //    $this->assertType( 'Model_Publication', $publication );
-    //    //}
-    //}
+    public function testHasManyToMany(){
+        $model = new Model_Publication;
+
+        $editors = $model->editors();
+
+        foreach( $editors as $editor ){
+            $this->assertType( 'Model_Editor', $editor );
+        }
+    }
 
 }

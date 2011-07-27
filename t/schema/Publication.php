@@ -43,4 +43,8 @@ class Model_Publication extends Nano_Db_Schema {
         return $this->has_many_to_many( 'editors', 'Model_EditorPublication',
             array( 'publication_id' => 'id' ));
     }
+
+    public function _filter_title( $value ){
+        return $value . ', by ' . $this->author()->name;
+    }
 }

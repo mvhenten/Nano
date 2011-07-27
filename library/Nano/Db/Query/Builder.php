@@ -70,8 +70,13 @@ class Nano_Db_Query_Builder{
 
     public function insert( $table, array $values ){
         $insert = array();
+        $values = array_filter( $values );
 
-        foreach( array_filter($values) as $key => $value ){
+        if( empty( $values ) ){ // hard assertion: no empty arrays!
+            throw new Exception( 'insert must have at least values' );
+        }
+
+        foreach( $values as $key => $value ){
             $insert[] = array(
                 'column' => $key,
                 'value'  => $value,
@@ -376,6 +381,8 @@ class Nano_Db_Query_Builder{
             $bindings[] = $col['value'];
         }
 
+        $table = $this->_values[0]['table'];
+
         $this->_addBindings( $bindings );
         return sprintf("UPDATE `%s` SET\n%s", $table, join( ",\n", $update ) );
     }
@@ -385,20 +392,17 @@ class Nano_Db_Query_Builder{
         $bindings = array();
 
         foreach( $this->_values as $col ){
-            $columns[] = '`' . $col['column'] . '`';
+            $columns[]  = '`' . $col['column'] . '`';
             $bindings[] = $col['value'];
         }
 
-        $table  = $col['table'];
-        //$alias  = $this->_getTableAlias( $table );
+        $table = $this->_values[0]['table'];
 
         $this->_addBindings( $bindings );
         $values = array_fill( 0, count($bindings), '?' );
 
 
-        return sprintf("INSERT INTO\n"
-            . "`%s` ( %s )\n"
-            . "VALUES ( %s )",
+        return sprintf('INSERT INTO `%s` ( %s ) VALUES ( %s )',
             $table, join(',',$columns), join(',',$values)
         );
     }

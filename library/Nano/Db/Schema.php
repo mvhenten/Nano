@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL | E_STRICT);
+
 abstract class Nano_Db_Schema{
     protected $_tableName   = null;
     protected $_schema      = null;

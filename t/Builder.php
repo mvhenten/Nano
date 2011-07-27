@@ -28,9 +28,8 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
         $builder = $this->_builder()
                 ->insert( $table, $values );
 
-        $expect = "INSERT INTO\n"
-                . "`foobar` a ( `start`,`finish`,`duration` )\n"
-                . "VALUES ( ?,?,? )";
+        $expect =
+        'INSERT INTO `foobar` ( `start`,`finish`,`duration` ) VALUES ( ?,?,? )';
 
         $this->assertEquals( (string) $builder, $expect );
         $this->assertEquals( count($builder->bindings()), 3);
@@ -44,8 +43,8 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
             ->where( array('fitz'=>13) );
 
         $expect = "UPDATE `foobar` SET\n"
-                . "a.`id` = ?,\n"
-                . "a.`blaza` = ?\n"
+                . "`id` = ?,\n"
+                . "`blaza` = ?\n"
                 . "WHERE `fitz` = ?";
 
         $this->assertEquals( (string) $builder, $expect );
