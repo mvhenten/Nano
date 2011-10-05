@@ -163,11 +163,13 @@ class Nano_Db_Schema_Mapper{
 
         $join_clause = reset($arguments['join']);
         $join_table  = key($arguments['join']);
+        
+        $values = array( reset($where) );
 
         //@FIXME Builder should support left_join
         // so this printing of SQL is not needed
         $query = sprintf('
-            SELECT *
+            SELECT a.*
             FROM `%s` %s
             LEFT JOIN `%s` %s ON %s.`%s` = %s.`%s`
             WHERE %s.`%s` = ?
@@ -178,10 +180,24 @@ class Nano_Db_Schema_Mapper{
             'a', key($join_clause),   // key of $schema->table
             'b', key($where)          // $where clause is
         );
+        
+        
+        //@fixme. use Builder... this is a quick hack...
+        if( isset($arguments['order']) ){
+            $query .= sprintf(' ORDER BY `%s`', $arguments['order']);
+        }
+        
+        //@fixme Use Builder. this is a hack.
+        if( $limit ){
+            $query = sprintf("%s\nLIMIT %s, %s", $query, intval($offset), intval($limit) );
+        }
+
 
         $sth = $this->_saveExecute( $query, array(reset($where)) );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
             get_class( $schema ) );
+        
+        
 
         return $sth;
     }
@@ -208,7 +224,10 @@ class Nano_Db_Schema_Mapper{
         }
 
         $builder = $this->_builder()
-            ->delete( $schema->table(), $where );
+            ->delete( $schema->table() )
+            ->where( $where );
+            
+        var_dump( 'SQL: ' .  $builder );
 
         return $this->_saveExecute( (string) $builder, $builder->bindings() );
     }

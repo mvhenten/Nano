@@ -89,7 +89,8 @@ class Nano_Db_Query_Builder{
         return $this;
     }
 
-    public function delete(){
+    public function delete( $table ){
+        $this->_from = array( $table );
         $this->_action = 'delete';
         return $this;
     }
@@ -125,9 +126,10 @@ class Nano_Db_Query_Builder{
 
             if( ! is_numeric($key) ){
                 $clause['col'] = $key;
-                if( is_array( $value ) ){
+                
+                if( is_array( $value ) && count($value) > 1 ){
                     list( $op, $nvalue ) = $value;
-                    $clause['op']   = $op;
+                    $clause['op']   = strtoupper($op);
                     $value = $nvalue;
                 }
 
@@ -137,10 +139,14 @@ class Nano_Db_Query_Builder{
                 $value = array_intersect_key( $value, $clause );
                 $clause = array_merge( $clause, $value );
             }
+            else{
+                throw new Exception( 'invalid where: must be like col => val or col => (op, val))');
+            }
 
             $where[] = $clause;
         }
-
+        
+        
         $this->_where = $where;
         return $this;
     }
@@ -168,15 +174,21 @@ class Nano_Db_Query_Builder{
         $sql = array();
         $this->_clearBindings();
 
-        $method = '_build' . ucfirst($this->_action);
 
+        
+        $method = '_build' . ucfirst($this->_action);            
         $sql[] = $this->$method();
-
-        if( $this->_action != 'insert' && $this->_action != 'update' ){
+        
+        if( $this->_action == 'delete' ){
+            $sql[] = $this->_buildFrom();
+            $sql[] = $this->_buildWhere();
+            error_log( join("\n", $sql ));            
+        }
+        else if( $this->_action != 'insert' && $this->_action != 'update' ){
             $sql[] = $this->_buildFrom();
             $sql[] = $this->_buildWhere();
             $sql[] = $this->_buildGroup();
-            $sql[] = $this->_buildLimitOffset();
+            $sql[] = $this->_buildLimitOffset();            
         }
 
         if( $this->_action == 'update' ){
@@ -331,16 +343,19 @@ class Nano_Db_Query_Builder{
                 $alias = $this->_getTableAlias( (string) $table );
                 $collect[] = sprintf('( %s ) %s', (string) $table, $alias );
             }
-            else{
+            else if( count( $from ) > 1 ){
                 $alias = $this->_getTableAlias( (string) $table );
-                $collect[] = sprintf('`%s` %s', $table, $alias );
+                $collect[] = sprintf('`%s` %s', $table, $alias );                
+            }
+            else{
+                $collect[] = sprintf('`%s`', $table );
             }
         }
 
         if( count($from) == 0 ) return '';
         return 'FROM ' . join( ",", $collect );
     }
-
+    
     private function _buildSelect(){
         if( is_array( $this->_selectColumns ) ){
             $select = array();
@@ -367,6 +382,10 @@ class Nano_Db_Query_Builder{
         }
 
         return 'SELECT *';
+    }
+    
+    private function _buildDelete(){
+        return 'DELETE';
     }
 
     private function _buildUpdate(){

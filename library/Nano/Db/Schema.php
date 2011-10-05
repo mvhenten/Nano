@@ -134,19 +134,22 @@ abstract class Nano_Db_Schema{
      * @param string $relation Name of the 'belongs_to' function in $schema
      * @param string $schema Name of the schema class that has the belongs_to
      * @param array $mapping $foreign_key => $key relation (as in $schema->$foreign_key)
+     * @param array $arguments order => $colname ( only order/limit supported now!);
      */
-    protected function has_many_to_many( $relation, $schema, $mapping ){
+    protected function has_many_to_many( $relation, $schema, $mapping, $arguments = array() ){
         $schema = new $schema();
 
         $key         = reset( $mapping );
         $foreign_key = key( $mapping );
 
         list($relation, $mapping ) = $schema->$relation();
-
-        return $this->_getMapper()->many_to_many( new $relation(), array(
+        
+        $arguments = array_merge( array(
             'join'  => array( $schema->table() => $mapping ),
-            'where' => array( $foreign_key => $this->$key )
-        ));
+            'where' => array( $foreign_key => $this->$key ),        
+        ), $arguments );
+
+        return $this->_getMapper()->many_to_many( new $relation(), $arguments );
     }
 
     /**

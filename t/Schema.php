@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', "true");
-ini_set('display_warnings', "true");
-ini_set('upload_max_filesize', '16M');
-ini_set('post_max_size', '16M');
 error_reporting(E_ALL | E_STRICT);
 
 class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
@@ -215,7 +211,7 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
      */
     public function testHasManyToMany(){
         $model = new Model_Publication;
-
+        
         $editors = $model->editors();
 
         foreach( $editors as $editor ){
