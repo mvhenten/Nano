@@ -28,7 +28,7 @@ abstract class Nano_View{
                 $method = 'get' . ucfirst($method);
             }
 
-            if( ! method_exist( $method, $this ) ){
+            if( ! method_exists( $method, $this ) ){
                 $method = $request->isPost() ? 'post' : 'get';
             }
         }
