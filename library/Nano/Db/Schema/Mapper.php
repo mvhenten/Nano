@@ -106,15 +106,19 @@ class Nano_Db_Schema_Mapper{
      */
     public function search( Nano_Db_Schema $schema, $arguments = array() ){
         $arguments = (array) $arguments;
+        
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
 
         $where = isset($arguments['where']) ? $arguments['where'] : array();
-
+        
         $builder = $this->_builder()->select( $schema->columns() )
             ->from( $schema->table() )
             ->where( $where )
             ->limit( $limit, $offset );
-
+            
+        if( isset($arguments['group']) ){
+            $builder->group( $arguments['group']);
+        }
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
@@ -227,8 +231,6 @@ class Nano_Db_Schema_Mapper{
             ->delete( $schema->table() )
             ->where( $where );
             
-        var_dump( 'SQL: ' .  $builder );
-
         return $this->_saveExecute( (string) $builder, $builder->bindings() );
     }
 
@@ -302,11 +304,12 @@ class Nano_Db_Schema_Mapper{
     }
 
     private function _builder(){
-        if( null == $this->_builder ){
-            $this->_builder = new Nano_Db_Query_Builder();
-        }
-
-        return $this->_builder;
+        //if( null == $this->_builder ){
+        //    $this->_builder = new Nano_Db_Query_Builder();
+        //}
+        //
+        //return $this->_builder;
+        return new Nano_Db_Query_Builder();
     }
 
     private function _buildLimit( $arguments ){

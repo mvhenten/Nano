@@ -123,24 +123,18 @@ class Nano_Db_Query_Builder{
                 'op'    => '=',
                 'value' => null
             );
-
-            if( ! is_numeric($key) ){
-                $clause['col'] = $key;
-                
-                if( is_array( $value ) && count($value) > 1 ){
-                    list( $op, $nvalue ) = $value;
-                    $clause['op']   = strtoupper($op);
-                    $value = $nvalue;
-                }
-
-                $clause['value'] = $value;
-            }
-            else if( is_array( $value ) ){
+            
+            if( is_numeric( $key ) && is_array($value) ){
                 $value = array_intersect_key( $value, $clause );
-                $clause = array_merge( $clause, $value );
+                $clause = array_merge( $clause, $value );                
             }
             else{
-                throw new Exception( 'invalid where: must be like col => val or col => (op, val))');
+                $clause['col'] = $key;
+                $clause['value'] = $value;
+                
+                if( is_array( $value ) ){
+                    $clause['op'] = 'IN';
+                }
             }
 
             $where[] = $clause;
@@ -149,6 +143,10 @@ class Nano_Db_Query_Builder{
         
         $this->_where = $where;
         return $this;
+    }
+    
+    public function group( $group ){
+        $this->_group = func_get_args();        
     }
 
     public function groupBy( $group ){

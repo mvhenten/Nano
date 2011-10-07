@@ -93,6 +93,39 @@ abstract class Nano_Db_Schema{
     public function table(){
         return $this->_tableName;
     }
+    
+    /**
+     * Wrapper around Nano_Db_Mapper::search, but adding sugar so you can
+     * leave out the "where" key ( it will be added )
+     *
+     * @param $arguments Key value pairs like 'group', 'limit', 'where'
+     * @return Nano_Db_Mapper results
+     */
+    public function search( array $arguments = array() ){
+        $whitelist = array_flip(explode('|', 'where|limit|group|join' ));
+        
+        $where = array_diff_key( $arguments, $whitelist );
+        
+        if( count($where) ){
+            $arguments = array_diff_key( $arguments, $where );
+            
+            $arguments['where'] = isset($arguments['where']) ?
+                array_merge( $arguments['where'], $where ) : $where;
+        }
+        
+        return $this->_getMapper()->search( $this, $arguments );
+    }
+
+    /**
+     * Wrapper around Nano_Db_Mapper::delete, adding sugar.
+     *
+     * @param $where Where for delete.
+     * @return Nano_Db_Mapper results
+     */
+    public function delete( array $where = array() ){        
+        return $this->_getMapper()->delete( $this, $where );
+    }
+
 
     /**
      * Defines a 'has_one' unique relation established trough $schema

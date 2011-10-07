@@ -101,6 +101,16 @@ abstract class Nano_View{
     public function request(){
         return $this->_request;
     }
+    
+    public function model( $name, $arguments = array() ){
+        foreach( Nano_Autoloader::getNamespaces() as $ns => $val ){
+            $class_name = sprintf('%s_Schema_%s', ucfirst($ns), ucfirst($name));
+            if( class_exists( $class_name )){
+                return new $class_name( $arguments );
+            }
+        }
+        throw new Exception( "Unable to resolve $name" );
+    }
 
 
     /**

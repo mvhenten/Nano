@@ -28,6 +28,10 @@ class Nano_Autoloader{
         self::getInstance()->load( $name );
     }
 
+    public static function getNamespaces(){
+        return self::getInstance()->namespaces;
+    }
+
     public static function registerNamespace( $name, $path ){
         self::getInstance()->addNamespace( $name, $path );
     }
@@ -66,9 +70,4 @@ class Nano_Autoloader{
         }
         return $fail;
     }
-
-
-
-
-
 }
