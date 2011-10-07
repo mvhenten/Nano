@@ -45,6 +45,10 @@ abstract class Nano_Db_Schema{
         return $this->_schema;
     }
 
+    /**
+     * Return the primary key name for this schema.
+     * @todo this only works for single column keys
+     */
     public function key(){
         if( count( $this->_primary_key ) == 1 ){
             return $this->_primary_key[0];
@@ -93,7 +97,21 @@ abstract class Nano_Db_Schema{
     public function table(){
         return $this->_tableName;
     }
-    
+
+    /**
+     * Wrapper around Nano_Db_Mapper::store. Store returns the last_insert_id,
+     * but here we return the schema itself instead.
+     *
+     * @param $where A where clause: you are responsible of telling to update or insert
+     * @return Nano_Db_Schema $original
+     */
+    public function store( $where = array() ){
+        $last_insert_id = $this->_getMapper()->store( $this, $where );
+        $this->__set( $this->key(), $last_insert_id );
+
+        return $this;
+    }
+
     /**
      * Wrapper around Nano_Db_Mapper::search, but adding sugar so you can
      * leave out the "where" key ( it will be added )
@@ -102,17 +120,17 @@ abstract class Nano_Db_Schema{
      * @return Nano_Db_Mapper results
      */
     public function search( array $arguments = array() ){
-        $whitelist = array_flip(explode('|', 'where|limit|group|join' ));
-        
+        $whitelist = array_flip(explode('|', 'where|limit|group|join|order' ));
+
         $where = array_diff_key( $arguments, $whitelist );
-        
+
         if( count($where) ){
             $arguments = array_diff_key( $arguments, $where );
-            
+
             $arguments['where'] = isset($arguments['where']) ?
                 array_merge( $arguments['where'], $where ) : $where;
         }
-        
+
         return $this->_getMapper()->search( $this, $arguments );
     }
 
@@ -122,7 +140,7 @@ abstract class Nano_Db_Schema{
      * @param $where Where for delete.
      * @return Nano_Db_Mapper results
      */
-    public function delete( array $where = array() ){        
+    public function delete( array $where = array() ){
         return $this->_getMapper()->delete( $this, $where );
     }
 
@@ -176,10 +194,10 @@ abstract class Nano_Db_Schema{
         $foreign_key = key( $mapping );
 
         list($relation, $mapping ) = $schema->$relation();
-        
+
         $arguments = array_merge( array(
             'join'  => array( $schema->table() => $mapping ),
-            'where' => array( $foreign_key => $this->$key ),        
+            'where' => array( $foreign_key => $this->$key ),
         ), $arguments );
 
         return $this->_getMapper()->many_to_many( new $relation(), $arguments );

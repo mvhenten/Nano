@@ -123,15 +123,15 @@ class Nano_Db_Query_Builder{
                 'op'    => '=',
                 'value' => null
             );
-            
+
             if( is_numeric( $key ) && is_array($value) ){
                 $value = array_intersect_key( $value, $clause );
-                $clause = array_merge( $clause, $value );                
+                $clause = array_merge( $clause, $value );
             }
             else{
                 $clause['col'] = $key;
                 $clause['value'] = $value;
-                
+
                 if( is_array( $value ) ){
                     $clause['op'] = 'IN';
                 }
@@ -139,14 +139,18 @@ class Nano_Db_Query_Builder{
 
             $where[] = $clause;
         }
-        
-        
+
+
         $this->_where = $where;
         return $this;
     }
-    
+
+    public function order( $order ){
+        $this->_order = func_get_args();
+    }
+
     public function group( $group ){
-        $this->_group = func_get_args();        
+        $this->_group = func_get_args();
     }
 
     public function groupBy( $group ){
@@ -173,20 +177,21 @@ class Nano_Db_Query_Builder{
         $this->_clearBindings();
 
 
-        
-        $method = '_build' . ucfirst($this->_action);            
+
+        $method = '_build' . ucfirst($this->_action);
         $sql[] = $this->$method();
-        
+
         if( $this->_action == 'delete' ){
             $sql[] = $this->_buildFrom();
             $sql[] = $this->_buildWhere();
-            error_log( join("\n", $sql ));            
+            error_log( join("\n", $sql ));
         }
         else if( $this->_action != 'insert' && $this->_action != 'update' ){
             $sql[] = $this->_buildFrom();
             $sql[] = $this->_buildWhere();
             $sql[] = $this->_buildGroup();
-            $sql[] = $this->_buildLimitOffset();            
+            $sql[] = $this->_buildOrder();
+            $sql[] = $this->_buildLimitOffset();
         }
 
         if( $this->_action == 'update' ){
@@ -314,6 +319,8 @@ class Nano_Db_Query_Builder{
     private function _buildOrder(){
         $order = array();
 
+        if( null == $this->_order ) return;
+
         foreach( $this->_order as $clause ){
             if( is_array( $clause ) ){
                 if( issset($clause['table']) && isset($clause['col']) ){
@@ -323,12 +330,14 @@ class Nano_Db_Query_Builder{
             else if( is_string($clause) && in_array( $clause, array('RAND()')) ){
                 $order[] = 'RAND()';
             }
-            else if( is_string( $clause ) ){
-                $order[] = sprintf('`%s`', $clause );
+            else if( is_string( $clause ) && preg_match('/([-+])?(\w+)/', $clause, $match ) ){
+                list( , $op, $s_clause ) = $match;
+                $order[] = sprintf('%s`%s`', $op, $s_clause );
             }
         }
 
         if( count($order) == 0 ) return '';
+
         return 'ORDER BY ' . join(',', $order );
     }
 
@@ -343,7 +352,7 @@ class Nano_Db_Query_Builder{
             }
             else if( count( $from ) > 1 ){
                 $alias = $this->_getTableAlias( (string) $table );
-                $collect[] = sprintf('`%s` %s', $table, $alias );                
+                $collect[] = sprintf('`%s` %s', $table, $alias );
             }
             else{
                 $collect[] = sprintf('`%s`', $table );
@@ -353,7 +362,7 @@ class Nano_Db_Query_Builder{
         if( count($from) == 0 ) return '';
         return 'FROM ' . join( ",", $collect );
     }
-    
+
     private function _buildSelect(){
         if( is_array( $this->_selectColumns ) ){
             $select = array();
@@ -381,7 +390,7 @@ class Nano_Db_Query_Builder{
 
         return 'SELECT *';
     }
-    
+
     private function _buildDelete(){
         return 'DELETE';
     }
