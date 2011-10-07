@@ -17,18 +17,23 @@ abstract class Nano_View{
     public function __construct( Nano_Request $request, Nano_Config $config ){
         $this->_request = $request;
 
-        if( $request->isPost() ){
-            $response = $this->post( $request, $config );
-        }
-        else{
-            $method = sprintf('get%s', ucfirst($request->action));
-            if( method_exists( $this, $method ) ){
-                $response = $this->$method( $request, $config );
+        $action_pieces = explode( '_', $request->action );
+        $method = join( '', array_map( 'ucfirst', $action_pieces ));
+
+        if( ! method_exists( $this, $method ) ){
+            if( $request->isPost() ){
+                $method = 'post' . ucfirst($method);
             }
             else{
-                $response = $this->get( $request, $config );
+                $method = 'get' . ucfirst($method);
+            }
+
+            if( ! method_exist( $method, $this ) ){
+                $method = $request->isPost() ? 'post' : 'get';
             }
         }
+
+        $response = $this->$method( $request, $config );
         $this->response()->push($response);
     }
 
