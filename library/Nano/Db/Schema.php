@@ -53,9 +53,6 @@ abstract class Nano_Db_Schema{
         if( count( $this->_primary_key ) == 1 ){
             return $this->_primary_key[0];
         }
-        else{
-            throw new Exception('Not implemented...' );
-        }
         return $this->_primary_key;
     }
 
@@ -97,17 +94,29 @@ abstract class Nano_Db_Schema{
     public function table(){
         return $this->_tableName;
     }
+    
+    private function _set_auto_increment( $increment_value ){
+        foreach( $this->schema() as $key => $value ){
+            if( $value['extra'] == 'auto_increment' ){
+                $this->$key = $increment_value;
+            }
+        }
+    }
 
     /**
      * Wrapper around Nano_Db_Mapper::store. Store returns the last_insert_id,
-     * but here we return the schema itself instead.
+     * but here we return the schema itself instead. On insert, the auto-increment
+     * value of the originating schema is set.
      *
      * @param $where A where clause: you are responsible of telling to update or insert
      * @return Nano_Db_Schema $original
      */
     public function store( $where = array() ){
         $last_insert_id = $this->_getMapper()->store( $this, $where );
-        $this->__set( $this->key(), $last_insert_id );
+        
+        if( is_int( $last_insert_id ) ){
+            $this->_set_auto_increment( $last_insert_id );
+        }
 
         return $this;
     }
