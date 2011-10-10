@@ -120,6 +120,10 @@ class Nano_Db_Schema_Mapper{
             $builder->group( $arguments['group']);
         }
 
+        if( isset($arguments['order']) ){
+            $builder->order( $arguments['order']);
+        }
+
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
         return $sth;
@@ -231,9 +235,6 @@ class Nano_Db_Schema_Mapper{
             ->delete( $schema->table() )
             ->where( $where );
             
-        var_dump( ''. $builder );
-        var_dump( $builder->bindings() );
-                        
         return $this->_saveExecute( (string) $builder, $builder->bindings() );
     }
 
