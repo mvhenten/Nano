@@ -115,7 +115,7 @@ class Nano_Db_Query_Builder{
      */
     public function where( array $what ){
         $where = array();
-
+        
         foreach( $what as $key => $value ){
             $clause = array(
                 'table' => null,
@@ -205,19 +205,9 @@ class Nano_Db_Query_Builder{
         if( ! is_array( $bindings ) ){
             $bindings = func_get_args();
         }
+        
 
-        $stack  = $bindings;
-
-        while( $stack ){
-            $value = array_shift( $stack );
-
-            if( is_array( $value ) ){
-                $stack += $value;
-            }
-            else{
-                $this->_bindings[] = $value;
-            }
-        }
+        $this->_bindings = array_merge($this->_bindings, $bindings);
     }
 
     private function _setBindings( $bindings ){
@@ -249,7 +239,7 @@ class Nano_Db_Query_Builder{
                 $placeholders = array_fill( 0, count($value), '?' );
                 $bind = sprintf( '(%s)', join(',', $placeholders ));
                 $where[] = sprintf('%s %s %s', $col, $op, $bind );
-                $bindings[] = $value;
+                $bindings = array_merge( $bindings, $value );
             }
             else if( ! in_array( $op, array( 'LIKE', '>', '<', '=', '!=', 'NOT' ) ) ){
                 throw new Exception( 'Unsupported operator: ' . $op );
@@ -259,15 +249,13 @@ class Nano_Db_Query_Builder{
             }
             else{
                 $bindings[] = $value;
-                //$this->_addBindings( $value );
                 $where[] = sprintf('%s %s ?', $col, $op);
             }
 
         }
-                //$this->_addBindings( $value );
 
         $this->_addBindings( $bindings );
-
+        
 
         if( count( $where ) > 0 ){
             return 'WHERE ' . join( ' AND ', $where );
