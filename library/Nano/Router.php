@@ -22,7 +22,7 @@ class Nano_Router extends Nano_Collection{
         $uri = addslashes(trim( $uri, '/' ));
 
         //[a-z0-9+\$_-]+(\.[a-z0-9+\$_-]+)*
-        $pattern = preg_replace('/:\w+/', '([a-z0-9+\$_-]+)', $route['route']);
+        $pattern = preg_replace('/:\w+/', '([A-z0-9+\$_-]+)', $route['route']);
         preg_match_all('/:(\w+)/', $route['route'], $keys );
 
         $keys = isset($keys[1])?$keys[1]:array();
@@ -43,7 +43,7 @@ class Nano_Router extends Nano_Collection{
 
             array_pop($pattern);
             array_pop($keys);
-            
+
         }
         while($pattern);
     }
@@ -59,7 +59,7 @@ class Nano_Router extends Nano_Collection{
                 return $match;
             }
         }
-        
+
         return $route['defaults'];
     }
 }
