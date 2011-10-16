@@ -2,27 +2,57 @@
 /**
  * Class Nano_Gd
  *
- * This class provides a number of utility functions for working
- * with GD functions
+ * Basic OO wrapper around builtin gd functions.
+ * Provides a number of utility functions such as in-place-resize, and proxies
+ * some gd functions as class-methods.
  */
 class Nano_Gd{
     protected $resource;
     protected $dimensions;
 
+    /** popular favourites **/
+    const IMAGESIZE_THUMBNAIL   = '120x120';
+    const IMAGESIZE_ICON        = '64x64';
+    const IMAGESIZE_SMALL       = '172x144';
+    const IMAGESIZE_VIGNETTE    = '400x300';
+    const IMAGESIZE_SD          = '640x480';
+    const IMAGESIZE_HD          = '960x720';
+
     /**
      * class constructor
-     * You may define defaults to override class constant default values
+     *
+     * @param string $source GD resource, imageblob, or path to image
+     * @param boolean $fromPath Indicates that $source is a path
      */
-    public function __construct( $path, $fromPath = true ){
-        if( $fromPath && is_string( $path ) ){
-            $this->createFromPath( $path );
+    public function __construct( $source, $fromPath = true ){
+        if( $fromPath && is_string( $source ) ){
+            $this->_createFromPath( $source );
         }
-        else if( is_resource( $path ) ){
-            $this->setResource( $path );
+        else if( is_resource( $source ) ){
+            $this->setResource( $source );
         }
         else{
-            $this->createFromString( $path );
+            $this->_createFromString( $source );
         }
+    }
+
+    /**
+     * Static factory method: Constructs a new Nano_Gd image from a
+     * file
+     *
+     * @param string $path Fully qualified path-to-image
+     */
+    public static function createFromPath( $path ){
+        return new Nano_Gd( $path, true );
+    }
+
+    /**
+     * Static factory method: Constructs a new Nano_Gd image from raw data
+     *
+     * @param string $source Image data string
+     */
+    public static function createFromString( $source ){
+        return new Nano_Gd( $source, false );
     }
 
     public static function getInfo( $path ){
@@ -31,6 +61,16 @@ class Nano_Gd{
         }
     }
 
+    /**
+     * Crop part of an image
+     *
+     * @param int $x X offset of the crop
+     * @param int $y Y offset of the crop
+     * @param int $width Width of the crop box
+     * @param int $height Height of the crop box
+     *
+     * @return Nano_Gd $image new instance
+     */
     public function crop( $x, $y, $width, $height ){
         if( null !== ($gd = $this->getResource() ) ){
             list( $w, $h ) = array_values( $this->getDimensions() );
@@ -43,6 +83,14 @@ class Nano_Gd{
         }
     }
 
+    /**
+     * Resize an image to the exact dimensions of $x and $y
+     *
+     * @param int $x Target width
+     * @param int $y Target height
+     *
+     * @return Nano_Gd $resized Returns a new resized instance
+     */
     public function resize( $x = null, $y = null){
         if( $x == null && $y == null ){
             throw new Exception( 'You must provide either Width or Height' );
@@ -62,12 +110,14 @@ class Nano_Gd{
             imagecopyresampled( $target, $gd, 0, 0, 0, 0, $x, $y, $width, $height );
 
             $instance = new Nano_Gd( $target );
-//            $instance->setResource( $target );
 
             return $instance;
         }
     }
 
+    /**
+     * @return array( $width, $height );
+     */
     public function getDimensions(){
         if( null !== ($gd = $this->getResource() ) ){
             if( !is_array( $this->dimensions ) ){
@@ -81,7 +131,7 @@ class Nano_Gd{
         return $this->dimensions;
     }
 
-    public function createFromPath( $path ){
+    private function _createFromPath( $path ){
         if( file_exists( $path ) && false !== ($info = getimagesize($path)) ){
             $this->createFromString( file_get_contents($path) );
 
@@ -92,7 +142,7 @@ class Nano_Gd{
         }
     }
 
-    public function createFromString( $data ){
+    private function _createFromString( $data ){
         $gd = imagecreatefromstring( $data );
         $this->setResource( $gd );
     }
@@ -116,8 +166,7 @@ class Nano_Gd{
     }
 
     /**
-     * Magic getter: invokes the getter function for $name
-     * if it exists
+     * Proxies some of gd's builtin functions as class methods for convenience
      *
      * @param string $name Property to be acessed
      * @return mixed $value or NULL
@@ -133,7 +182,7 @@ class Nano_Gd{
     }
 
     /**
-     * Magic setter: invokes the setter function for $name if it exists
+     *  Invoke the setter function for $name if it exists
      *
      * @param string $name Property to be set
      * @param mixed $value Value(s) to be set
