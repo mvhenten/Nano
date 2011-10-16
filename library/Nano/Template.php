@@ -237,19 +237,18 @@ class Nano_Template{
      * @return void
      */
     public function loadHelper( $name ){
-        $name = ucfirst( $name );
-        $klass = "Helper_" . $name;
+        $name   = ucfirst( $name );
+        $helper = null;
 
-        if( ! class_exists( $klass ) ){
-            $basename = sprintf( "%s.php", $name );
+        foreach( Nano_Autoloader::getNamespaces() as $ns => $path ){
+            $klass = $ns . "_Helper_" . $name;
 
-            foreach( $this->_helperPath as $path ){
-                $path = join( '/', array(APPLICATION_ROOT,$path,$basename));
-                if( file_exists( $path ) ){
-                    require_once( $path );
-                }
+            if( !class_exists( $klass ) ){
+                continue;
             }
+            break;
         }
+
         if( ! class_exists( $klass ) ){
             $klass = 'Nano_View_Helper_' . $name;
         }
@@ -258,7 +257,6 @@ class Nano_Template{
             $this->_helpers[strtolower($name)] = new $klass( $this );
         }
         else{
-            //debug_print_backtrace();
             throw new Exception( "unable to resolve helper $name" );
         }
     }
