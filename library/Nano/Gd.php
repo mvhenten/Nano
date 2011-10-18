@@ -1,10 +1,35 @@
 <?php
 /**
- * Class Nano_Gd
+ * @file Nano/Gd.php
  *
- * Basic OO wrapper around builtin gd functions.
- * Provides a number of utility functions such as in-place-resize, and proxies
- * some gd functions as class-methods.
+ * Basic OO wrapper around builtin gd functions. Provides a number of utility
+ * functions such as in-place-resize, and proxies some gd functions as class-methods.
+ *
+ * Copyright (C) <2011>  <Matthijs van Henten>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * @category   Nano
+ * @package    Nano_Gd
+ * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
+ * @license    GPL v3
+ */
+/**
+ * @class Nano_Gd
+ *
+ *  Basic OO wrapper around builtin gd functions.
  */
 class Nano_Gd{
     protected $_resource;
