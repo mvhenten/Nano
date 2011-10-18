@@ -62,14 +62,11 @@ class Nano_Gd{
             imagecopyresampled( $target, $gd, 0, 0, 0, 0, $x, $y, $width, $height );
 
             $instance = new Nano_Gd( $target );
-//            $instance->setResource( $target );
 
             return $instance;
         }
     }
 
-<<<<<<< Updated upstream
-=======
     /**
      * Rotate an image by n degrees
      *
@@ -148,7 +145,6 @@ class Nano_Gd{
     /**
      * @return array( $width, $height );
      */
->>>>>>> Stashed changes
     public function getDimensions(){
         if( null !== ($gd = $this->getResource() ) ){
             if( !is_array( $this->dimensions ) ){
