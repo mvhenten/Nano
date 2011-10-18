@@ -42,7 +42,7 @@ class Nano_Pager {
     private $_last              = null;
     private $_previousPage      = null;
     private $_nextPage          = null;
-    private $_offset           = null;
+    private $_offset            = null;
 
     /**
      * Create a new Pager
