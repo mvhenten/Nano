@@ -28,7 +28,7 @@
  */
 /**
  * @class Nano_Pager
- * Helper for paging through sets of results
+ * Helper for paging through sets of results - the calculations are trivial
  */
 class Nano_Pager {
 
@@ -44,9 +44,16 @@ class Nano_Pager {
     private $_nextPage          = null;
     private $_offset           = null;
 
+    /**
+     * Create a new Pager
+     *
+     * @param int $total          Total elements in this set
+     * @param int $page_size Page Max number of elements per page
+     * @param int $current_page   Current page, must be > 0, will be capped to lastPage
+     */
     public function __construct( $total, $page_size, $current_page = 1 ){
         if( $current_page < 0 ){
-            throw new Exception( 'Current page may not be 0' );
+            throw new Exception( 'Current page may not be < 1' );
         }
 
         $this->_total = $total;
@@ -55,6 +62,9 @@ class Nano_Pager {
         $this->_currentPage = min( $this->lastPage, $current_page );
     }
 
+    /**
+     * Proxies private methods to builders if value is not set
+     */
     public function __get( $name ){
         if( ( $property = "_$name" ) && property_exists( $this, $property ) ){
             if( ! isset( $this->$property ) ){
@@ -67,36 +77,71 @@ class Nano_Pager {
         }
     }
 
+    /**
+     * Number of elements on the current page
+     *
+     * @return int $currentPageSize
+     */
     private function _build_currentPageSize(){
         $current_page_size = $this->_total - ( $this->_pageSize * ($this->_currentPage-1) );
         return $current_page_size;
     }
 
+    /**
+     * Last page in this set ( e.g. total pages! )
+     *
+     * @return int $lastPage
+     */
     private function _build_lastPage(){
         return ceil( $this->_total / $this->_pageSize );
     }
 
+    /**
+     * First number on the current page
+     *
+     * @return int $first
+     */
     private function _build_first(){
         return ( $this->_currentPage * $this->_pageSize ) + 1;
     }
 
+    /**
+     * Last number on the current page
+     *
+     * @return int $last
+     */
     private function _build_last(){
         $last = ( ($this->_currentPage + 1) * $this->_pageSize );
         return min( $this->_total, $last );
     }
 
+    /**
+     * Previous page in this set or null
+     *
+     * @return int $previousPage
+     */
     private function _build_previousPage(){
         if( $this->_currentPage > 1 ){
             return $this->_currentPage - 1;
         }
     }
 
+    /**
+     * Next page in this set or null
+     *
+     * @return int $nextPage
+     */
     private function _build_nextPage(){
         if( $this->_currentPage < $this->lastPage ){
             return $this->_currentPage + 1;
         }
     }
 
+    /**
+     * Returns offset for sql queries
+     *
+     * @return int $offset
+     */
     private function _build_offset(){
         return $this->first - 1;
     }
