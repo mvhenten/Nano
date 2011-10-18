@@ -7,7 +7,7 @@
  * some gd functions as class-methods.
  */
 class Nano_Gd{
-    protected $resource;
+    protected $_resource;
     protected $dimensions;
 
     /** popular favourites **/
@@ -116,6 +116,81 @@ class Nano_Gd{
     }
 
     /**
+     * Rotate an image by n degrees
+     *
+     * @param int $degree Rotation angle (degrees)
+     * @return Nano_Gd $resized Returns a new resized instance
+     */
+    public function rotate( $angle_degrees ){
+        if( null !== ($gd = $this->getResource()) ){
+            $target = imagerotate( $gd, $angle_degrees, 0, false );
+            $instance = new Nano_Gd( $target );
+
+            return $instance;
+        }
+    }
+
+    /**
+     * Flip image horizontally or vertically
+     *
+     * @param int $orientation 1 = vertical, 2 = horizontal, 3 = both
+     * @return Nano_Gd $image new instance
+     */
+    public function flip( $orientation = 2 ){
+        if( null !== ($gd = $this->getResource() ) ){
+            list( $width, $height ) = array_values( $this->getDimensions() );
+
+            $target = imagecreatetruecolor( $width, $height );
+
+            if( $orientation == 2 || $orientation == 3 ){
+                $src_y      =    $height -1;
+                $src_height =    -$height;
+            }
+
+            if( $orientation == 1 || $orientation == 3 ){
+                $src_x       =    $width;
+                $src_width   =    -$width;
+            }
+
+            imagecopyresampled ( $target, $gd, 0, 0,
+                $src_x, $src_y, $width, $height, $src_width, $src_height );
+
+            return new Nano_Gd( $target );
+        }
+    }
+
+    /**
+     * Flip image horizontally
+     *
+     * @see Nano_Gd::flip
+     * @return Nano_Gd $image new instance
+     */
+    public function flipHorizontal(){
+        return $this->flip(2);
+    }
+
+    /**
+     * Flip image vertically
+     *
+     * @see Nano_Gd::flip
+     * @return Nano_Gd $image new instance
+     */
+    public function flipVertical(){
+        return $this->flip(1);
+    }
+
+    /**
+     * Flip image both vertically and horizontally
+     *
+     * @see Nano_Gd::flip
+     * @return Nano_Gd $image new instance
+     */
+    public function flipBoth(){
+        return $this->flip(3);
+    }
+
+
+    /**
      * @return array( $width, $height );
      */
     public function getDimensions(){
@@ -127,13 +202,12 @@ class Nano_Gd{
                 );
             }
         }
-
         return $this->dimensions;
     }
 
     private function _createFromPath( $path ){
         if( file_exists( $path ) && false !== ($info = getimagesize($path)) ){
-            $this->createFromString( file_get_contents($path) );
+            $this->_createFromString( file_get_contents($path) );
 
             $this->dimensions = array(
                 'width'  => $info[0],
@@ -144,14 +218,16 @@ class Nano_Gd{
 
     private function _createFromString( $data ){
         $gd = imagecreatefromstring( $data );
+
         $this->setResource( $gd );
     }
 
     public function setResource( $gd ){
         if( is_resource( $gd ) && 'gd' == get_resource_type( $gd ) ){
-            $this->destroy();
-
-            $this->resource = $gd;
+            if( is_resource($this->_resource) ){
+                imagedestroy( $this->_resource );
+            }
+            $this->_resource = $gd;
         }
         else if( ! is_resource($gd) ){
             throw new Exception( 'Not a valid resource');
@@ -159,10 +235,11 @@ class Nano_Gd{
         else{
             throw new Exception( 'Type of resource is ' . get_resource_type($gd));
         }
+
     }
 
     public function getResource(){
-        return $this->resource;
+        return $this->_resource;
     }
 
     /**
@@ -197,17 +274,6 @@ class Nano_Gd{
         }
     }
 
-    public function __destruct(){
-        $this->destroy();
-    }
-
-    public function destroy(){
-        if( null !== ($gd = $this->getResource()) ){
-            imagedestroy( $this->getResource() );
-        }
-        $this->dimensions = null;
-    }
-
     /**
      * Output as an PNG image
      */
@@ -235,7 +301,7 @@ class Nano_Gd{
         return $this->imageOut( 'gif', $quality, $path );
     }
 
-    private function imageOut( $type, $quality = 85, $path = null ){
+    public function imageOut( $type, $quality = 85, $path = null ){
         if( null !== ($gd = $this->getResource()) ){
             $cmd = sprintf('image' . $type );
             if( strlen($path) == 0 ){
@@ -248,6 +314,9 @@ class Nano_Gd{
                 return ob_get_clean();
             }
             return $out;
+        }
+        else{
+            throw new Exception('trying to create an image from nothing!');
         }
     }
 
