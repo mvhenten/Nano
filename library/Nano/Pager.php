@@ -42,7 +42,7 @@ class Nano_Pager {
     private $_last              = null;
     private $_previousPage      = null;
     private $_nextPage          = null;
-    private $_skipped           = null;
+    private $_offset           = null;
 
     public function __construct( $total, $page_size, $current_page = 1 ){
         if( $current_page < 0 ){
@@ -97,7 +97,7 @@ class Nano_Pager {
         }
     }
 
-    private function _build_skipped(){
+    private function _build_offset(){
         return $this->first - 1;
     }
 }

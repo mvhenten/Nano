@@ -51,7 +51,7 @@ class Nano_PagerTest extends PHPUnit_Framework_TestCase{
         $this->assertEquals( $this->_pager()->nextPage, 6 );
     }
 
-    public function testSkipped(){
-        $this->assertEquals( $this->_pager()->skipped, 50 );
+    public function testOffset(){
+        $this->assertEquals( $this->_pager()->offset, 50 );
     }
 }
