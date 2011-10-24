@@ -33,6 +33,7 @@ class Nano_Db_Query_Builder{
             $columns = func_get_args();
         }
 
+
         foreach( $columns as $column ){
             if( ! is_array( $column ) ){
                 $column = array( 'column' => $column );
@@ -115,7 +116,7 @@ class Nano_Db_Query_Builder{
      */
     public function where( array $what ){
         $where = array();
-        
+
         foreach( $what as $key => $value ){
             $clause = array(
                 'table' => null,
@@ -205,7 +206,7 @@ class Nano_Db_Query_Builder{
         if( ! is_array( $bindings ) ){
             $bindings = func_get_args();
         }
-        
+
 
         $this->_bindings = array_merge($this->_bindings, $bindings);
     }
@@ -255,7 +256,7 @@ class Nano_Db_Query_Builder{
         }
 
         $this->_addBindings( $bindings );
-        
+
 
         if( count( $where ) > 0 ){
             return 'WHERE ' . join( ' AND ', $where );
@@ -264,6 +265,7 @@ class Nano_Db_Query_Builder{
 
     private function _buildLimitOffset(){
         list( $limit, $offset ) = $this->_limitOffset;
+
         $sql = '';
 
         if( is_integer($limit) && $limit > 0 ){

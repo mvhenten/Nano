@@ -28,7 +28,7 @@ error_reporting(E_ALL | E_STRICT);
  * @license    GPL v3
  */
 class Nano_Db_Schema_Mapper{
-    const FETCH_LIMIT = 50;
+    const FETCH_LIMIT = 25;
     const FETCH_OFFSET = 0;
 
     private $_limit     = self::FETCH_LIMIT;
@@ -106,16 +106,17 @@ class Nano_Db_Schema_Mapper{
      */
     public function search( Nano_Db_Schema $schema, $arguments = array() ){
         $arguments = (array) $arguments;
-        
+
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
 
         $where = isset($arguments['where']) ? $arguments['where'] : array();
-        
+
         $builder = $this->_builder()->select( $schema->columns() )
             ->from( $schema->table() )
             ->where( $where )
             ->limit( $limit, $offset );
-            
+
+
         if( isset($arguments['group']) ){
             $builder->group( $arguments['group']);
         }
@@ -139,19 +140,25 @@ class Nano_Db_Schema_Mapper{
      */
     public function count( Nano_Db_Schema $schema, $arguments = array() ){
         $arguments = (array) $arguments;
-        list( $offset, $limit ) = $this->_buildLimit( $arguments );
+        list($offset,$limit) = array(null, null);
+
+        if( isset($arguments['limit']) ){
+            $limit = $arguments['limit'];
+            $offset = isset($arguments['offset']) ? $arguments['offset'] : 0;
+        }
 
         $where = isset($arguments['where']) ? $arguments['where'] : array();
 
-        $builder = $this->_builder()->select( 'COUNT(*)' )
+        $builder = $this->_builder()->select(array(array(
+                'operator'  => 'count'
+            )))
             ->from( $schema->table() )
             ->where( $where )
             ->limit( $limit, $offset );
 
-
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
-        $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
-        return $sth;
+        $sth->setFetchMode( PDO::FETCH_COLUMN , 0 );
+        return $sth->fetch();
     }
 
     /**
@@ -171,7 +178,7 @@ class Nano_Db_Schema_Mapper{
 
         $join_clause = reset($arguments['join']);
         $join_table  = key($arguments['join']);
-        
+
         $values = array( reset($where) );
 
         //@FIXME Builder should support left_join
@@ -188,13 +195,13 @@ class Nano_Db_Schema_Mapper{
             'a', key($join_clause),   // key of $schema->table
             'b', key($where)          // $where clause is
         );
-        
-        
+
+
         //@fixme. use Builder... this is a quick hack...
         if( isset($arguments['order']) ){
             $query .= sprintf(' ORDER BY `%s`', $arguments['order']);
         }
-        
+
         //@fixme Use Builder. this is a hack.
         if( $limit ){
             $query = sprintf("%s\nLIMIT %s, %s", $query, intval($offset), intval($limit) );
@@ -204,8 +211,8 @@ class Nano_Db_Schema_Mapper{
         $sth = $this->_saveExecute( $query, array(reset($where)) );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
             get_class( $schema ) );
-        
-        
+
+
 
         return $sth;
     }
@@ -234,7 +241,7 @@ class Nano_Db_Schema_Mapper{
         $builder = $this->_builder()
             ->delete( $schema->table() )
             ->where( $where );
-            
+
         return $this->_saveExecute( (string) $builder, $builder->bindings() );
     }
 
@@ -326,7 +333,7 @@ class Nano_Db_Schema_Mapper{
 
     private function _saveExecute( $query, array $values ){
         $sth = $this->getAdapter()->prepare( $query );
-        
+
        if( false == $sth ){
             $error = print_r( $this->getAdapter()->errorInfo(), true );
             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
@@ -334,10 +341,10 @@ class Nano_Db_Schema_Mapper{
         else{
             $bindings = $values;
             $success = (bool) $sth->execute( (array) $values );
-            
+
             if( ! $success ){
                 $error = print_r( $sth->errorInfo(), true );
-                throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );                
+                throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
             }
         }
 
