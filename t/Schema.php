@@ -12,7 +12,7 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
         require_once('schema/Editor.php');
         require_once('schema/EditorPublication.php');
 
-        Nano_Db::setAdapter( array( 'dsn' => 'sqlite:test.db' ) );
+        Nano_Db::setAdapter( array( 'dsn' => 'sqlite::memory:' ) );
 
         $dbh = Nano_Db::getAdapter();
 
@@ -211,7 +211,7 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
      */
     public function testHasManyToMany(){
         $model = new Model_Publication;
-        
+
         $editors = $model->editors();
 
         foreach( $editors as $editor ){
