@@ -69,7 +69,7 @@ class Nano_Pager {
         if( ( $property = "_$name" ) && property_exists( $this, $property ) ){
             if( ! isset( $this->$property ) ){
                 if( ( $method = "_build$property" ) && method_exists( $this, $method ) ){
-                    $this->$property = $this->$method();
+                    $this->$property = (int) $this->$method();
                 }
             }
 
@@ -102,7 +102,7 @@ class Nano_Pager {
      * @return int $first
      */
     private function _build_first(){
-        return ( $this->_currentPage * $this->_pageSize ) + 1;
+        return 1 + ( ($this->_currentPage - 1) * $this->_pageSize );
     }
 
     /**
