@@ -34,13 +34,35 @@ class Nano_Db_Schema_Pager{
 
     private $_pageSize;
     private $_schemaArgs;
+    private $_schemaAction;
 
-    public function __construct(Nano_Db_Schema $schema, array $schema_args = null, array $pgr_arguments = array() ){
-        $this->_schema      = $schema;
-        $this->_schemaArgs  = (array) $schema_args;
+    /**
+     * Class constructor: Create a new Nano_Db_Pager
+     *
+     * @param Nano_Db_Schema $schema Schema class to perform queries
+     * @param string $action "search" -> Optional action to perform on schema
+     * @param array $schema_args Optional arguments for schema action
+     * @param array $pager_args Optional extra arguments for pager
+     *
+     */
+    public function __construct(
+            Nano_Db_Schema $schema, $action = 'search',
+            array $schema_args = null, array $pgr_arguments = array()
+    ){
+        $this->_schema       = $schema;
+        $this->_schemaArgs   = (array) $schema_args;
+        $this->_schemaAction = $action;
+
+
+
+        if( isset($schema_args['limit']) && !isset($pgr_arguments['page_size'])){
+            $limit = (array) $schema_args['limit'];
+            $pgr_arguments['page_size'] = array_pop($limit);
+        }
 
         $this->_pageSize = isset($pgr_arguments['page_size'])
             ? $pgr_arguments['page_size'] : Nano_Db_Schema_Mapper::FETCH_LIMIT;
+
 
     }
 
@@ -59,21 +81,38 @@ class Nano_Db_Schema_Pager{
     public function getPage( $page_num = null ){
         if( $page_num ) $this->setPage($page_num);
 
-        $schema_args = $this->_schemaArgs;
+        $schema_action = $this->_schemaAction;
+        $schema_args   = $this->_schemaArgs;
 
         $schema_args['limit'] = array(
             $this->offset,
             $this->pageSize
         );
 
-        return $this->_schema->search( $schema_args );
+        return $this->_schema->$schema_action( $schema_args );
     }
 
     private function _build_pager( $total = null, $page_size = null, $current_page = 1 ){
-        if( null == $total ) $total = $this->_schema->count($this->_schemaArgs);
+        if( null == $total ) $total = $this->_build_count()->fetch();
         if( null == $page_size ) $page_size = $this->_pageSize;
 
         return new Nano_Pager( $total, $page_size, $current_page );
+    }
+
+    private function _build_count(){
+        $schema_action = $this->_schemaAction;
+        $schema_args   = $this->_schemaArgs;
+
+        unset($schema_args['limit']);
+        unset($schema_args['offset']);
+
+        $schema_args['columns'] = array( 'count' => 1 );
+
+        $count_statement = $this->_schema->$schema_action($schema_args);
+        $count_statement->setFetchMode( PDO::FETCH_COLUMN, 0 );
+
+
+        return $count_statement;
     }
 
 
