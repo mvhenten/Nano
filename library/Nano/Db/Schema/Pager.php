@@ -74,6 +74,10 @@ class Nano_Db_Schema_Pager{
         return $this->_pager->$name;
     }
 
+    public function range( $max = 12, $step = 6 ){
+        return $this->_pager->range($max, $step);
+    }
+
     public function setPage( $page_num ){
         $this->_pager = $this->_build_pager( null, null, $page_num );
     }
@@ -110,7 +114,6 @@ class Nano_Db_Schema_Pager{
 
         $count_statement = $this->_schema->$schema_action($schema_args);
         $count_statement->setFetchMode( PDO::FETCH_COLUMN, 0 );
-
 
         return $count_statement;
     }
