@@ -28,7 +28,7 @@ error_reporting(E_ALL | E_STRICT);
  * @license    GPL v3
  */
 class Nano_Db_Schema_Mapper{
-    const FETCH_LIMIT = 25;
+    const FETCH_LIMIT = 20;
     const FETCH_OFFSET = 0;
 
     private $_limit     = self::FETCH_LIMIT;
@@ -165,37 +165,46 @@ class Nano_Db_Schema_Mapper{
      */
     public function many_to_many( Nano_Db_Schema $schema, $arguments = array() ){
         $arguments = (array) $arguments;
+
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
 
-        $where = isset($arguments['where']) ? $arguments['where'] : array();
+        $where   = isset($arguments['where']) ? $arguments['where'] : array();
+        $columns = isset($arguments['columns']) ? $arguments['columns'] : $schema->columns();
 
         $join_clause = reset($arguments['join']);
         $join_table  = key($arguments['join']);
 
         $values = array( reset($where) );
 
+
+        if( isset($arguments['columns']) ){
+            // @FIXME BUG BUG
+            $query = (string) $builder = $this->_builder()->select( $columns )
+                ->from( $schema->table() ) . ' a';
+        }
+        else{
+            // @FIXME builder should handle this!
+            $query = sprintf('SELECT a.* FROM `%s` %s', $schema->table(), 'a');
+        }
+
         //@FIXME Builder should support left_join
         // so this printing of SQL is not needed
-        $query = sprintf('
-            SELECT a.*
-            FROM `%s` %s
+        $query .= sprintf('
             LEFT JOIN `%s` %s ON %s.`%s` = %s.`%s`
             WHERE %s.`%s` = ?
         ',
-            $schema->table(), 'a',
             $join_table, 'b',
             'b', reset($join_clause), //foreign key
             'a', key($join_clause),   // key of $schema->table
             'b', key($where)          // $where clause is
         );
 
-
-        //@fixme. Use Builder... this is a quick hack...
+        //@FIXME. Use Builder... this is a quick hack...
         if( isset($arguments['order']) ){
             $query .= sprintf(' ORDER BY `%s`', $arguments['order']);
         }
 
-        //@fixme Use Builder. this is a hack.
+        //@FIXME Use Builder. this is a hack.
         if( $limit ){
             $query = sprintf("%s\nLIMIT %s, %s", $query, intval($offset), intval($limit) );
         }
@@ -204,8 +213,6 @@ class Nano_Db_Schema_Mapper{
         $sth = $this->_saveExecute( $query, array(reset($where)) );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
             get_class( $schema ) );
-
-
 
         return $sth;
     }
