@@ -94,13 +94,17 @@ abstract class Nano_Db_Schema{
     public function table(){
         return $this->_tableName;
     }
-    
-    private function _set_auto_increment( $increment_value ){
-        foreach( $this->schema() as $key => $value ){
-            if( $value['extra'] == 'auto_increment' ){
-                $this->$key = $increment_value;
-            }
-        }
+
+    /**
+     * Create a Nano_Db_Schema_Pager object
+     *
+     * @param string $action Action to perform on $this (defaults to 'search')
+     * @param array $arguments Optional arguments for $action
+     * @param array $pager_arguments Optional arguments for the Nano_Pager object
+     * @return void
+     */
+    public function pager( $action = 'search', array $arguments = array(), $pager_arguments = array() ){
+        return new Nano_Db_Schema_Pager( $this, $action, $arguments, $pager_arguments );
     }
 
     /**
@@ -113,9 +117,9 @@ abstract class Nano_Db_Schema{
      */
     public function store( $where = array() ){
         $last_insert_id = $this->_getMapper()->store( $this, $where );
-        
-        if( is_int( $last_insert_id ) ){
-            $this->_set_auto_increment( $last_insert_id );
+
+        if( is_numeric( $last_insert_id ) ){
+            $this->_set_auto_increment( intval($last_insert_id) );
         }
 
         return $this;
@@ -129,18 +133,19 @@ abstract class Nano_Db_Schema{
      * @return Nano_Db_Mapper results
      */
     public function search( array $arguments = array() ){
-        $whitelist = array_flip(explode('|', 'where|limit|group|join|order' ));
-
-        $where = array_diff_key( $arguments, $whitelist );
-
-        if( count($where) ){
-            $arguments = array_diff_key( $arguments, $where );
-
-            $arguments['where'] = isset($arguments['where']) ?
-                array_merge( $arguments['where'], $where ) : $where;
-        }
-
+        $arguments = $this->_prepare_arguments( $arguments );
         return $this->_getMapper()->search( $this, $arguments );
+    }
+
+    /**
+     * Wrapper around Nano_Db_Mapper::count, adding sugar trough _prepare_arguments
+     *
+     * @param $arguments Key value pairs like 'group', 'limit', 'where'
+     * @return Nano_Db_Mapper results
+     */
+    public function count( array $arguments = array() ){
+        $arguments = $this->_prepare_arguments( $arguments );
+        return $this->_getMapper()->count( $this, $arguments );
     }
 
     /**
@@ -179,13 +184,14 @@ abstract class Nano_Db_Schema{
      * @param string $schema Name of the schema class that we have many of
      * @param array $mapping $foreign_key => $key relation (as in $schema->$foreign_key)
      */
-    protected function has_many( $schema, array $mapping ){
+    protected function has_many( $schema, array $mapping, array $arguments = array() ){
         $key         = reset( $mapping );
         $foreign_key = key( $mapping );
 
-        return $this->_getMapper()->search( new $schema(), array(
-            'where' => array( $foreign_key => $this->$key )
-        ));
+        $arguments = array_merge( $arguments, array(
+            'where' => array( $foreign_key => $this->$key )));
+
+        return $this->_getMapper()->search( new $schema(), $arguments);
     }
 
     /**
@@ -222,10 +228,55 @@ abstract class Nano_Db_Schema{
         return array( new $schema(), $mapping );
     }
 
-    protected function _get_schema( $name ){
+    /**
+     * Parse function arguments to allow a little sugar:
+     * Allow arguments for the where class to be passed in the root array,
+     * instead of "where" => array()
+     *
+     * @param array $arguments Arguments array from the original function
+     * @return array $arguments Cleaned up version
+     */
+    private function _prepare_arguments( array $arguments = array() ){
+        $whitelist = array_flip(explode('|', 'where|limit|group|join|order' ));
+
+        $where = array_diff_key( $arguments, $whitelist );
+
+        if( count($where) ){
+            $arguments = array_diff_key( $arguments, $where );
+
+            $arguments['where'] = isset($arguments['where']) ?
+                array_merge( $arguments['where'], $where ) : $where;
+        }
+
+        return $arguments;
+    }
+
+    /**
+     * Adding a touch of magic: in those cases where we have a straight-
+     * forward auto_increment column in our Schema, use this function
+     * to actually set it
+     *
+     * @param int $increment_value Auto increment value produced by an insert
+     * @return void
+     */
+    private function _set_auto_increment( $increment_value ){
+        foreach( $this->schema() as $key => $value ){
+            if( $value['extra'] == 'auto_increment' ){
+                $this->$key = $increment_value;
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    private function _get_schema( $name ){
         return sprintf("Nano_Db_%s", array_map( 'ucfirst', explode('_', $name ) ));
     }
 
+    /**
+     *
+     */
     private function _getMapper(){
         static $schema;
 
