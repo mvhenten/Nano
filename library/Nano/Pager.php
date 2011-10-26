@@ -102,7 +102,7 @@ class Nano_Pager {
      * @return int $first
      */
     private function _build_first(){
-        return 1 + ( ($this->_currentPage - 1) * $this->_pageSize );
+        return 1 + (( $this->_currentPage * $this->_pageSize ) - $this->_pageSize);
     }
 
     /**
