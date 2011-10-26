@@ -78,6 +78,25 @@ class Nano_Pager {
     }
 
     /**
+     * Returns a number of pages in a range starting from the current page up to
+     * the last defined by $max_size
+     */
+    public function range( $max_size = 12, $offset = 6 ){
+        $range = array();
+
+        if( $this->total > 1 ){
+            $offset = $offset >= $max_size ? intval($max_size/2) : $offset;
+
+            $range_start = max( $this->firstPage, ($this->currentPage - $offset) );
+            $range_end   = min( $range_start + $max_size, $this->lastPage );
+
+            $range = range( $range_start, $range_end );
+        }
+
+        return $range;
+    }
+
+    /**
      * Number of elements on the current page
      *
      * @return int $currentPageSize
@@ -93,7 +112,7 @@ class Nano_Pager {
      * @return int $lastPage
      */
     private function _build_lastPage(){
-        return ceil( $this->_total / $this->_pageSize );
+        return ceil( $this->_total / $this->_pageSize ) - 1;
     }
 
     /**
@@ -102,7 +121,7 @@ class Nano_Pager {
      * @return int $first
      */
     private function _build_first(){
-        return 1 + (( $this->_currentPage * $this->_pageSize ) - $this->_pageSize);
+        return max(0, 1 + (( $this->_currentPage * $this->_pageSize ) - $this->_pageSize));
     }
 
     /**
@@ -143,6 +162,6 @@ class Nano_Pager {
      * @return int $offset
      */
     private function _build_offset(){
-        return $this->first - 1;
+        return max(0, $this->first - 1);
     }
 }
