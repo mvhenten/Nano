@@ -237,7 +237,7 @@ abstract class Nano_Db_Schema{
      * @return array $arguments Cleaned up version
      */
     private function _prepare_arguments( array $arguments = array() ){
-        $whitelist = array_flip(explode('|', 'where|limit|group|join|order' ));
+        $whitelist = array_flip(explode('|', 'where|limit|group|join|order|columns' ));
 
         $where = array_diff_key( $arguments, $whitelist );
 
