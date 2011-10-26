@@ -34,14 +34,21 @@ class Nano_Db_Query_Builder{
         }
 
 
-        foreach( $columns as $column ){
+        foreach( $columns as $key => $column ){
+            $operator = null;
+
+            if( ! is_numeric( $key ) ){
+                $operator = $key;
+            }
+
             if( ! is_array( $column ) ){
                 $column = array( 'column' => $column );
             }
+
             $column = array_merge( array(
                 'column'    => null,
                 'table'     => null,
-                'operator'  => null
+                'operator'  => $operator
             ), $column );
 
             $selectColumns[] = $column;
