@@ -109,9 +109,10 @@ class Nano_Db_Schema_Mapper{
 
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
 
-        $where = isset($arguments['where']) ? $arguments['where'] : array();
+        $where   = isset($arguments['where']) ? $arguments['where'] : array();
+        $columns = isset($arguments['columns']) ? $arguments['columns'] : $schema->columns();
 
-        $builder = $this->_builder()->select( $schema->columns() )
+        $builder = $this->_builder()->select( $columns )
             ->from( $schema->table() )
             ->where( $where )
             ->limit( $limit, $offset );
@@ -131,33 +132,25 @@ class Nano_Db_Schema_Mapper{
     }
 
     /**
-     * Performs a simple count query
+     * Performs a simple count query. Note that LIMIT is not added to the query
      *
      * @param Nano_Db_Schema $schema The schema to fetch "as"
-     * @param array $arguments Optional array array( 'where' =>, 'limit' => )
+     * @param array $arguments Optional array array( 'where' => )
      *
      * @return PdoStatement $sth
      */
     public function count( Nano_Db_Schema $schema, $arguments = array() ){
         $arguments = (array) $arguments;
-        list($offset,$limit) = array(null, null);
-
-        if( isset($arguments['limit']) ){
-            $limit = $arguments['limit'];
-            $offset = isset($arguments['offset']) ? $arguments['offset'] : 0;
-        }
 
         $where = isset($arguments['where']) ? $arguments['where'] : array();
 
-        $builder = $this->_builder()->select(array(array(
-                'operator'  => 'count'
-            )))
+        $builder = $this->_builder()->select(array( 'count' => 1 ))
             ->from( $schema->table() )
-            ->where( $where )
-            ->limit( $limit, $offset );
+            ->where( $where );
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
         $sth->setFetchMode( PDO::FETCH_COLUMN , 0 );
+
         return $sth->fetch();
     }
 
@@ -197,7 +190,7 @@ class Nano_Db_Schema_Mapper{
         );
 
 
-        //@fixme. use Builder... this is a quick hack...
+        //@fixme. Use Builder... this is a quick hack...
         if( isset($arguments['order']) ){
             $query .= sprintf(' ORDER BY `%s`', $arguments['order']);
         }
