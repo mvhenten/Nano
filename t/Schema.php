@@ -52,9 +52,9 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
 
     }
 
-    static function tearDownAfterClass(){
-        unlink( 'test.db' );
-    }
+    //static function tearDownAfterClass(){
+    //    unlink( 'test.db' );
+    //}
 
     public function testPut(){
         $names = array_map('trim', explode(',', 'Paul Auster, Tim Roth,
@@ -162,31 +162,48 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
         }
     }
 
+    public function testHasManyPager(){
+        $model = new Model_Author(1);
+        $pager = $model->pager('books');
+
+        $count = 0;
+
+        foreach( $model->books() as $publication ){
+            $count++;
+        }
+
+        $this->assertGreaterThan( 1, $count );
+
+        $this->assertEquals( $pager->total, $count );
+
+        foreach( $pager->getPage() as $book ){
+            $this->assertType( 'Model_Publication', $publication );
+        }
+    }
+
     /**
      * @depends testPutMore
      */
     public function testPutRelations(){
         $editors = explode(',', 'Joe Writer,Peter Publisher,Harry Howto,Eddie Editor');
-        $model = new Model_Publication();
-
-        $publications = $model->search();
+        $publications = new Model_Publication();
 
         foreach( $editors as $index => $name ){
             $editor = new Model_Editor( array('name'=>$name) );
-            $editor->id = $editor->store();
-
+            $editor->store();
             $editors[$index] = $editor;
+        }
 
-
-            foreach( $publications as $pub ){
+        foreach( $publications->search() as $pub ){
+            shuffle($editors);
+            foreach( range(0,2) as $i ){
                 $editpub = new Model_EditorPublication();
-                $editpub->editor_id = $editor->id;
+                $editpub->editor_id = $editors[$i]->id;
                 $editpub->publication_id = $pub->id;
 
                 $editpub->store();
             }
         }
-
     }
 
     /**
@@ -200,23 +217,26 @@ class Nano_Db_SchemaTest extends PHPUnit_Framework_TestCase{
         }
 
         $model = new Model_Editor();
+
         foreach( $model->search() as $editor ){
             $this->assertEquals( 'updated', substr( $editor->name, 0, 7) );
         }
-
     }
 
     /**
      * @depends testPutRelations
      */
     public function testHasManyToMany(){
-        $model = new Model_Publication;
+        $model = new Model_Publication(1);
 
         $editors = $model->editors();
+
+        //var_dump( $editors->rowCount );
 
         foreach( $editors as $editor ){
             $this->assertType( 'Model_Editor', $editor );
         }
-    }
 
+
+    }
 }

@@ -39,9 +39,9 @@ class Model_Publication extends Nano_Db_Schema {
         ));
     }
 
-    public function editors(){
+    public function editors( array $args = array() ){
         return $this->has_many_to_many( 'editors', 'Model_EditorPublication',
-            array( 'publication_id' => 'id' ));
+            array( 'publication_id' => 'id' ), $args );
     }
 
     public function _filter_title( $value ){

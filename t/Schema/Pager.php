@@ -57,27 +57,27 @@ class Nano_Db_Schema_PagerTest extends PHPUnit_Framework_TestCase{
 
     public function testPageConstruct(){
         $author = new Model_Author();
-        $pager = new Nano_Db_Schema_Pager( $author, null );
+        $pager = new Nano_Db_Schema_Pager( $author );
         $this->assertType( 'Nano_Db_Schema_Pager', $pager );
     }
 
     public function testPageCount(){
         $author = new Model_Author();
-        $pager = new Nano_Db_Schema_Pager( $author, null );
+        $pager = new Nano_Db_Schema_Pager( $author );
 
         $this->assertEquals( 42, $pager->total );
     }
 
     public function testDefaultPageSize(){
         $author = new Model_Author();
-        $pager = new Nano_Db_Schema_Pager( $author, null );
+        $pager = new Nano_Db_Schema_Pager( $author );
 
         $this->assertEquals( Nano_Db_Schema_Mapper::FETCH_LIMIT, $pager->pageSize );
     }
 
     public function testSetPage(){
         $author = new Model_Author();
-        $pager = new Nano_Db_Schema_Pager( $author, null, array('page_size' => 6 ) );
+        $pager = new Nano_Db_Schema_Pager( $author, null, null, array('page_size' => 6 ) );
 
         $pager->setPage( $pager->lastPage );
         $this->assertEquals( 6, $pager->currentPageSize );
@@ -85,7 +85,7 @@ class Nano_Db_Schema_PagerTest extends PHPUnit_Framework_TestCase{
 
     public function testGetPage(){
         $author = new Model_Author();
-        $pager = new Nano_Db_Schema_Pager( $author, null, array('page_size' => 9 ) );
+        $pager = new Nano_Db_Schema_Pager( $author, null, null, array('page_size' => 9 ) );
 
 
         $rows =  $pager->getPage($pager->lastPage);
@@ -100,9 +100,9 @@ class Nano_Db_Schema_PagerTest extends PHPUnit_Framework_TestCase{
 
     public function testGetPageWhere(){
         $author = new Model_Author();
-        $pager = new Nano_Db_Schema_Pager( $author, array( 'id' => array(1,2,3,4,5) ) );
+        $pager = new Nano_Db_Schema_Pager( $author, null, array( 'id' => array(1,2,3,4,5) ) );
 
-
+        $rows =  $pager->getPage();
         $this->assertEquals( 5, $pager->total );
         $this->assertEquals( 5, $pager->currentPageSize );
 

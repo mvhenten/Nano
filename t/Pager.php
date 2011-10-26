@@ -36,7 +36,7 @@ class Nano_PagerTest extends PHPUnit_Framework_TestCase{
     }
 
     public function testFirst(){
-        $this->assertEquals( $this->_pager()->first, 51 );
+        $this->assertEquals( $this->_pager()->first, 41 );
     }
 
     public function testLast(){
@@ -52,6 +52,6 @@ class Nano_PagerTest extends PHPUnit_Framework_TestCase{
     }
 
     public function testOffset(){
-        $this->assertEquals( $this->_pager()->offset, 50 );
+        $this->assertEquals( $this->_pager()->offset, 40 );
     }
 }
