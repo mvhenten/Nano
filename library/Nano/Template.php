@@ -257,7 +257,7 @@ class Nano_Template{
             $this->_helpers[strtolower($name)] = new $klass( $this );
         }
         else{
-            throw new Exception( "unable to resolve helper $name" );
+            throw new Exception( "Unable to resolve helper $name" );
         }
     }
 

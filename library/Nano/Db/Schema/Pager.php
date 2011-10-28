@@ -54,7 +54,6 @@ class Nano_Db_Schema_Pager{
         $this->_schemaAction = $action;
 
 
-
         if( isset($schema_args['limit']) && !isset($pgr_arguments['page_size'])){
             $limit = (array) $schema_args['limit'];
             $pgr_arguments['page_size'] = array_pop($limit);
