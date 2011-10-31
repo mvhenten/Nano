@@ -24,7 +24,9 @@ class Nano_PagerTest extends PHPUnit_Framework_TestCase{
     }
 
     public function testCurrentPageSize(){
-        $this->assertEquals( $this->_pager(98,8,13)->currentPageSize, 2);
+        //var_dump( $this->_pager(12,8,2)->currentPageSize );
+        //$this->assertEquals(1,1);
+        $this->assertEquals( $this->_pager(12,8,2)->currentPageSize, 4);
     }
 
     public function testFirstPage(){
@@ -53,5 +55,16 @@ class Nano_PagerTest extends PHPUnit_Framework_TestCase{
 
     public function testOffset(){
         $this->assertEquals( $this->_pager()->offset, 40 );
+    }
+
+    public function testRange(){
+        //100, 10, 5
+        // walk the pager, check if $range is alwyas the same
+        foreach( range(1, 10) as $page_nr ){
+            $range = $this->_pager( 100, 10, $page_nr )->range(5);
+
+            $this->assertEquals( 5, count($range) );
+        }
+
     }
 }
