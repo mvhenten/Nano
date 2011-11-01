@@ -239,6 +239,9 @@ class Nano_Gd{
                 'height' => $info[1]
             );
         }
+        else{
+            throw new Exception( "Unable to create image from '$path'" );
+        }
     }
 
     private function _createFromString( $data ){
