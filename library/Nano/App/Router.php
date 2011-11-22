@@ -2,7 +2,7 @@
 /**
  * @todo remove Nano_Colleciton dependency!
  */
-class Nano_Router extends Nano_Collection{
+class Nano_App_Router extends Nano_Collection{
     public function __construct( $routes ){
         parent::__construct( (array) $this->getRoute( $routes ) );
     }

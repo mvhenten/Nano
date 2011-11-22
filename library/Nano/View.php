@@ -14,7 +14,7 @@ abstract class Nano_View{
     private $_request;
 
 
-    public function __construct( Nano_Request $request, Nano_Config $config ){
+    public function __construct( Nano_Request $request, Nano_Collection $config ){
         $this->_request = $request;
 
         $action_pieces = explode( '_', $request->action );

@@ -6,7 +6,7 @@ class Nano_Request{
     private $_router;
     private $_headers;
 
-    public function __construct( Nano_Router $router = null ){
+    public function __construct( $router = null ){
         if( null !== $router ){
             $this->_router = $router;
         }

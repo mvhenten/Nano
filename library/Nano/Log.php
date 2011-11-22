@@ -21,14 +21,14 @@
  *
  *
  * @category   Nano
- * @package    Nano_Gd
+ * @package    Nano_Log
  * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
  * @license    GPL v3
  */
 
-//logs go to /tmp/pico-error.log by default
-if( ! defined('PICO_ERROR_LOG') ){
-    define( 'PICO_ERROR_LOG',  '/tmp/pico-error.log' );
+//logs go to /tmp/nano-error.log by default
+if( ! defined('NANO_ERROR_LOG') ){
+    define( 'NANO_ERROR_LOG',  '/tmp/nano-error.log' );
 }
 
 /**
