@@ -1,5 +1,7 @@
 <?php
 /**
+ *
+ *
  * @file Nano/App/Router.php
  *
  * A simple request router that matches a series of regexes agains uri patterns
@@ -22,14 +24,19 @@
  *
  *
  * @category   Nano
- * @package    Nano_Log
  * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
  * @license    GPL v3
+ * @package    Nano_Log
  */
+
+
 /**
- * @class Nano_App_Router
+ * Basic request routing - matches request_uri to a simple regex
+ *
  * Routing pattenrs can be defined by a simple regex.
  * Currently only "\w \d ." (word digit dot) and "()+?" are supported (whitelisted)
+ *
+ * @class Nano_App_Router
  *
  * <code>
  * my $router = new Nano_App_Router(array(
@@ -44,37 +51,60 @@
  */
 class Nano_App_Router {
 
-    private $_routes = array();
-    private $_whitelist = array(
-        '\w' => '\\\w', '\d' => '\\\d',
-        '+'  => '\+', '?'  => '\?',
-        '('  => '\(',  ')'  => '\)',
-        '.' => '\\.'
-    );
+	private $_routes = array();
+	private $_whitelist = array(
+		'\w' => '\\\w', '\d' => '\\\d',
+		'+'  => '\+', '?'  => '\?',
+		'('  => '\(',  ')'  => '\)',
+		'.' => '\\.'
+	);
 
-    public function __construct( $routes ){
-        foreach( $routes as $key => $value ){
-            $this->addRoute( $key, $value );
-        }
-    }
+	/**
+	 * Class constructor
+	 *
+	 * @param array   $routes (optional) $pattern => $handler pairs
+	 */
+	public function __construct( array $routes = array() ) {
+		foreach ( $routes as $key => $value ) {
+			$this->addRoute( $key, $value );
+		}
+	}
 
-    public function addRoute( $pattern, $handler ){
-        $pattern = preg_quote($pattern, '/');
-        $this->_routes[$pattern] = $handler;
-    }
 
-    public function getRoute( $url ){
-        foreach( $this->_routes as $pattern => $handler ){
-            $pattern = str_replace(
-                array_values( $this->_whitelist ),
-                array_keys( $this->_whitelist ),
-                $pattern
-            );
+	/**
+	 * Adds a single route.
+	 *
+	 * @param string  $pattern Pattern regex to match url aka '/site/image/image-(\d+).jpg
+	 * @param string  $handler Returned by getRoute, for example a class name
+	 */
+	public function addRoute( $pattern, $handler ) {
+		$pattern = preg_quote($pattern, '/');
+		$this->_routes[$pattern] = $handler;
+	}
 
-            if( preg_match( "/^$pattern$/", $url, $matches ) ){
-                $match = array_shift($matches);
-                return array( $handler, $matches, $match );
-            }
-        }
-    }
+
+	/**
+	 * Returns the first matching route for given path
+	 *
+	 * @param unknown $request_uri
+	 * @return array Array of matches. if no matches are found, the array is filled with null
+	 */
+	public function getRoute( $request_uri ) {
+		foreach ( $this->_routes as $pattern => $handler ) {
+			$pattern = str_replace(
+				array_values( $this->_whitelist ),
+				array_keys( $this->_whitelist ),
+				$pattern
+			);
+
+			if ( preg_match( "/^$pattern$/", $request_uri, $matches ) ) {
+				$match = array_shift($matches);
+				return array( $handler, $matches, $match );
+			}
+		}
+
+		return array( null, null, null );
+	}
+
+
 }
