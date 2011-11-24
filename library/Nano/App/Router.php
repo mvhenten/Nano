@@ -28,8 +28,8 @@
  */
 /**
  * @class Nano_App_Router
- * Routing pattenrs can be defined by a subset of regexes.
- * Currently only \w and \d are supported (whitelisted)
+ * Routing pattenrs can be defined by a simple regex.
+ * Currently only "\w \d ." (word digit dot) and "()+?" are supported (whitelisted)
  *
  * <code>
  * my $router = new Nano_App_Router(array(
