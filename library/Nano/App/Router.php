@@ -1,11 +1,9 @@
 <?php
 /**
- *
- *
- * @file Nano/App/Router.php
- *
  * A simple request router that matches a series of regexes agains uri patterns
  * and returns the results of the first match.
+ *
+ * @file Nano/App/Router.php
  *
  * Copyright (C) <2011>  <Matthijs van Henten>
  *
@@ -26,7 +24,7 @@
  * @category   Nano
  * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
  * @license    GPL v3
- * @package    Nano_Log
+ * @package    Nano_App
  */
 
 

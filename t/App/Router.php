@@ -20,17 +20,11 @@ class Nano_App_RouterTest extends PHPUnit_Framework_TestCase{
 		'/(x)/(.+)',
 	);
 
-	/**
-	 *
-	 */
 	public function testConstruct() {
 		$router = new Nano_App_Router(array( 'foo' => 'bar' ));
 	}
 
 
-	/**
-	 *
-	 */
 	public function testMatches() {
 		$cases = $this->_cases;
 
@@ -56,6 +50,4 @@ class Nano_App_RouterTest extends PHPUnit_Framework_TestCase{
 			$this->assertEquals( $match, $uri, 'match matches full uri');
 		}
 	}
-
-
 }
