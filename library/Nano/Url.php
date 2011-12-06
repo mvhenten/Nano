@@ -86,7 +86,7 @@ class Nano_Url {
 	/**
 	 * Parse url and set corresponding properties of this class
 	 *
-	 * @param string $url
+	 * @param string  $url
 	 * @return Nano_Url $this This instance
 	 */
 	private function parseUrl( $url ) {
@@ -94,14 +94,14 @@ class Nano_Url {
 			$this->$method( $value );
 		}
 
-        return $this;
+		return $this;
 	}
 
 
 	/**
 	 * Returns the scheme, sets the scheme if a valid string is provided
 	 *
-	 * @param string $scheme (optional) - either 'http' or 'https'
+	 * @param string  $scheme (optional) - either 'http' or 'https'
 	 * @return $scheme Current scheme
 	 */
 	public function scheme( $scheme=null ) {
@@ -116,7 +116,7 @@ class Nano_Url {
 	/**
 	 * Get/sets the path component
 	 *
-	 * @param string $path (optional)
+	 * @param string  $path (optional)
 	 * @return string $path Current path
 	 */
 	public function path( $path=null ) {
@@ -129,10 +129,10 @@ class Nano_Url {
 
 
 	/**
-     * Get/sets the path segments as separarate pieces (pathparts)
+	 * Get/sets the path segments as separarate pieces (pathparts)
 	 *
-	 * @param array $parts   (optional) Optional new pathparts
-	 * @param int $padding (optional) Padds the output, if needed. Handy to use with list(...)
+	 * @param array   $parts   (optional) Optional new pathparts
+	 * @param int     $padding (optional) Padds the output, if needed. Handy to use with list(...)
 	 * @return array $path_parts Path segments of the current path
 	 */
 	public function pathParts( $parts=null, $padding=0 ) {
@@ -153,7 +153,7 @@ class Nano_Url {
 	/**
 	 * Get/sets the query component as string
 	 *
-	 * @param string $query (optional) New query component
+	 * @param string  $query (optional) New query component
 	 * @return string $query Current query component
 	 */
 	public function query( $query='' ) {
@@ -167,7 +167,8 @@ class Nano_Url {
 
 
 	/**
-     * Get/Sets the query component as an array
+	 * Get/Sets the query component as an array
+	 *
 	 * @see parse_str
 	 *
 	 * @param array   $query_form (optional) Optional new query parameters
@@ -185,7 +186,7 @@ class Nano_Url {
 	/**
 	 * Get/sets the url fragment component
 	 *
-	 * @param string $fragment (optional)
+	 * @param string  $fragment (optional)
 	 * @return string $fragment
 	 */
 	public function fragment( $fragment=null ) {
@@ -200,7 +201,7 @@ class Nano_Url {
 	/**
 	 * Get/Sets hostname component
 	 *
-	 * @param string $hostname (optional) New hostname
+	 * @param string  $hostname (optional) New hostname
 	 * @return string $hostname
 	 */
 	public function host( $hostname='' ) {
@@ -213,7 +214,7 @@ class Nano_Url {
 
 
 	/**
-     * Get/Sets port number component
+	 * Get/Sets port number component
 	 *
 	 * @param unknown $portnum (optional)
 	 * @return unknown
@@ -228,9 +229,9 @@ class Nano_Url {
 
 
 	/**
-     * Get/Sets the user component - used in basic auth
+	 * Get/Sets the user component - used in basic auth
 	 *
-	 * @param string $user (optional)
+	 * @param string  $user (optional)
 	 * @return string $username
 	 */
 	public function user( $user = null ) {
@@ -241,11 +242,13 @@ class Nano_Url {
 		return $this->_user;
 	}
 
+
 	/**
-     * Get/Sets pass component - alias for password to maintain symetry to parse_url
-     * @see Nano_Url::password
+	 * Get/Sets pass component - alias for password to maintain symetry to parse_url
 	 *
-	 * @param string $password (optional)
+	 * @see Nano_Url::password
+	 *
+	 * @param string  $password (optional)
 	 * @return string $password
 	 */
 	public function pass( $password = null ) {
@@ -254,10 +257,11 @@ class Nano_Url {
 
 
 	/**
-     * Get/Sets password component used in basic auth
-     * @see Nano_Url::password
+	 * Get/Sets password component used in basic auth
 	 *
-	 * @param string $password (optional)
+	 * @see Nano_Url::password
+	 *
+	 * @param string  $password (optional)
 	 * @return string $password
 	 */
 	public function password( $password = null ) {
