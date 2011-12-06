@@ -28,14 +28,12 @@
 
 
 class Nano_Url {
-	const DEFAULT_PORT=80;
-	const DEFAULT_SCHEME=80;
-
-	private $_scheme='http';
-	private $_pathParts=array();
+	private $_scheme = 'http';
+    private $_path = '';
 	private $_query=array();
-	private $_credentials=null;
 	private $_fragment;
+    private $_user;
+    private $_password;
 	private $_host;
 	private $_port;
 
@@ -44,27 +42,8 @@ class Nano_Url {
 	 * @return string URL
 	 */
 	public function __toString() {
-		$path = $this->path();
-
-		if ( $this->_credentials ) {
-			$path = sprintf('%s:%s@%s', $this->getUser(), $this->getPassword(), $path );
-		}
-
-		if ( $self->_fragment ) {
-			$query    = http_build_query( $this->_query );
-			$path = join( '?', $path, $query );
-
-		}
-
-		if ( $self->_fragment ) {
-			$path = join( '#', $path, urlencode($self->fragment) );
-		}
-
-		$base_url = sprintf('%s://%s', $this->schema(), $path );
-
-		return $base_url;
+        return $this->_buildUrl();
 	}
-
 
 	/**
      * Class constructor
@@ -72,7 +51,30 @@ class Nano_Url {
 	 * @param string $url Url string that can be parsed trough parse_url
 	 */
 	public function __construct( $url ) {
-		$this->_parseUrl( $url );
+		$this->parseUrl( $url );
+	}
+
+    public function __get( $name ){
+        if( property_exists( $this, "_$name") && method_exists( $this, $name ) ){
+            return $this->$name();
+        }
+    }
+
+    public function __set( $name, $value ){
+        if( property_exists( $this, "_$name") && method_exists( $this, $name ) ){
+            return $this->$name( $value );
+        }
+    }
+
+	/**
+	 *
+	 *
+	 * @param unknown $url
+	 */
+	private function parseUrl( $url ) {
+        foreach(  parse_url( $url ) as $method => $value ){
+            $this->$method( $value );
+        }
 	}
 
 
@@ -99,10 +101,10 @@ class Nano_Url {
 	 */
 	public function path( $path=null ) {
 		if ( null !== $path && is_string( $path ) ) {
-			$this->pathParts( explode( '/', trim($path, '/') ) );
+            $this->_path = trim( $path, '/' );
 		}
 
-		return join( '/', $this->pathParts() ) . '/';
+		return '/' . $this->_path;
 	}
 
 
@@ -112,15 +114,18 @@ class Nano_Url {
 	 * @param unknown $parts (optional)
 	 * @return unknown
 	 */
-	public function pathParts( $parts=null ) {
-		if ( is_integer( $parts ) ) {
-			return array_pad( $this->_pathParts, $parts, null );
-		}
-		elseif ( is_array( $parts ) ) {
-			$this->_pathParts = array_filter( $parts );
+	public function pathParts( $parts=null, $padding=0 ) {
+		if ( is_array($parts) ) {
+			$this->_path = join( '/', array_filter($parts) );
 		}
 
-		return $this->_pathParts;
+        $path_parts = explode( '/', trim($this->_path, '/') );
+
+		if ( is_int($padding) && $padding > 0 ) {
+			$path_parts = array_pad( $path_parts, $padding, null );
+		}
+
+        return $path_parts;
 	}
 
 
@@ -130,13 +135,22 @@ class Nano_Url {
 	 * @param unknown $query (optional)
 	 * @return unknown
 	 */
-	public function query( $query=null ) {
-		if ( is_array( $query ) ) {
-			$this->_query = array_filter($query);
+	public function query( $query='' ) {
+		if ( is_string( $query ) && !empty($query) ) {
+            parse_str( $query, $query_hash );
+			$this->_query = $query_hash;
 		}
 
-		return $this->_query;
+		return http_build_query( $this->_query );
 	}
+
+    public function query_form( array $query_form = array() ){
+        if( count($query_form) > 0 ){
+            $this->_query = $query_form;
+        }
+
+        return $this->_query;
+    }
 
 
 	/**
@@ -175,87 +189,45 @@ class Nano_Url {
 	 * @param unknown $portnum (optional)
 	 * @return unknown
 	 */
-	public function port( $portnum=80 ) {
+	public function port( $portnum=null ) {
 		if ( is_int($portnum) && $portnum > 0 ) {
 			$this->_port = $portnum;
 		}
 
-		return $portnum;
+		return $this->_port;
 	}
 
+    public function user( $user = null ){
+        if( null !== $user ){
+            $this->_user = $user;
+        }
 
-	/**
-	 *
-	 *
-	 * @param array   $credentials (optional)
-	 * @return unknown
-	 */
-	public function credentials( array $credentials=array() ) {
-		if ( is_array( $credentials ) && count( $credentials  ) > 1 ) {
-			$this->_setCredentials($credentials['username'], $credentials['password']);
-		}
+        return $this->_user;
+    }
 
-		return $this->_credentials;
-	}
+    public function pass( $password = null ){
+        return $this->password( $password );
+    }
 
+    public function password( $password = null ){
+        if( null !== $password ){
+            $this->_password = $password;
+        }
 
-	/**
-	 *
-	 *
-	 * @return unknown
-	 */
-	public function getUser() {
-		return urlencode($self->_credentials['user']);
-	}
+        return $this->_password;
+    }
 
-
-	/**
-	 *
-	 *
-	 * @return unknown
-	 */
-	public function getPassword() {
-		return urlencode($self->_credentials['password']);
-	}
-
-
-	/**
-	 *
-	 *
-	 * @param unknown $username
-	 * @param unknown $password
-	 */
-	private function _setCredentials( $username, $password ) {
-		$this->_credentials = array( 'username' => $username, 'password' => $password );
-	}
-
-
-	/**
-	 *
-	 *
-	 * @param unknown $url
-	 */
-	private function _parseUrl( $url ) {
-		$pieces = parse_url( $url );
-
-		if ( $pieces ) {
-			if ( isset( $pieces['query'] ) ) {
-				$pieces['query'] = parse_str( $pieces['query'] );
-			}
-
-			if ( isset( $pieces['fragment'] ) ) {
-				$pieces['fragment'] = parse_str( $pieces['fragment'] );
-			}
-
-
-		}
-
-
-
-		//preg_match( '{^(https?://)?(.+?)(\?(.+))?$}', $url, $matches );
-
-		//list( $_, $schema, $path, $_, $query ) = $matches;
-	}
-
-
+    private function _buildUrl(){
+        return join( '', array(
+            $this->scheme() . '://',
+            join( '@', array(
+                join( ':', array( $this->user, $this->password )),
+                join( ':', array( $this->host, $this->port))
+            )),
+            join( '?', array(
+                $this->path(),
+                join( '#', array( $this->query, $this->fragment )),
+            )),
+        ));
+    }
 }
