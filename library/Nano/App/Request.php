@@ -66,8 +66,8 @@ class Nano_App_Request {
 			), $OVERRIDES );
 
 		$this->_server  = $config['server'];
-		$this->_post    = $config['server'];
-		$this->_get     = $config['server'];
+		$this->_post    = $config['post'];
+		$this->_get     = $config['get'];
 	}
 
 
@@ -83,7 +83,7 @@ class Nano_App_Request {
 	 */
 	public function __get( $name ) {
 		if ( method_exists( $this, $name ) ) {
-			return $this->$name;
+			return $this->$name();
 		}
 
 		return $this->getValue( $name );
@@ -96,7 +96,7 @@ class Nano_App_Request {
 	 * @return bool $is_post
 	 */
 	public function isPost() {
-		if ( $self->method() == 'POST' ) {
+		if ( $this->method() == 'POST' ) {
 			return true;
 		}
 		return false;
@@ -232,7 +232,7 @@ class Nano_App_Request {
 		if ( null === $this->_request_url ) {
 			$scheme = 'http';
 
-			if ( ! $this->_server['HTTPS'] || $this->_server['HTTPS'] == 'OFF' ) {
+			if ( ! isset($this->_server['HTTPS']) || $this->_server['HTTPS'] == 'OFF' ) {
 				$scheme = 'https';
 			}
 
