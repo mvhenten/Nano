@@ -1,11 +1,8 @@
 <?php
 /**
- *
+ * Basic OO wrapper around builtin gd functions.
  *
  * @file Nano/Gd.php
- *
- * Basic OO wrapper around builtin gd functions. Provides a number of utility
- * functions such as in-place-resize, and proxies some gd functions as class-methods.
  *
  * Copyright (C) <2011>  <Matthijs van Henten>
  *
@@ -31,7 +28,9 @@
 
 
 /**
- *
+ * Basic OO wrapper around builtin gd functions. Provides a number of utility
+ * functions such as in-place-resize, simple crop, and proxies some gd functions
+ * as class-methods.
  *
  * @class Nano_Gd
  *
