@@ -26,7 +26,7 @@
 
 
 /**
- * String utilities, for the sole purpose of keeping them around
+ * My favourite string utilities, for the sole purpose of keeping them around
  *
  * @class Nano_Util_String
  */
