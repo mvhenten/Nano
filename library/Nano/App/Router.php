@@ -87,15 +87,22 @@ class Nano_App_Router {
 	 * @param unknown $request_uri
 	 * @return array Array of matches. if no matches are found, the array is filled with null
 	 */
-	public function getRoute( $request_uri ) {
+	public function getRoute( $uri ) {
+        if( ! ( $uri instanceof Nano_Url ) ){
+            $uri = Nano_Url( $uri );
+        }
+
 		foreach ( $this->_routes as $pattern => $handler ) {
 			$pattern = str_replace(
 				array_values( $this->_whitelist ),
 				array_keys( $this->_whitelist ),
 				$pattern
 			);
+            echo "$pattern => $handler \n";
 
-			if ( preg_match( "/^$pattern$/", $request_uri, $matches ) ) {
+            echo $uri->path . "\n";
+
+			if ( preg_match( "/^$pattern$/", $uri->path, $matches ) ) {
 				$match = array_shift($matches);
 				return array( $handler, $matches, $match );
 			}

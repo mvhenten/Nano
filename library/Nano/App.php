@@ -68,15 +68,11 @@ class Nano_App {
     }
 
     public function dispatch(){
-        foreach( $this->namespace as $ns => $path ){
-            $klass = array( $ns, 'View', $this->request->module, $this->request->view );
-            $klass = join( '_', array_map('ucfirst', array_filter($klass)));
+        list( $handler, $matches, $pattern ) = $this->router->getRoute( $this->request->url );
 
-            if( class_exists($klass) ){
-                $view = new $klass( $this->request, $this->config );
-                return $view->response()->out();
-            }
-        }
+        $handler_object = new $handler( $this->request, $this->_build_args );
+
+        
     }
 
     public function __get( $name ){
@@ -100,7 +96,7 @@ class Nano_App {
     }
 
     private function _get_request(){
-        return new Nano_Request( $this->router );
+        return new Nano_App_Request();
     }
 
     private function _get_router(){
