@@ -281,14 +281,14 @@ class Nano_Url {
 	private function _buildUrl() {
 		return join( '', array(
 				$this->scheme() . '://',
-				join( '@', array(
-						join( ':', array( $this->user, $this->password )),
-						join( ':', array( $this->host, $this->port))
-					)),
-				join( '?', array(
+				join( '@', array_filter(array(
+						join( ':', array_filter(array( $this->user, $this->password ))),
+						join( ':', array_filter(array( $this->host, $this->port)))
+					))),
+				join( '?', array_filter(array(
 						$this->path(),
-						join( '#', array( $this->query, $this->fragment )),
-					)),
+						join( '#', array_filter(array( $this->query, $this->fragment ))),
+					))),
 			));
 	}
 
