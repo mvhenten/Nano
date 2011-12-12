@@ -52,6 +52,7 @@ class Nano_App {
     private $_router;
     private $_namespace;
     private $_config;
+    private $_response;
 
     public static function Bootstrap( $args ){
         return new Nano_App( $args );
@@ -69,6 +70,11 @@ class Nano_App {
 
     public function dispatch(){
         list( $handler, $matches, $pattern ) = $this->router->getRoute( $this->request->url );
+
+        if( !$handler ){
+            header("Status: 404 Not Found", true, 404 );
+            exit();
+        }
 
         $handler_object = new $handler( $this->request, $this->_build_args );
         $handler_object->response()->out();
@@ -113,6 +119,10 @@ class Nano_App {
             return $this->_build_args['config'];
         }
         return array();
+    }
+
+    private function _get_response(){
+        return new Nano_Response();
     }
 
     private function _registerNamespace(){
