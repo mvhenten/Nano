@@ -1,11 +1,8 @@
 <?php
 /**
- *
+ * Basic OO wrapper around builtin gd functions.
  *
  * @file Nano/Gd.php
- *
- * Basic OO wrapper around builtin gd functions. Provides a number of utility
- * functions such as in-place-resize, and proxies some gd functions as class-methods.
  *
  * Copyright (C) <2011>  <Matthijs van Henten>
  *
@@ -31,8 +28,6 @@
 
 
 /**
- *
- *
  * @class Nano_Gd
  *
  *  Basic OO wrapper around builtin gd functions.
@@ -110,15 +105,23 @@ class Nano_Gd {
 	 * Crop part of an image
 	 *
 	 *
-	 * @param int     $x      X offset of the crop
-	 * @param int     $y      Y offset of the crop
 	 * @param int     $width  Width of the crop box
 	 * @param int     $height Height of the crop box
+	 * @param int     $x (optional)      X offset of the crop
+	 * @param int     $y (optional)     Y offset of the crop
 	 * @return Nano_Gd $image new instance
 	 */
-	public function crop( $x, $y, $width, $height ) {
+	public function crop( $width, $height, $x = null, $y = null ) {
 		if ( null !== ($gd = $this->getResource() ) ) {
 			list( $w, $h ) = array_values( $this->getDimensions() );
+
+            if( null === $x ){
+                $x = intval(($width-$w)/2);
+            }
+
+            if( null === $y ){
+                $x = intval(($height-$h)/2);
+            }
 
 			$target = imagecreatetruecolor( $width, $height );
 
@@ -425,9 +428,7 @@ class Nano_Gd {
 			return $out;
 		}
 		else {
-			throw new Exception('trying to create an image from nothing!');
+			throw new Exception('Cannot create image, no resource available!');
 		}
 	}
-
-
 }
