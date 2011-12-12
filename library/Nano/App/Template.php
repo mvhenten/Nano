@@ -248,7 +248,7 @@ class Nano_App_Template {
 	 * @param string  $name        Name of the content region
 	 * @param bool    $append=True Should content be inserted at the start or appended
 	 */
-	public function endBlock( $name, $append=True ) {
+	public function endBlock( $name, $append=true ) {
 		$content = ob_get_clean();
 
 		if ( $append ) {

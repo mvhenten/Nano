@@ -48,7 +48,7 @@ class Nano_Log {
         $lines = explode("\n",  print_r($str, true) );
 
         foreach( $lines as $value ){
-            error_log( "[$date] $key: $value\n", 3, PICO_ERROR_LOG );
+            error_log( "[$date] $key: $value\n", 3, NANO_ERROR_LOG );
         }
     }
 }

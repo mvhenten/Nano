@@ -50,8 +50,8 @@ class Nano_App {
 
     private $_request;
     private $_router;
-    private $_namespace;
     private $_config;
+    private $_plugins;
     private $_response;
 
     public static function Bootstrap( $args ){
@@ -68,7 +68,15 @@ class Nano_App {
         $this->_registerNamespace();
     }
 
+    public function __get( $name ){
+        if( method_exists( $this, $name ) ){
+            return $this->$name();
+        }
+    }
+
     public function dispatch(){
+        $this->plugins->hook( 'start', $this );
+
         list( $handler, $matches, $pattern ) = $this->router->getRoute( $this->request->url );
 
         if( !$handler ){
@@ -77,52 +85,71 @@ class Nano_App {
         }
 
         $handler_object = new $handler( $this->request, $this->_build_args );
+
+        $this->plugins->hook( 'end', $handler_object );
+
         $handler_object->response()->out();
     }
 
-    public function __get( $name ){
-        $name = '_' . $name;
-
-        if( property_exists( $this, $name ) ){
-            if( null == $this->$name && ( $method = '_get' . $name ) && method_exists( $this, $method ) ){
-                $this->$name = $this->$method();
-            }
-
-            return $this->$name;
-        }
+    public function request(){
+        return $this->_lazy_build('request', array(
+            'isa' => 'Nano_App_Request'
+        ));
     }
 
-    private function _get_namespace(){
-        if( isset($this->_build_args['namespace']) ){
-            return (array) $this->_build_args['namespace'];
-        }
-
-        return array();
-    }
-
-    private function _get_request(){
-        return new Nano_App_Request();
-    }
-
-    private function _get_router(){
+    public function router(){
         $route_settings = array();
 
-        if( isset( $this->_build_args['router'] ) ){
-            $route_settings = $this->_build_args['router'];
-        }
-
-        return new Nano_App_Router( $route_settings );
+        return $this->_lazy_build('router', array(
+            'isa'        => 'Nano_App_Router',
+            'build_args' => isset($this->_build_args['router'])
+                ? $this->_build_args['router'] : array()
+        ));
     }
 
-    private function _get_config(){
+    public function plugins(){
+        $route_settings = array();
+
+        return $this->_lazy_build('plugins', array(
+            'isa'        => 'Nano_App_Plugin_Helper',
+            'build_args' => isset($this->_build_args['plugins'])
+                ? $this->_build_args['plugins'] : array()
+        ));
+    }
+
+    private function response(){
+        return $this->_lazy_build('request', array(
+            'isa' => 'Nano_Response'
+        ));
+    }
+
+    private function config(){
         if( isset($this->_build_args['config'])){
             return $this->_build_args['config'];
         }
         return array();
     }
 
-    private function _get_response(){
-        return new Nano_Response();
+
+    private function _lazy_build( $name, array $args, array $build_args = array() ){
+        $property = "_$name";
+
+        if( property_exists( $this, $property ) && null === $this->$property ){
+            $build_args = isset($args['build_args']) ? $args['build_args'] : null;
+            $klass      = $args['isa'];
+
+            if( $build_args ){
+                $instance = new $klass( $build_args );
+            }
+            else{
+                $instance = new $klass;
+            }
+
+            $this->$property = $instance;
+
+        }
+
+        return $this->$property;
     }
 
     private function _registerNamespace(){
@@ -136,4 +163,6 @@ class Nano_App {
             Nano_Autoloader::registerNamespace($ns , $path );
         }
     }
+
+
 }
