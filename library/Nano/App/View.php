@@ -115,13 +115,13 @@ abstract class Nano_App_View {
 
 
 	/**
-	 * Returns the current Nano_Template object
+	 * Returns the current Nano_App_Template object
 	 *
-	 * @return Nano_Template $template
+	 * @return Nano_App_Template $template
 	 */
 	public final function template() {
 		if ( null == $this->_template ) {
-			$this->_template = new Nano_Template(array('request'=>$this->request()));
+			$this->_template = new Nano_App_Template(array('request'=>$this->request()));
 		}
 
 		return $this->_template;

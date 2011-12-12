@@ -12,7 +12,7 @@ if( ! defined( 'APPLICATION_ROOT' ) ){
     define( 'APPLICATION_ROOT', dirname($nano_root) );
 }
 
-class Nano_Template{
+class Nano_App_Template{
     protected $_parents = array();
     protected $_blocks  = array();
 
