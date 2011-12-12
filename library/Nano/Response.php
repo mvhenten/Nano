@@ -7,6 +7,7 @@
 class Nano_Response{
     private $_content = array();
     private $_headers = array();
+    private $_status = 200;
 
     public function __construct( array $args = array() ){
         foreach( $args as $key => $value ){
@@ -43,6 +44,9 @@ class Nano_Response{
             header( $string, $replace, $code );
             //call_user_func_array( 'header', $header );
         }
+
+        header("Status: 404 Not Found");
+
         echo $content;
     }
 
@@ -76,6 +80,10 @@ class Nano_Response{
     }
 
     public function getStatus(){
+        if( null == $this->_status ){
+            $this->setStatus( 200 );
+        }
+
         return $this->_status;
     }
 
