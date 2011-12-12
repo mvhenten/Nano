@@ -1,103 +1,166 @@
 <?php
 /**
+ * Abstract base class for "view" or controller part.
+ *
  * @file View.php
  *
- * Base class for a simple "view" part of the MVT. It generalises two
- * cases: call the appropriate function for get{YourAction} or simply 'get'
- * or 'post'. It keeps track of the template and response object, and tries
- * not to get in the way.
+ * Copyright (C) <2011>  <Matthijs van Henten>
  *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * @category   Nano
+ * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
+ * @license    GPL v3
+ * @package Nano_App
  */
-abstract class Nano_View{
-    private $_response;
-    private $_template;
-    private $_request;
 
 
-    public function __construct( Nano_Request $request, Nano_Collection $config ){
-        $this->_request = $request;
+/**
+ *
+ *
+ * @class Nano_App_View
+ *
+ * Abstract base class for "view" or controller part.
+ */
+abstract class Nano_App_View {
+	private $_response;
+	private $_template;
+	private $_request;
 
-        $action_pieces = explode( '_', $request->action );
-        $method = join( '', array_map( 'ucfirst', $action_pieces ));
-
-        if( ! method_exists( $this, $method ) ){
-            if( $request->isPost() ){
-                $method = 'post' . ucfirst($method);
-            }
-            else{
-                $method = 'get' . ucfirst($method);
-            }
-
-            if( ! method_exists( $this, $method ) ){
-                $method = $request->isPost() ? 'post' : 'get';
-            }
-        }
-
-        $response = $this->$method( $request, $config );
-        $this->response()->push($response);
-    }
-
-    /**
-     * Handles all POST requests
+	/**
+     * Class constructor.
      *
-     * Every post request gets routed trough this function; you may want to use
-     * _forward to finish processing in some other function.
+     * Nano_View is a bare view implementation that simply dispatches the request
+     * to one function - get or post - and pushes the return value of that function
+     * onto the response stack.
+	 *
+	 * @param Nano_App_Request  $request
+	 * @param array   $extra   (optional)
+	 */
+	public function __construct( Nano_Request $request, array $extra = array() ) {
+		$this->_request = $request;
+
+		$this->response->push( $this->dispatch( $request, $extra ) );
+	}
+
+
+	/**
+	 * Code stub - dispatch to post/get based on request type.
+	 *
+	 * @param Nano_App_Request  $request
+	 * @param unknown $extra
+	 * @return string Response body
+	 */
+	protected function dispatch( Nano_App_Request $request, $extra ) {
+		if ( $request->isPost() ) {
+			return $this->post( $request, $extra );
+		}
+
+		return $this->get( $request, $extra );
+	}
+
+
+	/**
+	 * Code stub - function to handle POST requests by default.
+	 * This should be implemented.
+	 *
+	 * @return void
+	 * @param Nano_App_Request  $request The request object
+	 * @param Nano_Config $config  Extra data passed in App.
+	 */
+	protected function post( Nano_App_Request $request, $config ) {
+		return;
+	}
+
+
+	/**
+	 * Code stub - function to handle GET requests by default.
+	 * This should be implemented.
+	 *
+	 * You may define your own custom request hook like "get{Action}" for
+	 * specific request, or route all requests trough this function.
+	 *
+	 * @return void
+	 * @param Nano_App_Request  $request The request object
+	 * @param Nano_Config $config  Extra data passed in App.
+	 */
+	protected function get( Nano_App_Request $request, $config ) {
+		return;
+	}
+
+
+	/**
+     * Returns the current Nano_App_Response object
+	 *
+	 * @return Nano_App_Response
+	 */
+	public final function response() {
+		if ( null == $this->_response ) {
+			$this->_response = new Nano_Response();
+		}
+
+		return $this->_response;
+	}
+
+
+	/**
+	 * Returns the current Nano_Template object
+	 *
+	 * @return Nano_Template $template
+	 */
+	public final function template() {
+		if ( null == $this->_template ) {
+			$this->_template = new Nano_Template(array('request'=>$this->request()));
+		}
+
+		return $this->_template;
+	}
+
+
+	/**
+     * Returns the current Nano_App_Request object.
+	 *
+	 * @return Nano_App_Request $request
+	 */
+	public final function request() {
+		return $this->_request;
+	}
+
+
+	/**
+     * Factory method. Instantiates and returns a 'Model' or 'Schema' object
+     * in one of the current namespaces, if possible.
      *
-     * @param Nano_Request $request The request object
-     * @param Nano_Config $config A nano_config object
-     * @return void
-     */
-    protected function post( $request, $config ){
-        return;
-    }
+	 * @param string $name
+	 * @param mixed $arguments (optional) Optional constructor arguments
+	 * @return unknown
+	 */
+	public final function model( $name, $arguments = array() ) {
+		foreach ( Nano_Autoloader::getNamespaces() as $ns => $val ) {
+			$class_name = sprintf('%s_Model_%s', ucfirst($ns), ucfirst($name));
+			if ( class_exists( $class_name )) {
+				return new $class_name( $arguments );
+			}
+
+			$class_name = sprintf('%s_Schema_%s', ucfirst($ns), ucfirst($name));
+			if ( class_exists( $class_name )) {
+				return new $class_name( $arguments );
+			}
+		}
+		throw new Exception( "Unable to resolve $name" );
+	}
 
 
-    /**
-     * Fallback handler for GET request
-     *
-     * You may define your own custom request hook like "get{Action}" for
-     * specific request, or route all requests trough this function.
-     *
-     * @param Nano_Request $request
-     * @param Nano_Config $config
-     * @return void
-     */
-    protected function get( $request, $config ){
-        return;
-    }
-
-    public function response(){
-        if( null == $this->_response ){
-            $this->_response = new Nano_Response();
-        }
-
-        return $this->_response;
-    }
-
-    public function template(){
-        if( null == $this->_template ){
-            $this->_template = new Nano_Template(array('request'=>$this->request()));
-        }
-
-        return $this->_template;
-    }
-
-    public function request(){
-        return $this->_request;
-    }
-
-    public function model( $name, $arguments = array() ){
-        foreach( Nano_Autoloader::getNamespaces() as $ns => $val ){
-            $class_name = sprintf('%s_Model_%s', ucfirst($ns), ucfirst($name));
-            if( class_exists( $class_name )){
-                return new $class_name( $arguments );
-            }
-
-            $class_name = sprintf('%s_Schema_%s', ucfirst($ns), ucfirst($name));
-            if( class_exists( $class_name )){
-                return new $class_name( $arguments );
-            }
-        }
-        throw new Exception( "Unable to resolve $name" );
-    }
 }
