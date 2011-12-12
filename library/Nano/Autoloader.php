@@ -35,7 +35,7 @@ if ( ! defined( 'APPLICATION_PATH' ) ) {
 /**
  * Defines a handler for spl_autoload
  *
- * @class Nano_Gd
+ * @class Nano_Autoloader
  *
  *  Basic OO wrapper around builtin gd functions.
  */
@@ -164,6 +164,4 @@ class Nano_Autoloader {
 		}
 		return !$fail;
 	}
-
-
 }

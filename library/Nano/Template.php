@@ -89,28 +89,48 @@ class Nano_Template{
     public function toString(){
         $collect = '';
 
-        extract( $this->_values, EXTR_SKIP&EXTR_REFS  );
-
         foreach( $this->_templates as $template ){
             $this->_parents = array( $template );
 
             while( count( $this->_parents ) > 0 ){
                 $tpl = array_pop( $this->_parents );
-                $relative = preg_replace( '/^' . str_replace( '/', '\/', APPLICATION_PATH ) . '/', '', $tpl );
-                $path = $this->expandPath( $relative );
-
-                @ob_start();
-                ini_set( 'log_errors', 1 );
-                ini_set( 'display_errors', 0);
-
-                include( $path );
-                $content = @ob_get_clean();
+                $content = $this->_include( $tpl, $this->_values );
             }
 
             $collect .= $content;
         }
 
         return $collect;
+    }
+
+    public function process( $tpl ){
+        echo $this->_include( $tpl, $this->_values );
+    }
+    
+    /**
+     * Should have been called include ( but it cannot )
+     *
+     * Integrates a template file with limited scope
+     *
+     */
+    public function integrate( $tpl, $scope_values = null ){
+        $scope_values = func_get_args();
+        $tpl = array_shift( $scope_values );
+        echo $this->_include( $tpl, $scope_values );
+    }
+    
+    private function _include( $tpl_name, $scope_values ){
+        extract( $scope_values, EXTR_SKIP&EXTR_REFS  );
+
+        $tpl_relative_path = preg_replace( '/^' . str_replace( '/', '\/', APPLICATION_PATH ) . '/', '', $tpl_name );
+        $tpl_absolute_path = $this->expandPath( $tpl_relative_path );
+
+        @ob_start();
+        ini_set( 'log_errors', 1 );
+        ini_set( 'display_errors', 0);
+
+        include( $tpl_absolute_path );
+        return ob_get_clean();        
     }
 
     /**
@@ -171,7 +191,7 @@ class Nano_Template{
      * Adds a parent template to the list of templates that must be rendered
      * @param string $name Relative template name. full path and suffix are added
      */
-    public function inherit( $name ){
+    public function wrapper( $name ){
         $this->_parents[] = $name;
     }
 
@@ -237,19 +257,18 @@ class Nano_Template{
      * @return void
      */
     public function loadHelper( $name ){
-        $name = ucfirst( $name );
-        $klass = "Helper_" . $name;
+        $name   = ucfirst( $name );
+        $helper = null;
 
-        if( ! class_exists( $klass ) ){
-            $basename = sprintf( "%s.php", $name );
+        foreach( Nano_Autoloader::getNamespaces() as $ns => $path ){
+            $klass = $ns . "_Helper_" . $name;
 
-            foreach( $this->_helperPath as $path ){
-                $path = join( '/', array(APPLICATION_ROOT,$path,$basename));
-                if( file_exists( $path ) ){
-                    require_once( $path );
-                }
+            if( !class_exists( $klass ) ){
+                continue;
             }
+            break;
         }
+
         if( ! class_exists( $klass ) ){
             $klass = 'Nano_View_Helper_' . $name;
         }
@@ -258,8 +277,7 @@ class Nano_Template{
             $this->_helpers[strtolower($name)] = new $klass( $this );
         }
         else{
-            //debug_print_backtrace();
-            throw new Exception( "unable to resolve helper $name" );
+            throw new Exception( "Unable to resolve helper $name" );
         }
     }
 

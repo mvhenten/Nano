@@ -4,7 +4,7 @@
  * @copyright Copyright (c) 2009 Matthijs van Henten
  */
 class Nano_Db{
-    private $_adapters;
+    private $_adapters = array();
     private static $_instance;
 
     public static function setAdapter( $config, $name = 'default' ){
@@ -24,22 +24,15 @@ class Nano_Db{
     }
 
     private function _setAdapter( $config, $name ){
-        if( is_array( $config ) ){
-            $config = (object) $config;
-        }
-        if( !is_object( $config ) ){
-            throw new Exception( 'Invalid arguments passed: config, ', $config );
-        }
+        $this->_adapters[$name] = null;
 
-        if( ! isset( $config->dsn ) ){
-            throw new Exception( 'DB config: DSN is not set!');
-        }
-
-        if( stripos( 'mysql', $config->dsn ) == 0 ){
-            $adapter = new Nano_Db_Adapter_Mysql( $config );
+        if( $config instanceof PDO ){
+            $adapter = $config;
         }
         else{
-            throw new Exception( sprintf( '@TODO: implement %s', $config->dsn ) );
+            $username = isset($config['username']) ? $config['username'] : null;
+            $password = isset($config['password']) ? $config['password'] : null;
+            $adapter = new PDO( $config['dsn'], $username, $password );
         }
 
         $this->_adapters[$name] = $adapter;
@@ -48,6 +41,9 @@ class Nano_Db{
     private function _getAdapter( $name ){
         if( key_exists( $name, $this->_adapters ) ){
             return $this->_adapters[$name];
+        }
+        else{
+            throw new Exception( 'Adapater does not exist: ' . $name );
         }
     }
 }

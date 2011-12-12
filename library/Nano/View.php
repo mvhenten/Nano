@@ -14,7 +14,7 @@ abstract class Nano_View{
     private $_request;
 
 
-    public function __construct( Nano_Request $request, Nano_Config $config ){
+    public function __construct( Nano_Request $request, Nano_Collection $config ){
         $this->_request = $request;
 
         $action_pieces = explode( '_', $request->action );
@@ -66,27 +66,6 @@ abstract class Nano_View{
         return;
     }
 
-
-    /**
-     * Convenience method: parses a request object to determine a possibly valid
-     * template name for a /module/xxx/view/action style layout.
-     *
-     * @param Nano_Request $request A nano request object
-     * @param string $base_path Relative template name.
-     */
-    //public function templatePath( $request = null, $base_path = 'template' ){
-    //    $path = array_filter( array(
-    //        ':module'       => $request->module,
-    //        ':dir'          => $base_path,
-    //        ':view'   => $request->view,
-    //        ':action'       => $request->action
-    //    ) );
-    //
-    //
-    //    $path = join( '/', $path );
-    //    return $path;
-    //}
-
     public function response(){
         if( null == $this->_response ){
             $this->_response = new Nano_Response();
@@ -107,40 +86,18 @@ abstract class Nano_View{
         return $this->_request;
     }
 
+    public function model( $name, $arguments = array() ){
+        foreach( Nano_Autoloader::getNamespaces() as $ns => $val ){
+            $class_name = sprintf('%s_Model_%s', ucfirst($ns), ucfirst($name));
+            if( class_exists( $class_name )){
+                return new $class_name( $arguments );
+            }
 
-    /**
-     * Forward the entire request to a different action/view
-     * @param string $action Actual name of the action (whitout Action)
-     * @param mixed $view View name or object
-     */
-    //protected function forward( $action, $view = null ){
-    //    //@todo implement forward to different view:
-    //    // do we need to post-dspatch too?
-    //    $request = $this->getRequest();
-    //
-    //    if( null == $view ){
-    //        $view = $this;
-    //    }
-    //    else if ( is_string( $view ) ){
-    //        $view = new $view( $this->getRequest(), $this->getConfig() );
-    //    }
-    //    else if( !$view instanceof Nano_View ){
-    //        throw new Exception( 'View must be a propper class name or instance of Nano_View');
-    //    }
-    //
-    //
-    //    $view->preDispatch();
-    //
-    //
-    //    if( ($method = sprintf('%sAction', $action) )
-    //       && method_exists($view, $method) ){
-    //        call_user_func( array( $this, sprintf("%sAction", $action)));
-    //    }
-    //    else{
-    //        throw new Exception( sprintf('Action %s not defined', $action) );
-    //    }
-    //
-    //    $this->postDispatch();
-    //    $this->renderView();
-    //}
+            $class_name = sprintf('%s_Schema_%s', ucfirst($ns), ucfirst($name));
+            if( class_exists( $class_name )){
+                return new $class_name( $arguments );
+            }
+        }
+        throw new Exception( "Unable to resolve $name" );
+    }
 }

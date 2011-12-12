@@ -1,5 +1,7 @@
 <?php
-class Nano_Config_Ini extends Nano_Config{
+require_once( dirname(dirname(__FILE__)) . '/Collection.php' );
+
+class Nano_Config_Ini extends Nano_Collection{
     private $config = array();
 
     public function __construct( $path ){
