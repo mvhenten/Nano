@@ -26,7 +26,6 @@
  * @package Nano_App
  */
 
-
 /**
  *
  *
@@ -49,10 +48,10 @@ abstract class Nano_App_View {
 	 * @param Nano_App_Request  $request
 	 * @param array   $extra   (optional)
 	 */
-	public function __construct( Nano_Request $request, array $extra = array() ) {
+	public function __construct( Nano_App_Request $request, array $extra = array() ) {
 		$this->_request = $request;
 
-		$this->response->push( $this->dispatch( $request, $extra ) );
+		$this->response()->push( $this->dispatch( $request, $extra ) );
 	}
 
 

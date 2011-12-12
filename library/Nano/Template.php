@@ -106,7 +106,7 @@ class Nano_Template{
     public function process( $tpl ){
         echo $this->_include( $tpl, $this->_values );
     }
-    
+
     /**
      * Should have been called include ( but it cannot )
      *
@@ -118,19 +118,19 @@ class Nano_Template{
         $tpl = array_shift( $scope_values );
         echo $this->_include( $tpl, $scope_values );
     }
-    
+
     private function _include( $tpl_name, $scope_values ){
         extract( $scope_values, EXTR_SKIP&EXTR_REFS  );
 
         $tpl_relative_path = preg_replace( '/^' . str_replace( '/', '\/', APPLICATION_PATH ) . '/', '', $tpl_name );
         $tpl_absolute_path = $this->expandPath( $tpl_relative_path );
 
-        @ob_start();
+        ob_start();
         ini_set( 'log_errors', 1 );
         ini_set( 'display_errors', 0);
-
         include( $tpl_absolute_path );
-        return ob_get_clean();        
+
+        return ob_get_clean();
     }
 
     /**

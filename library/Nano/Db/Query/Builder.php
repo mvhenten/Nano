@@ -15,13 +15,15 @@ class Nano_Db_Query_Builder{
     private $_aliasPool     = null;
 
     public function __toString(){
-        try{
-            $sql = $this->_buildSql();
-        }
-        catch( Exception $e ){
-            throw new Exception( 'what went wrong?' );
+        $sql = $this->_buildSql();
 
-        }
+        //try{
+        //    $sql = $this->_buildSql();
+        //}
+        //catch( Exception $e ){
+        //    throw new Exception( 'what went wrong?' );
+        //
+        //}
         return $sql;
     }
 
@@ -183,8 +185,6 @@ class Nano_Db_Query_Builder{
     private function _buildSql(){
         $sql = array();
         $this->_clearBindings();
-
-
 
         $method = '_build' . ucfirst($this->_action);
         $sql[] = $this->$method();

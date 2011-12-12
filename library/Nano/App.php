@@ -71,8 +71,7 @@ class Nano_App {
         list( $handler, $matches, $pattern ) = $this->router->getRoute( $this->request->url );
 
         $handler_object = new $handler( $this->request, $this->_build_args );
-
-        
+        $handler_object->response()->out();
     }
 
     public function __get( $name ){

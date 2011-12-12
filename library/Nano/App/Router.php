@@ -98,9 +98,6 @@ class Nano_App_Router {
 				array_keys( $this->_whitelist ),
 				$pattern
 			);
-            echo "$pattern => $handler \n";
-
-            echo $uri->path . "\n";
 
 			if ( preg_match( "/^$pattern$/", $uri->path, $matches ) ) {
 				$match = array_shift($matches);
