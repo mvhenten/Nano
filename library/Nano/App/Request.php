@@ -232,7 +232,7 @@ class Nano_App_Request {
 		if ( null === $this->_request_url ) {
 			$scheme = 'http';
 
-			if ( ! isset($this->_server['HTTPS']) || $this->_server['HTTPS'] == 'OFF' ) {
+			if ( isset($this->_server['HTTPS']) && $this->_server['HTTPS'] !== 'OFF' ) {
 				$scheme = 'https';
 			}
 

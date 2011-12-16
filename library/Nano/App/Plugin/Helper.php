@@ -55,11 +55,11 @@ class Nano_App_Plugin_Helper {
 	 * @param unknown $name
 	 * @param unknown $context
 	 */
-	public function hook( $name, $context ) {
+	public function hook( $name, $context, array $scope_values = array() ) {
 		$this->_setContext( $context );
 
 		foreach ( $this->plugins() as $plugin_name ) {
-			$this->_call_hook( $name, $plugin_name );
+			$this->_call_hook( $name, $plugin_name, $scope_values );
 		}
 	}
 
@@ -80,8 +80,8 @@ class Nano_App_Plugin_Helper {
 	 * @param unknown $hook
 	 * @param unknown $plugin_name
 	 */
-	private function _call_hook( $hook, $plugin_name ) {
-		$scope_values = array('start' => false, 'end' => false);
+	private function _call_hook( $hook, $plugin_name, array $scope_values=array() ) {
+		$scope_values = array_merge( $scope_values, array('start' => false, 'end' => false));
 		$scope_values[$hook] = true;
 
 		extract( $scope_values, EXTR_SKIP&EXTR_REFS  );

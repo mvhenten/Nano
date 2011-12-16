@@ -1,0 +1,56 @@
+<?php
+class Nano_App_Plugin_Helper {
+    private $_plugins;
+
+    public function __construct( array $plugins = array() ){
+        $this->_plugins = array_filter($plugins);
+    }
+
+    public function __call( $name, $args ){
+        if( method_exists( $this->_context, $name ) ){
+            return call_user_func_array( array( $this->_context, $name ), func_get_args() );
+        }
+    }
+
+    public function __get( $name ){
+        if( method_exists( $this->_context, $name ) ){
+            return $this->_context->$name();
+        }
+        if( property_exists( $this->_context, $name )){
+            return $this->_context->$name;
+        }
+    }
+
+    public function hook( $name, $context ){
+        $this->_setContext( $context );
+
+        foreach( $this->plugins() as $plugin_name ){
+            $this->_call_hook( $name, $plugin_name );
+        }
+    }
+
+    public function plugins(){
+        return array_keys($this->_plugins);
+    }
+
+	private function _call_hook( $hook, $plugin_name ) {
+        $scope_values = array('start' => false, 'end' => false);
+        $scope_values[$hook] = true;
+
+		extract( $scope_values, EXTR_SKIP&EXTR_REFS  );
+        $path = join( '/', array($this->plugin_path(), $plugin_name, 'hook.php' ));
+
+        ob_start();
+        include $path;
+        ob_clean();
+	}
+
+    private function _setContext( $context ){
+        $this->_context = $context;
+    }
+
+    private function plugin_path(){
+        return APPLICATION_ROOT . '/plugin/';
+    }
+
+}
