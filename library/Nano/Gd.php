@@ -151,7 +151,7 @@ class Nano_Gd {
 				$y = intval(( $x / $width ) * $height);
 			}
 			elseif ( $y && !$x ) {
-				$y = intval(($y / $height ) * $widht );
+				$x = intval(($y / $height ) * $width );
 			}
 
 			$target = imagecreatetruecolor( $x, $y );
