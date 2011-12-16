@@ -47,17 +47,17 @@ $project_files_excludes = array();
 // The automatically added author in the phpdoc file docblocks
 // If left empty no new @author doctags will be added.
 // Example: "Your Name <you@example.com>"
-$default_author = "";
+$default_author = "Matthijs van Henten <matthijs@ischen.nl>";
 
 // Name of the automatically added @package doctag in the phpdoc file docblocks
 // Example: "myproject"
-$default_package = "default";
+$default_package = "Nano";
 
 // String used for indenting
 // If you indent with spaces you can use as much spaces as you like.
 // Useful values: "\t" for indenting with tabs,
 //                "  " for indenting with two spaces
-$indent_char = "\t";
+$indent_char = '    ';
 
 // Control structures with the opening curly brace on a new line
 // Examples: false                      always on the same line
