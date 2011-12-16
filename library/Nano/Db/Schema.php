@@ -21,9 +21,16 @@ abstract class Nano_Db_Schema{
 
     public final function __get( $name ){
         if( in_array( $name, $this->columns() ) ){
-            if( isset( $this->_values[$name] ) ){
-                return $this->_values[$name];
+            if( method_exists( $this, $name ) ){
+                return $this->$name();
             }
+            return $this->get( $name );
+        }
+    }
+
+    public final function get( $name ){
+        if( isset( $this->_values[$name] ) ){
+            return $this->_values[$name];
         }
     }
 
