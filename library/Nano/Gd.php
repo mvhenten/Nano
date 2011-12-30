@@ -160,12 +160,12 @@ class Nano_Gd {
         if ( null !== ($gd = $this->getResource() ) ) {
             list( $w, $h ) = array_values( $this->getDimensions() );
 
-            if ( null === $x ) {
-                $x = intval(($width-$w)/2);
+            if ( null === $x && $w > $width ) {
+                $x = intval(($w-$width)/2);
             }
 
-            if ( null === $y ) {
-                $x = intval(($height-$h)/2);
+            if ( null === $y && $h > $height ) {
+                $y = intval(($h-$height)/2);
             }
 
             $target = imagecreatetruecolor( $width, $height );
