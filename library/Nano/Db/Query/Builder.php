@@ -179,7 +179,7 @@ class Nano_Db_Query_Builder{
     }
 
     public function bindings(){
-        return $this->_bindings;
+        return array_values($this->_bindings);
     }
 
     private function _buildSql(){
