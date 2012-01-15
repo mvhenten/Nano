@@ -105,7 +105,6 @@ class Nano_App {
 
         list( $handler, $matches, $pattern ) = $this->router->getRoute( $this->request->url );
 
-
         if ( !$handler ) {
             header("Status: 404 Not Found", true, 404 );
             trigger_error( sprintf( "Unable to resolve %s, routes: \n%s",
