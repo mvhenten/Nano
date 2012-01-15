@@ -1,5 +1,7 @@
 <?php
 /**
+ *
+ *
  * @file Nano/App.php
  *
  * Minmal base class to subclass a bootstrap from
@@ -19,13 +21,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @package    Nano
- * @author     Matthijs van Henten <matthijs(a)ischen.nl>
  * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
  * @license    GPL v3
+ * @author     Matthijs van Henten <matthijs(a)ischen.nl>
+ * @package    Nano
  */
 
-require_once( dirname(__FILE__) . '/Autoloader.php');
+
+require_once dirname(__FILE__) . '/Autoloader.php';
 Nano_Autoloader::register();
 
 /**
@@ -54,33 +57,59 @@ class Nano_App {
     private $_plugins;
     private $_response;
 
-    public static function Bootstrap( $args ){
+    /**
+     *
+     *
+     * @param unknown $args
+     * @return unknown
+     */
+    public static function Bootstrap( $args ) {
         return new Nano_App( $args );
     }
 
-    public function __construct( $build_args ){
+
+    /**
+     *
+     *
+     * @param unknown $build_args
+     */
+    public function __construct( $build_args ) {
         $this->_build_args = $build_args;
 
-        if( isset( $build_args['nano_db'] ) ){
+        if ( isset( $build_args['nano_db'] ) ) {
             Nano_Db::setAdapter( $build_args['nano_db'] );
         }
 
         $this->_registerNamespace();
     }
 
-    public function __get( $name ){
-        if( method_exists( $this, $name ) ){
+
+    /**
+     *
+     *
+     * @param unknown $name
+     * @return unknown
+     */
+    public function __get( $name ) {
+        if ( method_exists( $this, $name ) ) {
             return $this->$name();
         }
     }
 
-    public function dispatch(){
+
+    /**
+     *
+     */
+    public function dispatch() {
         $this->plugins->hook( 'start', $this, array('request' => $this->request) );
 
         list( $handler, $matches, $pattern ) = $this->router->getRoute( $this->request->url );
 
-        if( !$handler ){
+
+        if ( !$handler ) {
             header("Status: 404 Not Found", true, 404 );
+            trigger_error( sprintf( "Unable to resolve %s, routes: \n%s",
+                    $this->request->url, print_r( $this->router )));
             exit();
         }
 
@@ -90,57 +119,95 @@ class Nano_App {
         $handler_object->response()->out();
     }
 
-    public function request(){
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    public function request() {
         return $this->_lazy_build('request', array(
-            'isa' => 'Nano_App_Request'
-        ));
+                'isa' => 'Nano_App_Request'
+            ));
     }
 
-    public function router(){
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    public function router() {
         $route_settings = array();
 
         return $this->_lazy_build('router', array(
-            'isa'        => 'Nano_App_Router',
-            'build_args' => isset($this->_build_args['router'])
+                'isa'        => 'Nano_App_Router',
+                'build_args' => isset($this->_build_args['router'])
                 ? $this->_build_args['router'] : array()
-        ));
+            ));
     }
 
-    public function plugins(){
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    public function plugins() {
         $route_settings = array();
 
         return $this->_lazy_build('plugins', array(
-            'isa'        => 'Nano_App_Plugin_Helper',
-            'build_args' => isset($this->_build_args['plugins'])
+                'isa'        => 'Nano_App_Plugin_Helper',
+                'build_args' => isset($this->_build_args['plugins'])
                 ? $this->_build_args['plugins'] : array()
-        ));
+            ));
     }
 
-    private function response(){
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    private function response() {
         return $this->_lazy_build('request', array(
-            'isa' => 'Nano_Response'
-        ));
+                'isa' => 'Nano_Response'
+            ));
     }
 
-    private function config(){
-        if( isset($this->_build_args['config'])){
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    private function config() {
+        if ( isset($this->_build_args['config'])) {
             return $this->_build_args['config'];
         }
         return array();
     }
 
 
-    private function _lazy_build( $name, array $args, array $build_args = array() ){
+    /**
+     *
+     *
+     * @param unknown $name
+     * @param array   $args
+     * @param array   $build_args (optional)
+     * @return unknown
+     */
+    private function _lazy_build( $name, array $args, array $build_args = array() ) {
         $property = "_$name";
 
-        if( property_exists( $this, $property ) && null === $this->$property ){
+        if ( property_exists( $this, $property ) && null === $this->$property ) {
             $build_args = isset($args['build_args']) ? $args['build_args'] : null;
             $klass      = $args['isa'];
 
-            if( $build_args ){
+            if ( $build_args ) {
                 $instance = new $klass( $build_args );
             }
-            else{
+            else {
                 $instance = new $klass;
             }
 
@@ -151,14 +218,18 @@ class Nano_App {
         return $this->$property;
     }
 
-    private function _registerNamespace(){
-        if( !isset($this->_build_args['namespace']) ){
+
+    /**
+     *
+     */
+    private function _registerNamespace() {
+        if ( !isset($this->_build_args['namespace']) ) {
             return;
         }
 
         $namespaces = (array) $this->_build_args['namespace'];
 
-        foreach( $namespaces as $ns => $path ){
+        foreach ( $namespaces as $ns => $path ) {
             Nano_Autoloader::registerNamespace($ns , $path );
         }
     }

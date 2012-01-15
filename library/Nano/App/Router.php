@@ -24,6 +24,7 @@
  * @category   Nano
  * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
  * @license    GPL v3
+ * @author Matthijs van Henten <matthijs@ischen.nl>
  * @package    Nano_App
  */
 
@@ -49,64 +50,79 @@
  */
 class Nano_App_Router {
 
-	private $_routes = array();
-	private $_whitelist = array(
-		'\w' => '\\\w', '\d' => '\\\d',
-		'+'  => '\+', '?'  => '\?',
-		'('  => '\(',  ')'  => '\)',
-		'.' => '\\.'
-	);
+    private $_routes = array();
+    private $_whitelist = array(
+        '\w' => '\\\w', '\d' => '\\\d',
+        '+'  => '\+', '?'  => '\?',
+        '('  => '\(',  ')'  => '\)',
+        '.' => '\\.'
+    );
 
-	/**
-	 * Class constructor
-	 *
-	 * @param array   $routes (optional) $pattern => $handler pairs
-	 */
-	public function __construct( array $routes = array() ) {
-		foreach ( $routes as $key => $value ) {
-			$this->addRoute( $key, $value );
-		}
-	}
-
-
-	/**
-	 * Adds a single route.
-	 *
-	 * @param string  $pattern Pattern regex to match url aka '/site/image/image-(\d+).jpg
-	 * @param string  $handler Returned by getRoute, for example a class name
-	 */
-	public function addRoute( $pattern, $handler ) {
-		$pattern = preg_quote($pattern, '/');
-		$this->_routes[$pattern] = $handler;
-	}
+    /**
+     * Class constructor
+     *
+     * @param array   $routes (optional) $pattern => $handler pairs
+     */
+    public function __construct( array $routes = array() ) {
+        foreach ( $routes as $key => $value ) {
+            $this->append( $key, $value );
+        }
+    }
 
 
-	/**
-	 * Returns the first matching route for given path
-	 *
-	 * @param unknown $request_uri
-	 * @return array Array of matches. if no matches are found, the array is filled with null
-	 */
-	public function getRoute( $uri ) {
-        if( ! ( $uri instanceof Nano_Url ) ){
+    /**
+     * Prepends a a single route.
+     *
+     * @param string  $pattern Pattern regex to match url aka '/site/image/image-(\d+).jpg
+     * @param string  $handler Returned by getRoute, for example a class name
+     */
+    public function prepend( $pattern, $handler ) {
+        $pattern = preg_quote($pattern, '/');
+        array_unshift( $this->_routes, array( $pattern, $handler ) );
+    }
+
+
+
+    /**
+     * Adds a single route to the end of the stack
+     *
+     * @param string  $pattern Pattern regex to match url aka '/site/image/image-(\d+).jpg
+     * @param string  $handler Returned by getRoute, for example a class name
+     */
+    public function append( $pattern, $handler ) {
+        $pattern = preg_quote($pattern, '/');
+        $this->_routes[] = array( $pattern, $handler );
+    }
+
+
+    /**
+     * Returns the first matching route for given path
+     *
+     * @param unknown $uri
+     * @return array Array of matches. if no matches are found, the array is filled with null
+     */
+    public function getRoute( $uri ) {
+        if ( ! ( $uri instanceof Nano_Url ) ) {
             $uri = Nano_Url( $uri );
         }
 
-		foreach ( $this->_routes as $pattern => $handler ) {
-			$pattern = str_replace(
-				array_values( $this->_whitelist ),
-				array_keys( $this->_whitelist ),
-				$pattern
-			);
+        foreach ( $this->_routes as $route ) {
+            @list( $pattern, $handler ) = $route;
 
-			if ( preg_match( "/^$pattern$/", $uri->path, $matches ) ) {
-				$match = array_shift($matches);
-				return array( $handler, $matches, $match );
-			}
-		}
+            $pattern = str_replace(
+                array_values( $this->_whitelist ),
+                array_keys( $this->_whitelist ),
+                $pattern
+            );
 
-		return array( null, null, null );
-	}
+            if ( preg_match( "/^$pattern$/", $uri->path, $matches ) ) {
+                $match = array_shift($matches);
+                return array( $handler, $matches, $match );
+            }
+        }
+
+        return array( null, null, null );
+    }
 
 
 }
