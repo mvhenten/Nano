@@ -152,6 +152,7 @@ class Nano_App_Template {
             $collect .= $content;
         }
 
+
         return $collect;
     }
 
@@ -198,6 +199,10 @@ class Nano_App_Template {
 
         $tpl_relative_path = preg_replace( '/^' . $this->applicationPath . '/', '', $tpl_name );
         $tpl_absolute_path = $this->expandPath( $tpl_relative_path );
+
+        if ( ! file_exists( $tpl_absolute_path ) ) {
+            trigger_error( "Cannot render '$tpl_absolute_path', file does not exists." );
+        }
 
         ob_start();
         ini_set( 'log_errors', 1 );
