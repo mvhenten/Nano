@@ -27,6 +27,8 @@
  * @package    Nano_Gd
  */
 
+ini_set( 'memory_limit', '12M');
+
 
 /**
  *
@@ -377,7 +379,7 @@ class Nano_Gd {
      * @return unknown
      */
     public function __toString() {
-        return $this->imageOut( 'png', $quality, $path );
+        return $this->imageOut( 'png' );
     }
 
 
