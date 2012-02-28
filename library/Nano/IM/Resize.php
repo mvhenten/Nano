@@ -5,7 +5,7 @@
  * SYNOPSYS
  * <code>
  *
- *     my $im = new Nano_Image_Magic( $image_data, array(
+ *     my $im = new Nano_IM_Resize( $image_data, array(
  *       'width'         => null,
  *       'height'        => null,
  *       'subsampling'   => '4x4',
@@ -119,6 +119,10 @@ class Nano_IM_Resize {
 
     private function _set_height( $value ){
         $this->_set_int( 'height', $value );
+    }
+
+    private function _set_quality( $value ){
+        $this->_set_int( 'quality', $value );
     }
 
     private function _set_subsampling( $value ){
