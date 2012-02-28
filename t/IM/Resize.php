@@ -21,6 +21,42 @@ class Nano_IM_ResizeTest extends PHPUnit_Framework_TestCase{
         ));
     }
 
+    public function testPublicAccessors(){
+        $image_data = file_get_contents( $this->_img_path );
+        $expected = array(
+          'width'         => 100,
+          'height'        => 100,
+          'subsampling'   => '4x4',
+          'quality'       => 90,
+          'format'        => 'jpeg'
+        );
+
+        $im = new Nano_IM_Resize( $image_data, $expected );
+
+        foreach( $expected as $key => $value ){
+            $this->assertEquals( $im->$key, $value );
+        }
+    }
+
+    public function testPublicSetters(){
+        $image_data = file_get_contents( $this->_img_path );
+        $expected = array(
+          'width'         => 200,
+          'height'        => 200,
+          'subsampling'   => '2x2',
+          'quality'       => 30,
+          'format'        => 'png'
+        );
+
+        $im = new Nano_IM_Resize( $image_data, array( 'width' => 100, 'height' => 100 ) );
+
+        foreach( $expected as $key => $value ){
+            $im->$key = $value;
+            $this->assertEquals( $im->$key, $value );
+        }
+    }
+
+
 
     //public function testResize(){
     //}
