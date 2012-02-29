@@ -43,7 +43,7 @@ foreach( $tables as $table ){
 //exit();
 
 
-$template = '<?
+$template = '<?php
 class %s_Schema_%s extends Nano_Db_Schema {
     protected $_tableName = \'%s\';
 
@@ -55,10 +55,12 @@ class %s_Schema_%s extends Nano_Db_Schema {
     );
 
 %s
+}
+';
 
-}';
+foreach( $collect as $table_name => $schema ){
+    print "Working on '$table_name'\n";
 
-foreach( $collect as $table => $schema ){
     $primary_key = array();
     $keys        = array();
     $tbl_schema   = array();
@@ -91,7 +93,7 @@ foreach( $collect as $table => $schema ){
         }
     }
 
-    $klass = join('',array_map( 'ucfirst', explode( '_', $table )));
+    $klass = join('',array_map( 'ucfirst', explode( '_', $table_name )));
 
     $functions = array();
 
@@ -115,7 +117,7 @@ foreach( $collect as $table => $schema ){
 
     $sc = vsprintf($template,
         array(
-            $namespace, $klass, $table,
+            $namespace, $klass, $table_name,
             join(",\n", $tbl_schema ),
             join(',', $primary_key),
             join("\n", $functions )
