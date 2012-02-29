@@ -8,7 +8,7 @@
  *     my $im = new Nano_IM_Resize( $image_data, array(
  *       'width'         => null,
  *       'height'        => null,
- *       'subsampling'   => '4x4',
+ *       'subsampling'   => '2x2',
  *       'quality'       => 90,
  *       'format'        => 'jpeg'
  *    ));
@@ -24,6 +24,7 @@
  * @package Nano
  */
 
+
 /**
  * This is a simple wrapper around a shell exec of imagemagic's "convert"
  *
@@ -35,60 +36,103 @@ class Nano_IM_Resize {
     private $_config = array(
         'width'         => null,
         'height'        => null,
-        'subsampling'   => '4x4',
+        'subsampling'   => '1x1',
         'quality'       => 90,
-        'format'        => 'jpeg'
+        'format'        => 'jpeg',
+        'ignore_aspect' => false,
     );
 
     private $_source;
 
-    public function __construct( $data, $config ) {
+    /**
+     * Class constructor.
+     *
+     * @param unknown $data
+     * @param unknown $config (optional)
+     */
+    public function __construct( $data, $config = array() ) {
         $this->_source = $data;
         $this->setConfig( $config );
     }
 
-    public function __set( $name, $value ){
-        if( ( $method = "_set_$name" ) && method_exists( $this, $method ) ){
+
+    /**
+     * Magic setter: acts as a proxy between private setters and public
+     * member attributes.
+     *
+     * @param unknown $name
+     * @param unknown $value
+     * @return unknown
+     */
+    public function __set( $name, $value ) {
+        if ( ( $method = "_set_$name" ) && method_exists( $this, $method ) ) {
             return $this->$method( $value );
         }
         throw new Exception( "Property does not exist: $name" );
     }
 
-    public function __get( $name ){
-        if( isset( $this->_config[$name] ) ){
+
+    /**
+     * Proxy getter: exposes internal private $_config hash as public
+     * member attributes.
+     *
+     * @param string  $name
+     * @return mixed $name's value
+     */
+    public function __get( $name ) {
+        if ( isset( $this->_config[$name] ) ) {
             return $this->_config[$name];
         }
     }
 
-    public function __toString(){
+
+    /**
+     * Returns this object as a "data" string.
+     *
+     * @return unknown
+     */
+    public function __toString() {
         return $this->asString();
     }
 
-    public function asString(){
-        $cmd = sprintf('convert -resize %dx%d -sampling-factor %s -quality %d ');
+
+    /**
+     * Returns this object as a "data" string.
+     *
+     * @return unknown
+     */
+    public function asString() {
+        return $this->_execute_resize();
     }
 
-    private function _execute_resize(){
+
+    /**
+     * Executes the resize command and returns image output
+     *
+     * @return binary $data
+     */
+    private function _execute_resize() {
         $cmd = $this->_get_command();
+
         $descriptors = array(
-           0 => array("pipe", "r"),
-           1 => array("pipe", "w")
+            0 => array("pipe", "r"),
+            1 => array("pipe", "w")
         );
 
         $process = proc_open( $cmd, $descriptors, &$pipes);
 
-        if( is_resource( $process ) ){
-            list( $dst, $src ) = $pipes;
+        if ( is_resource( $process ) ) {
+            list( $stdin, $stdout ) = $pipes;
 
-            fwrite( $src );
-            fclose( $src );
+            fwrite( $stdin, $this->_source );
+            fclose( $stdin );
 
-            $data = stream_get_contents( $dst );
-            fclose($dst);
+            $data = stream_get_contents( $stdout );
+            fclose($stdout);
 
             $return_value = proc_close($process);
         }
-        else{
+        else {
             throw new Exception( "Cannot open proces: $cmd" );
         }
 
@@ -96,53 +140,141 @@ class Nano_IM_Resize {
     }
 
 
-    public function setConfig( array $config ){
+    /**
+     * Sets $config using private setters
+     *
+     * @param array   $config
+     */
+    public function setConfig( array $config ) {
         $config = array_merge( $this->_config, $config );
 
-        foreach( $config as $key => $value ){
+        foreach ( $config as $key => $value ) {
             $method = "_set_$key";
             $this->$method( $value );
         }
     }
 
-    private function _get_command(){
+
+    /**
+     * Puts the convert commandline string together
+     *
+     * @return string
+     */
+    private function _get_command() {
         extract( $this->_config, EXTR_SKIP );
         return sprintf(
-            'convert - -resize %dx%d -sampling-factor %s -quality %d %s:-',
-            $widht, $height, $subsampling, $quality, $format
+            'convert - %s -sampling-factor %s -quality %d %s:- ',
+            $this->_get_resizeString($width, $height), $subsampling, $quality, $format
         );
     }
 
-    private function _set_width( $value ){
-        $this->_set_int( 'width', $value );
+
+    /**
+     * Creates an option for -resize that makes sense when leaving out either
+     * $width or $height, and enforcing when both are provided together with $ignore_aspect
+     *
+     * @param unknown $width
+     * @param unknown $height
+     * @return unknown
+     */
+    private function _get_resizeString( $width, $height ) {
+        $dimensions = $width  ? $width : '';
+        $dimensions = $height ? "{$dimensions}x$height" : $dimensions;
+
+        if ( strlen( $dimensions ) > 0 ) {
+            if ( $width && $height && $this->_config['ignore_aspect'] ) {
+                $dimensions = "$dimensions!";
+            }
+
+            return "-resize $dimensions";
+        }
     }
 
-    private function _set_height( $value ){
-        $this->_set_int( 'height', $value );
+
+    /**
+     * Private setter called by __set
+     *
+     * @param bool    $value
+     */
+    private function _set_ignore_aspect( $value ) {
+        if ( is_bool( $value ) ) {
+            $this->_config['ignore_aspect'] = $value;
+        }
     }
 
-    private function _set_quality( $value ){
+
+    /**
+     * Private setter called by __set
+     *
+     * @param int     $value
+     */
+    private function _set_width( $value ) {
+        if ( $value ) {
+            $this->_set_int( 'width', $value );
+        }
+    }
+
+
+    /**
+     * Private setter called by __set
+     *
+     * @param int     $value
+     */
+    private function _set_height( $value ) {
+        if ( $value ) {
+            $this->_set_int( 'height', $value );
+        }
+    }
+
+
+    /**
+     * Private setter called by __set
+     *
+     * @param int     $value
+     */
+    private function _set_quality( $value ) {
         $this->_set_int( 'quality', $value );
     }
 
-    private function _set_subsampling( $value ){
-        if( ! preg_match( '/^[1,2,4]x[1,2,4]$/', $value ) ){
+
+    /**
+     * Private setter called by __set
+     *
+     * @param string  $value
+     */
+    private function _set_subsampling( $value ) {
+        if ( ! preg_match( '/^[1,2,4]x[1,2,4]$/', $value ) ) {
             throw new Exception( 'Subsampling must be a valid factor like: 1x2,2x2,2x4');
         }
         $this->_config['subsampling'] = $value;
     }
 
-    private function _set_format( $value ){
-        if( ! in_array( $value, array( 'jpeg', 'png', 'gif' )) ){
+
+    /**
+     * Private setter called by __set
+     *
+     * @param string  $value
+     */
+    private function _set_format( $value ) {
+        if ( ! in_array( $value, array( 'jpeg', 'png', 'gif' )) ) {
             throw new Exception( "Unsupported image type: $value" );
         }
         $this->_config['format'] = $value;
     }
 
-    private function _set_int( $name, $value ){
-        if( ! is_int( $value ) ){
+
+    /**
+     * Asserts that $name is an integer before setting it in the _config hash
+     *
+     * @param string  $name
+     * @param int     $value
+     */
+    private function _set_int( $name, $value ) {
+        if ( ! is_int( $value ) ) {
             throw new Exception( "Value for $name must be an integer" );
         }
         $this->_config[$name] = $value;
     }
+
+
 }
