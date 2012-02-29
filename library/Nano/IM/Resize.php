@@ -171,7 +171,8 @@ class Nano_IM_Resize {
 
     /**
      * Creates an option for -resize that makes sense when leaving out either
-     * $width or $height, and enforcing when both are provided together with $ignore_aspect
+     * $width or $height, and enforcing when both are provided together
+     * with $ignore_aspect
      *
      * @param unknown $width
      * @param unknown $height
