@@ -119,7 +119,7 @@ class Nano_IM_Resize {
             1 => array("pipe", "w")
         );
 
-        $process = proc_open( $cmd, $descriptors, &$pipes);
+        $process = proc_open( $cmd, $descriptors, $pipes);
 
         if ( is_resource( $process ) ) {
             list( $stdin, $stdout ) = $pipes;

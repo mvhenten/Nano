@@ -6,8 +6,14 @@ define( "APPLICATION_PATH", dirname(APPLICATION_ROOT)); //where the application 
 require_once( APPLICATION_PATH . '/library/Nano/Autoloader.php');
 Nano_Autoloader::register();
 
+array_shift( $argv );
 $opts = getopt('u:p:n:');
 $dsn  = array_pop( $argv );
+
+if( ! $dsn ){
+    usage();
+    exit;
+}
 
 $namespace = is_string($opts['n']) ? $opts['n'] : 'Nano_Db';
 
@@ -119,4 +125,13 @@ foreach( $collect as $table => $schema ){
     //var_dump($sc);
 
     file_put_contents( "$klass.php", $sc );
+}
+
+
+function usage(){
+printf("dump sql table as Nano_Db schema classes
+
+example:
+pull_schema.php -u username -p password -n App_Namespace  mysql:dbname=testdb;host=127.0.0.1
+");
 }
