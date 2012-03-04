@@ -39,7 +39,7 @@ error_reporting(E_ALL | E_STRICT);
  * @license    GPL v3
  */
 class Nano_Db_Schema_Mapper {
-    const FETCH_LIMIT = 20;
+    const FETCH_LIMIT = 100;
     const FETCH_OFFSET = 0;
 
     private $_limit     = self::FETCH_LIMIT;
@@ -119,7 +119,7 @@ class Nano_Db_Schema_Mapper {
      * @param array   $arguments (optional) Optional array array( 'where' =>, 'limit' => )
      * @return PdoStatement $sth
      */
-    public function search( Nano_Db_Schema $schema, $arguments = array() ) {
+    public function search( Nano_Db_Schema $schema, array $arguments = array() ) {
         $arguments = (array) $arguments;
 
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
@@ -368,16 +368,19 @@ class Nano_Db_Schema_Mapper {
      * @param unknown $arguments
      * @return unknown
      */
-    private function _buildLimit( $arguments ) {
-        $args = array( 0, $this->_limit );
+    private function _buildLimit( array $arguments ) {
+        list( $offset, $limit ) = array( 0, $this->_limit );
 
-        if ( key_exists( 'limit', $arguments ) ) {
-            $args = (array) $arguments['limit'];
+        if ( isset( $arguments['limit'] ) ) {
+            $limit_args = (array) $arguments['limit'];
+            if ( count( $limit_args ) > 1 ) {
+                @list( $offset, $limit ) = $limit_args;
+            }
+            else {
+                $limit = $limit_args[0];
+            }
         }
 
-        $args[] = 0;
-
-        list( $offset, $limit ) = $args;
         return array( $offset, $limit );
     }
 

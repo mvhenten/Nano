@@ -398,7 +398,6 @@ class Nano_Db_Query_Builder {
             }
         }
 
-
         return $sql;
     }
 
