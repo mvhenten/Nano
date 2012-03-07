@@ -6,8 +6,14 @@ define( "APPLICATION_PATH", dirname(APPLICATION_ROOT)); //where the application 
 require_once( APPLICATION_PATH . '/library/Nano/Autoloader.php');
 Nano_Autoloader::register();
 
+array_shift( $argv );
 $opts = getopt('u:p:n:');
 $dsn  = array_pop( $argv );
+
+if( ! $dsn ){
+    usage();
+    exit;
+}
 
 $namespace = is_string($opts['n']) ? $opts['n'] : 'Nano_Db';
 
@@ -37,7 +43,7 @@ foreach( $tables as $table ){
 //exit();
 
 
-$template = '<?
+$template = '<?php
 class %s_Schema_%s extends Nano_Db_Schema {
     protected $_tableName = \'%s\';
 
@@ -49,10 +55,12 @@ class %s_Schema_%s extends Nano_Db_Schema {
     );
 
 %s
+}
+';
 
-}';
+foreach( $collect as $table_name => $schema ){
+    print "Working on '$table_name'\n";
 
-foreach( $collect as $table => $schema ){
     $primary_key = array();
     $keys        = array();
     $tbl_schema   = array();
@@ -85,7 +93,7 @@ foreach( $collect as $table => $schema ){
         }
     }
 
-    $klass = join('',array_map( 'ucfirst', explode( '_', $table )));
+    $klass = join('',array_map( 'ucfirst', explode( '_', $table_name )));
 
     $functions = array();
 
@@ -109,7 +117,7 @@ foreach( $collect as $table => $schema ){
 
     $sc = vsprintf($template,
         array(
-            $namespace, $klass, $table,
+            $namespace, $klass, $table_name,
             join(",\n", $tbl_schema ),
             join(',', $primary_key),
             join("\n", $functions )
@@ -119,4 +127,13 @@ foreach( $collect as $table => $schema ){
     //var_dump($sc);
 
     file_put_contents( "$klass.php", $sc );
+}
+
+
+function usage(){
+printf("dump sql table as Nano_Db schema classes
+
+example:
+pull_schema.php -u username -p password -n App_Namespace  mysql:dbname=testdb;host=127.0.0.1
+");
 }

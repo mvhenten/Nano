@@ -1,6 +1,17 @@
 <?php
-error_reporting(E_ALL | E_STRICT);
 /**
+ * library/Nano/Db/Schema/Mapper.php
+ *
+ * @author Matthijs van Henten <matthijs@ischen.nl>
+ * @package Nano
+ */
+
+
+error_reporting(E_ALL | E_STRICT);
+
+/**
+ *
+ *
  * @file Nano/Db/Schema/Mapper.php
  *
  * Database mapper that uses Nano_Db_Schema to construct some query logic
@@ -27,8 +38,8 @@ error_reporting(E_ALL | E_STRICT);
  * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
  * @license    GPL v3
  */
-class Nano_Db_Schema_Mapper{
-    const FETCH_LIMIT = 20;
+class Nano_Db_Schema_Mapper {
+    const FETCH_LIMIT = 100;
     const FETCH_OFFSET = 0;
 
     private $_limit     = self::FETCH_LIMIT;
@@ -43,51 +54,55 @@ class Nano_Db_Schema_Mapper{
      * Fetch object properties into the model using a primary key
      * This is a shortcut for "find" with fetchmode set to PDO::FETCH_INTO
      *
-     * @param Nano_Db_Schema $schema The schema to fetch into
-     * @param mixed id Values for primary key ( single value or key => value )
+     * @param mixed   id Values for primary key ( single value or key => value )
      *
+     * @param object  $schema The schema to fetch into
+     * @param unknown $id
      * @return Nano_Db_Schema $schema Schema, on success.
      */
-    public function load( Nano_Db_Schema $schema, $id ){
+    public function load( Nano_Db_Schema $schema, $id ) {
         return $this->find( $schema, $id, PDO::FETCH_INTO );
     }
+
 
     /**
      * Fetch result for schema using a primary key
      *
-     * @param Nano_Db_Schema $schema The schema to fetch "as"
-     * @param mixed id Values for primary key ( single value or key => value )
+     * @param mixed   id Values for primary key ( single value or key => value )
      *
+     * @param object  $schema    The schema to fetch "as"
+     * @param unknown $id
+     * @param unknown $fetchMode (optional)
      * @return Nano_Db_Schema $schema Schema, on success.
      */
-    public function find( Nano_Db_Schema $schema, $id, $fetchMode = PDO::FETCH_CLASS ){
+    public function find( Nano_Db_Schema $schema, $id, $fetchMode = PDO::FETCH_CLASS ) {
         $keys   = (array) $schema->key();
         $id     = (array) $id;
         $where  = array();
 
-        if( count($keys) == 1 ){
+        if ( count($keys) == 1 ) {
             $where = array_combine( $keys, $id );
         }
         else {
             $where = array_filter(array_intersect_key( array_flip($keys), $id ));
 
-            if( count($where) != count($keys) ){
+            if ( count($where) != count($keys) ) {
                 return;
             }
         }
 
         $builder = $this->_builder()
-            ->select( $schema->columns() )
-            ->from( $schema->table() )
-            ->where( $where )
-            ->limit(1);
+        ->select( $schema->columns() )
+        ->from( $schema->table() )
+        ->where( $where )
+        ->limit(1);
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
 
-        if( $fetchMode == PDO::FETCH_INTO ){
+        if ( $fetchMode == PDO::FETCH_INTO ) {
             $sth->setFetchMode( PDO::FETCH_INTO, $schema );
         }
-        else{
+        else {
             $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
                 get_class( $schema ) );
         }
@@ -99,12 +114,12 @@ class Nano_Db_Schema_Mapper{
     /**
      * Performs a simple select query
      *
-     * @param Nano_Db_Schema $schema The schema to fetch "as"
-     * @param array $arguments Optional array array( 'where' =>, 'limit' => )
      *
+     * @param object  $schema    The schema to fetch "as"
+     * @param array   $arguments (optional) Optional array array( 'where' =>, 'limit' => )
      * @return PdoStatement $sth
      */
-    public function search( Nano_Db_Schema $schema, $arguments = array() ){
+    public function search( Nano_Db_Schema $schema, array $arguments = array() ) {
         $arguments = (array) $arguments;
 
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
@@ -113,16 +128,16 @@ class Nano_Db_Schema_Mapper{
         $columns = isset($arguments['columns']) ? $arguments['columns'] : $schema->columns();
 
         $builder = $this->_builder()->select( $columns )
-            ->from( $schema->table() )
-            ->where( $where )
-            ->limit( $limit, $offset );
+        ->from( $schema->table() )
+        ->where( $where )
+        ->limit( $limit, $offset );
 
 
-        if( isset($arguments['group']) ){
+        if ( isset($arguments['group']) ) {
             $builder->group( $arguments['group']);
         }
 
-        if( isset($arguments['order']) ){
+        if ( isset($arguments['order']) ) {
             $builder->order( $arguments['order']);
         }
 
@@ -131,22 +146,23 @@ class Nano_Db_Schema_Mapper{
         return $sth;
     }
 
+
     /**
      * Performs a simple count query. Note that LIMIT is not added to the query
      *
-     * @param Nano_Db_Schema $schema The schema to fetch "as"
-     * @param array $arguments Optional array array( 'where' => )
      *
+     * @param object  $schema    The schema to fetch "as"
+     * @param array   $arguments (optional) Optional array array( 'where' => )
      * @return PdoStatement $sth
      */
-    public function count( Nano_Db_Schema $schema, $arguments = array() ){
+    public function count( Nano_Db_Schema $schema, $arguments = array() ) {
         $arguments = (array) $arguments;
 
         $where = isset($arguments['where']) ? $arguments['where'] : array();
 
         $builder = $this->_builder()->select(array( 'count' => 1 ))
-            ->from( $schema->table() )
-            ->where( $where );
+        ->from( $schema->table() )
+        ->where( $where );
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
         $sth->setFetchMode( PDO::FETCH_COLUMN , 0 );
@@ -154,16 +170,18 @@ class Nano_Db_Schema_Mapper{
         return $sth->fetch();
     }
 
+
     /**
      * Performs a many_to_many query
+     *
      * @FIXME @TODO implement this trough builder
      *
-     * @param Nano_Db_Schema $schema The schema to fetch "as"
-     * @param array $arguments Optional array array( 'where' =>, 'limit' => )
      *
+     * @param object  $schema    The schema to fetch "as"
+     * @param array   $arguments (optional) Optional array array( 'where' =>, 'limit' => )
      * @return PdoStatement $sth
      */
-    public function many_to_many( Nano_Db_Schema $schema, $arguments = array() ){
+    public function many_to_many( Nano_Db_Schema $schema, $arguments = array() ) {
         $arguments = (array) $arguments;
 
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
@@ -177,12 +195,12 @@ class Nano_Db_Schema_Mapper{
         $values = array( reset($where) );
 
 
-        if( isset($arguments['columns']) ){
+        if ( isset($arguments['columns']) ) {
             // @FIXME BUG BUG
             $query = (string) $builder = $this->_builder()->select( $columns )
-                ->from( $schema->table() ) . ' a';
+            ->from( $schema->table() ) . ' a';
         }
-        else{
+        else {
             // @FIXME builder should handle this!
             $query = sprintf('SELECT a.* FROM `%s` %s', $schema->table(), 'a');
         }
@@ -200,12 +218,21 @@ class Nano_Db_Schema_Mapper{
         );
 
         //@FIXME. Use Builder... this is a quick hack...
-        if( isset($arguments['order']) ){
-            $query .= sprintf(' ORDER BY `%s`', $arguments['order']);
+        if ( isset($arguments['order']) ) {
+            $order_column = $arguments['order'];
+            $order_table = 'a';
+
+            //@FIXME Another quick hack for array( 'tablename' => 'order_col' );
+            if ( is_array( $order_column ) ) {
+                $order_table  = isset( $order_column[$join_table] ) ? 'b' : 'a';
+                $order_column = reset($order_column);
+            }
+
+            $query .= sprintf(' ORDER BY %s.`%s`', $order_table, $order_column );
         }
 
         //@FIXME Use Builder. this is a hack.
-        if( $limit ){
+        if ( $limit ) {
             $query = sprintf("%s\nLIMIT %s, %s", $query, intval($offset), intval($limit) );
         }
 
@@ -222,127 +249,161 @@ class Nano_Db_Schema_Mapper{
      * Performs a simple delete query, either by using $values based on primary
      * key, or an optional extra $where
      *
-     * @param Nano_Db_Schema $schema The schema to fetch "as"
-     * @param array $where Optional, if omitted, the schema's primary key will be attempted
      *
+     * @param object  $schema The schema to fetch "as"
+     * @param array   $where  (optional) Optional, if omitted, the schema's primary key will be attempted
      * @return PdoStatement $sth
      */
-    public function delete( Nano_Db_Schema $schema, array $where = array() ){
-        if( count($where) == 0 ){
+    public function delete( Nano_Db_Schema $schema, array $where = array() ) {
+        if ( count($where) == 0 ) {
             $where = array_flip( (array) $schema->key() );
             $where = array_intersect_key( $schema->values(), $where );
             $where = array_filter( $where );
 
-            if( count($where) != count($schema->key()) ){
+            if ( count($where) != count($schema->key()) ) {
                 return false;
             }
         }
 
         $builder = $this->_builder()
-            ->delete( $schema->table() )
-            ->where( $where );
+        ->delete( $schema->table() )
+        ->where( $where );
 
         return $this->_saveExecute( (string) $builder, $builder->bindings() );
     }
+
 
     /**
      * Update or insert this model into the database, depending on the
      * availability of $primary_key
      *
      * @param Nano_Db_Schema $schema
+     * @param unknown $where  (optional)
      * @return PdoStatement $sth Statement when updating, last-insert id otherwise
      */
-    public function store( Nano_Db_Schema $schema, $where = array() ){
-        if( is_array( $where ) && count( $where ) > 0 ){
+    public function store( Nano_Db_Schema $schema, $where = array() ) {
+        if ( is_array( $where ) && count( $where ) > 0 ) {
             return $this->_update( $schema, $schema->values(), $where );
         }
-        else{
+        else {
             return $this->_insert( $schema, $schema->values() );
         }
     }
+
 
     /**
      * Insert this model into the database. This function does not check
      * the validity of $values, it just attempts to insert them.
      *
      * @param Nano_Db_Schema $schema
+     * @param array   $values
      * @return int $id Last-insert id
      */
-    private function _insert( Nano_Db_Schema $schema, array $values ){
+    private function _insert( Nano_Db_Schema $schema, array $values ) {
         $builder = $this->_builder()
-                ->insert( $schema->table(), $schema->values() );
+        ->insert( $schema->table(), $schema->values() );
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
         return $this->getAdapter()->lastInsertId();
     }
+
 
     /**
      * Update this model depending on a $where. This function does not check
      * the validity of $values, it just attempts to update them.
      *
      * @param Nano_Db_Schema $schema
+     * @param array   $values
+     * @param array   $where
      * @return int $id Last-insert id
      */
-    private function _update( Nano_Db_Schema $schema, array $values, array $where ){
+    private function _update( Nano_Db_Schema $schema, array $values, array $where ) {
         //$where = array_intersect_key( $values, array_flip($keys) );
         $values = array_diff_key($values, $where);
 
         $builder = $this->_builder()
-            ->update( $schema->table(), $values )
-            ->where( $where );
+        ->update( $schema->table(), $values )
+        ->where( $where );
 
         return $this->_saveExecute( (string) $builder, $builder->bindings() );
     }
+
 
     /**
      * Perform a SQL query $sql
      * This function does not check the validity of your sql, nor $values
      *
-     * @param string $sql
-     * @param mixed $values
+     * @param string  $sql
+     * @param mixed   $values
      * @return PdoStatement $sth PDO statement on success
      */
-    public function query( $sql, $values ){
+    public function query( $sql, $values ) {
         return $this->_saveExecute( $sql, $values );
     }
 
+
     /**
      * Fetch default database adapter
+     *
      * @return Nano_Db_Adapter $adapter
      */
-    protected function getAdapter(){
+    protected function getAdapter() {
         return Nano_Db::getAdapter( $this->_adapter );
     }
 
-    private function _builder(){
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    private function _builder() {
         return new Nano_Db_Query_Builder();
     }
 
-    private function _buildLimit( $arguments ){
-        $args = array( 0, $this->_limit );
 
-        if( key_exists( 'limit', $arguments ) ){
-            $args = (array) $arguments['limit'];
+    /**
+     *
+     *
+     * @param unknown $arguments
+     * @return unknown
+     */
+    private function _buildLimit( array $arguments ) {
+        list( $offset, $limit ) = array( 0, $this->_limit );
+
+        if ( isset( $arguments['limit'] ) ) {
+            $limit_args = (array) $arguments['limit'];
+            if ( count( $limit_args ) > 1 ) {
+                @list( $offset, $limit ) = $limit_args;
+            }
+            else {
+                $limit = $limit_args[0];
+            }
         }
 
-        $args[] = 0;
-
-        list( $offset, $limit ) = $args;
         return array( $offset, $limit );
     }
 
-    private function _saveExecute( $query, array $values ){
+
+    /**
+     *
+     *
+     * @param unknown $query
+     * @param array   $values
+     * @return unknown
+     */
+    private function _saveExecute( $query, array $values ) {
         $sth = $this->getAdapter()->prepare( $query );
 
-       if( false == $sth ){
+        if ( false == $sth ) {
             $error = print_r( $this->getAdapter()->errorInfo(), true );
             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }
-        else{
+        else {
             $bindings = $values;
             $success = (bool) $sth->execute( (array) $values );
 
-            if( ! $success ){
+            if ( ! $success ) {
                 $error = print_r( $sth->errorInfo(), true );
                 throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
             }
@@ -351,9 +412,18 @@ class Nano_Db_Schema_Mapper{
         return $sth;
     }
 
-    private function _dasherize( $key ){
-        preg_match_all('/[A-Z][^A-Z]*/',ucfirst($key),$results);
+
+    /**
+     *
+     *
+     * @param unknown $key
+     * @return unknown
+     */
+    private function _dasherize( $key ) {
+        preg_match_all('/[A-Z][^A-Z]*/', ucfirst($key), $results);
         $results = array_map( 'strtolower', $results[0] );
         return join( '_', $results );
     }
+
+
 }
