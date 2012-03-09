@@ -116,6 +116,25 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
     }
 
 
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    public function getClassName() {
+        $class_name = $this->getAttribute( 'class' );
+
+        if ( empty( $class_name ) ) {
+            $type       = $this->getType();
+            $class_name = rtrim( join('-', array($type, $this->getAttribute( 'type' ) ) ) );
+            $this->setAttribute( 'class', $class_name );
+        }
+
+        return $class_name;
+    }
+
+
     /**
      *
      *
@@ -187,7 +206,7 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
         $this->_errors = array_merge( $childErrors, $this->getErrors() );
 
         if ( count( $this->_errors ) > 0 ) {
-            $this->setAttribute( 'class', trim($this->getAttribute('class') . ' error'));
+            $this->setAttribute( 'class', trim( $this->getClassName() . ' error'));
         }
 
         return $this->_errors;
