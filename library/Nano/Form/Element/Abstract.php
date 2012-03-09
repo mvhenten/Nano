@@ -200,6 +200,7 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
                 if ( true !== $return ) {
                     $this->setError( $key, $return );
                 }
+                $this->setValue( $value );
             }
         }
 
