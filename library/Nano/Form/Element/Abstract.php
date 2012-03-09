@@ -198,7 +198,10 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
                 $return = $validator->validate( $value );
 
                 if ( true !== $return ) {
-                    $this->setError( $key, $return );
+                    $title = $this->getLabel();
+                    $message = isset($title) ? "$title: $return" : "$key: $return";
+
+                    $this->setError( $key, $message );
                 }
                 $this->setValue( $value );
             }
@@ -232,10 +235,6 @@ abstract class Nano_Form_Element_Abstract extends Nano_Element{
      * @param unknown $message
      */
     public function setError( $name, $message ) {
-        if ( null == $this->_errors ) {
-            $this->_errors = array();
-        }
-
         if ( ! key_exists( $name, $this->_errors ) ) {
             $this->_errors[$name] = array();
         }
