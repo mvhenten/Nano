@@ -194,10 +194,34 @@ class Nano_App_Request {
      */
     public function headers() {
         if ( null === $this->_headers ) {
-            $this->_headers = apache_request_headers();
+
+            $this->_headers = $this->_apache_request_headers();
         }
 
         return $this->_headers;
+    }
+
+
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    private function _apache_request_headers() {
+        if ( function_exists( 'apache_request_headers') ) {
+            return apache_request_headers();
+        }
+
+        $out = arrray();
+
+        foreach ($_SERVER as $key=>$value) {
+            if (substr($key, 0, 5)=="HTTP_") {
+                $key=str_replace(" ", "-", ucwords(strtolower(str_replace("_", " ", substr($key, 5)))));
+                $out[$key]=$value;
+            }
+        }
+        return $out;
     }
 
 
