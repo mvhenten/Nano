@@ -21,6 +21,7 @@
  * @category   Nano/App
  * @copyright  Copyright (c) 2011 Ischen (http://ischen.nl)
  * @license    GPL v3
+ * @author Matthijs van Henten <matthijs@ischen.nl>
  * @package    Nano
  */
 
@@ -45,203 +46,217 @@
  * @class Nano_App_Request
  */
 class Nano_App_Request {
-	private $_request;
-	private $_post;
-	private $_get;
-	private $_headers;
-	private $_request_url;
+    private $_request;
+    private $_post;
+    private $_get;
+    private $_headers;
+    private $_request_url;
 
-	/**
-	 * Class constructor
-	 * Normally, you do not need to pass any arguments here -
-	 * To facilitate testing, however, you can.
-	 *
-	 * @param array   $OVERRIDES (optional) Overrides stuff from the superglobals - use for testing!
-	 */
-	public function __construct( array $OVERRIDES = array() ) {
-		$config = array_merge(array(
-				'server'    => $_SERVER,
-				'post'      => $_POST,
-				'get'       => $_GET
-			), $OVERRIDES );
+    /**
+     * Class constructor
+     * Normally, you do not need to pass any arguments here -
+     * To facilitate testing, however, you can.
+     *
+     * @param array   $OVERRIDES (optional) Overrides stuff from the superglobals - use for testing!
+     */
+    public function __construct( array $OVERRIDES = array() ) {
+        $config = array_merge(array(
+                'server'    => $_SERVER,
+                'post'      => $_POST,
+                'get'       => $_GET
+            ), $OVERRIDES );
 
-		$this->_server  = $config['server'];
-		$this->_post    = $config['post'];
-		$this->_get     = $config['get'];
-	}
-
-
-	/**
-	 * Magic auto getter - enables you to access methos of this class
-	 * as property ( e.g. $request->url ), or fetch request variables
-	 * from $_POST or $_GET otherwise.
-	 *
-	 * $_POST has precedence over $_GET in the latter case
-	 *
-	 * @param unknown $name
-	 * @return unknown
-	 */
-	public function __get( $name ) {
-		if ( method_exists( $this, $name ) ) {
-			return $this->$name();
-		}
-
-		return $this->getValue( $name );
-	}
+        $this->_server  = $config['server'];
+        $this->_post    = $config['post'];
+        $this->_get     = $config['get'];
+    }
 
 
-	/**
-	 * Returns a boolean true if methos is POST
-	 *
-	 * @return bool $is_post
-	 */
-	public function isPost() {
-		if ( $this->method() == 'POST' ) {
-			return true;
-		}
-		return false;
-	}
+    /**
+     * Magic auto getter - enables you to access methos of this class
+     * as property ( e.g. $request->url ), or fetch request variables
+     * from $_POST or $_GET otherwise.
+     *
+     * $_POST has precedence over $_GET in the latter case
+     *
+     * @param unknown $name
+     * @return unknown
+     */
+    public function __get( $name ) {
+        if ( method_exists( $this, $name ) ) {
+            return $this->$name();
+        }
+
+        return $this->getValue( $name );
+    }
 
 
-	/**
-	 * Returns the path-parts found for $_SERVER[REQUEST_URI]
-	 * This function uses Nano_Url, and it's pathParts function
-	 *
-	 * @param unknown $padding (optional) Padding of the output, handy for list( $one, $two )
-	 * @return array $path_parts
-	 */
-	public function pathParts( $padding = 0 ) {
-		return $this->url->pathParts( null, $padding );
-	}
+    /**
+     * Returns a boolean true if methos is POST
+     *
+     * @return bool $is_post
+     */
+    public function isPost() {
+        if ( $this->method() == 'POST' ) {
+            return true;
+        }
+        return false;
+    }
 
 
-	/**
-	 * Returns $_SERVER[REQUEST_METHOD] e.g. POST, GET
-	 *
-	 * @return string POST, GET, ...
-	 */
-	public function method() {
-		return $this->_server['REQUEST_METHOD'];
-	}
+    /**
+     * Returns the path-parts found for $_SERVER[REQUEST_URI]
+     * This function uses Nano_Url, and it's pathParts function
+     *
+     * @param unknown $padding (optional) Padding of the output, handy for list( $one, $two )
+     * @return array $path_parts
+     */
+    public function pathParts( $padding = 0 ) {
+        return $this->url->pathParts( null, $padding );
+    }
 
 
-	/**
-	 * Returns the entire $_POST array, or optionally fetches a single value
-	 * from it, in which case it may return null.
-	 *
-	 * @param string  $name (optional) Optional value to fetch @see Nano_Request::getValue
-	 * @return mixed Possibly: array $_POST, $_POST[$name] or null
-	 */
-	public function post( $name = null ) {
-		if ( $name ) {
-			return $this->getValue( $name, 'POST' );
-		}
-
-		return $this->_post;
-	}
+    /**
+     * Returns $_SERVER[REQUEST_METHOD] e.g. POST, GET
+     *
+     * @return string POST, GET, ...
+     */
+    public function method() {
+        return $this->_server['REQUEST_METHOD'];
+    }
 
 
-	/**
-	 * Returns the entire $_GET array, or optionally fetches a single value
-	 * from it, in which case it may return null.
-	 *
-	 * @param string  $name (optional) Optional value to fetch @see Nano_Request::getValue
-	 * @return mixed Possibly: array $_GET, $_GET[$name] or null
-	 */
-	public function get( $name=null ) {
-		if ( $name ) {
-			return $this->getValue( $name, 'GET' );
-		}
-		return $this->_get;
-	}
+    /**
+     * Returns the entire $_POST array, or optionally fetches a single value
+     * from it, in which case it may return null.
+     *
+     * @param string  $name (optional) Optional value to fetch @see Nano_Request::getValue
+     * @return mixed Possibly: array $_POST, $_POST[$name] or null
+     */
+    public function post( $name = null ) {
+        if ( $name ) {
+            return $this->getValue( $name, 'POST' );
+        }
+
+        return $this->_post;
+    }
 
 
-	/**
-	 * Returns one specific header
-	 *
-	 * @param string  $name Header name to fetch
-	 * @return string Header value
-	 */
-	public function header( $name ) {
-		$headers = $this->headers();
-
-		if ( key_exists( $name, $headers ) ) {
-			return $headers[$name];
-		}
-	}
-
-
-	/**
-	 * Returns apache_request_headers -
-	 * for completeness, since you could call apache_request_headers yourself.
-	 *
-	 * @return array $request_headers
-	 */
-	public function headers() {
-		if ( null === $this->_headers ) {
-			$this->_headers = apache_request_headers();
-		}
-
-		return $this->_headers;
-	}
+    /**
+     * Returns the entire $_GET array, or optionally fetches a single value
+     * from it, in which case it may return null.
+     *
+     * @param string  $name (optional) Optional value to fetch @see Nano_Request::getValue
+     * @return mixed Possibly: array $_GET, $_GET[$name] or null
+     */
+    public function get( $name=null ) {
+        if ( $name ) {
+            return $this->getValue( $name, 'GET' );
+        }
+        return $this->_get;
+    }
 
 
-	/**
-	 * Returns query value from either $_POST or $_GET
-	 * This an alias for Nano_App_Request::getValue
-	 *
-	 * @see Nano_App_Request::getValue
-	 * @param unknown $name    Query value to return
-	 * @param unknown $methods (optional) Whitelist ($_GET, $_POST)
-	 * @return mixed $_XXX[$name] or null
-	 */
-	public function value( $name, $methods=array('POST', 'GET')) {
-		return $this->getValue( $name, $methods );
-	}
+    /**
+     * Returns one specific header
+     *
+     * @param string  $name Header name to fetch
+     * @return string Header value
+     */
+    public function header( $name ) {
+        $headers = $this->headers();
+
+        if ( key_exists( $name, $headers ) ) {
+            return $headers[$name];
+        }
+    }
 
 
-	/**
-	 * Returns query value from either $_POST or $_GET
-	 *
-	 * @param unknown $name    Query value to return
-	 * @param unknown $methods (optional) Whitelist ($_GET, $_POST)
-	 * @return mixed $_XXX[$name] or null
-	 */
-	public function getValue( $name, $methods=array('POST', 'GET') ) {
-		$methods = (array) $methods;
 
-		if ( $this->isPost() && in_array('POST', $methods ) ) {
-			if ( key_exists( $name, $this->_post ) ) {
-				return $this->_post[$name];
-			}
-		}
-
-		if ( in_array( 'GET', $methods ) && key_exists( $name, $this->_get ) ) {
-			return $this->_get[$name];
-		}
-	}
+    /**
+     *
+     *
+     * @return unknown
+     */
+    public function isAjax() {
+        if ( $this->header('X-Requested-With') == 'XMLHttpRequest' ) {
+            return true;
+        }
+        return false;
+    }
 
 
-	/**
-	 * Returns $_SERVER[HTTP_HOST] and $_SERVER[REQUEST_URI] combined as a
-	 * single Nano_Url object.
-	 *
-	 * @return Nano_Url $request_url
-	 */
-	public function url() {
-		if ( null === $this->_request_url ) {
-			$scheme = 'http';
+    /**
+     * Returns apache_request_headers -
+     * for completeness, since you could call apache_request_headers yourself.
+     *
+     * @return array $request_headers
+     */
+    public function headers() {
+        if ( null === $this->_headers ) {
+            $this->_headers = apache_request_headers();
+        }
 
-			if ( isset($this->_server['HTTPS']) && $this->_server['HTTPS'] !== 'OFF' ) {
-				$scheme = 'https';
-			}
+        return $this->_headers;
+    }
 
-			$urlstring = sprintf('%s://%s/%s', $scheme, $this->_server['HTTP_HOST'], $this->_server['REQUEST_URI'] );
-			$this->_request_url = new Nano_Url( $urlstring );
-		}
 
-		return $this->_request_url;
-	}
+    /**
+     * Returns query value from either $_POST or $_GET
+     * This an alias for Nano_App_Request::getValue
+     *
+     * @see Nano_App_Request::getValue
+     * @param unknown $name    Query value to return
+     * @param unknown $methods (optional) Whitelist ($_GET, $_POST)
+     * @return mixed $_XXX[$name] or null
+     */
+    public function value( $name, $methods=array('POST', 'GET')) {
+        return $this->getValue( $name, $methods );
+    }
+
+
+    /**
+     * Returns query value from either $_POST or $_GET
+     *
+     * @param unknown $name    Query value to return
+     * @param unknown $methods (optional) Whitelist ($_GET, $_POST)
+     * @return mixed $_XXX[$name] or null
+     */
+    public function getValue( $name, $methods=array('POST', 'GET') ) {
+        $methods = (array) $methods;
+
+        if ( $this->isPost() && in_array('POST', $methods ) ) {
+            if ( key_exists( $name, $this->_post ) ) {
+                return $this->_post[$name];
+            }
+        }
+
+        if ( in_array( 'GET', $methods ) && key_exists( $name, $this->_get ) ) {
+            return $this->_get[$name];
+        }
+    }
+
+
+    /**
+     * Returns $_SERVER[HTTP_HOST] and $_SERVER[REQUEST_URI] combined as a
+     * single Nano_Url object.
+     *
+     * @return Nano_Url $request_url
+     */
+    public function url() {
+        if ( null === $this->_request_url ) {
+            $scheme = 'http';
+
+            if ( isset($this->_server['HTTPS']) && $this->_server['HTTPS'] !== 'OFF' ) {
+                $scheme = 'https';
+            }
+
+            $urlstring = sprintf('%s://%s/%s', $scheme, $this->_server['HTTP_HOST'], $this->_server['REQUEST_URI'] );
+            $this->_request_url = new Nano_Url( $urlstring );
+        }
+
+        return $this->_request_url;
+    }
 
 
 }
