@@ -64,13 +64,8 @@ class Nano_Element_Decorator {
                 $content = join( "\n", $content );
             }
 
-            $html   = sprintf(
-                "<%s%s>\n%s\n</%s>\n",
-                $tagName,
-                $attributes,
-                $content,
-                $tagName
-            );
+            $html   = sprintf( '<%s%s>', $tagName, $attributes );
+            $html   = join( "\n", array_filter(array( $html, $content, "</$tagName>" )) );
         }
         else {
             $html = sprintf( "<%s%s/>\n", $tagName, $attributes );
