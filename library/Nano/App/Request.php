@@ -213,7 +213,7 @@ class Nano_App_Request {
             return apache_request_headers();
         }
 
-        $out = arrray();
+        $out = array();
 
         foreach ($_SERVER as $key=>$value) {
             if (substr($key, 0, 5)=="HTTP_") {
