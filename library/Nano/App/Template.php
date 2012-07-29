@@ -166,8 +166,8 @@ class Nano_App_Template {
      *
      * @param unknown $tpl
      */
-    public function process( $tpl ) {
-        echo $this->_include( $tpl, $this->_values );
+    public function process( $tpl, array $context=array() ) {
+        echo $this->_include( $tpl, array_merge( $this->_values, $context ) );
     }
 
 
