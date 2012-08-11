@@ -448,7 +448,10 @@ class Nano_Db_Query_Builder {
         foreach ( $this->_order as $clause ) {
             if ( is_array( $clause ) ) {
                 if ( isset($clause['table']) && isset($clause['col']) ) {
-                    $collect[] = $this->_buildTableCol($clause['col'], $clause['table']);
+                    $cols = (array) $clause['col'];
+                    foreach ( $cols as $col ) {
+                        $order[] = $this->_buildTableCol( $col, $clause['table']);
+                    }
                 }
             }
             else if ( is_string($clause) && in_array( $clause, array('RAND()')) ) {
@@ -476,17 +479,8 @@ class Nano_Db_Query_Builder {
         $collect = array();
 
         foreach ( $from as $table ) {
-            if ( $table instanceof Nano_Db_Query_Builder ) {
-                $alias = $this->_getTableAlias( (string) $table );
-                $collect[] = sprintf('( %s ) %s', (string) $table, $alias );
-            }
-            else if ( count( $from ) > 1 ) {
-                    $alias = $this->_getTableAlias( (string) $table );
-                    $collect[] = sprintf('`%s` %s', $table, $alias );
-                }
-            else {
-                $collect[] = sprintf('`%s`', $table );
-            }
+            $alias     = $this->_getTableAlias( (string) $table );
+            $collect[] = sprintf('`%s` %s', $table, $alias );
         }
 
         if ( count($from) == 0 ) return '';

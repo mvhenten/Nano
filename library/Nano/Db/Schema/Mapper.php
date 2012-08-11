@@ -138,7 +138,7 @@ class Nano_Db_Schema_Mapper {
         }
 
         if ( isset($arguments['order']) ) {
-            $builder->order( $arguments['order']);
+            $builder->order( $this->_buildOrderClause( $schema, $arguments['order'] ) );
         }
 
         $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
@@ -349,6 +349,29 @@ class Nano_Db_Schema_Mapper {
      */
     protected function getAdapter() {
         return Nano_Db::getAdapter( $this->_adapter );
+    }
+
+
+
+    /**
+     * If it's an array and it doesn't look like a proper order clause,
+     * assume we want 'order' => array($cols) to become a proper order clause.
+     *
+     * @param object  $schema
+     * @param string $order_arguments
+     * @return array $order_clause
+     */
+    private function _buildOrderClause( Nano_Db_Schema $schema, $order_arguments ) {
+        $order_clause = $order_arguments;
+
+        if ( !isset( $order['table'] ) ) {
+            $order_clause = array(
+                'table' => $schema->table(),
+                'col'   => $order_arguments,
+            );
+        }
+
+        return $order_clause;
     }
 
 
