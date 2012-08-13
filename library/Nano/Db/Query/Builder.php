@@ -436,9 +436,15 @@ class Nano_Db_Query_Builder {
 
 
     /**
+     * Attempt to parse an order defenition such as:
      *
+     * array( 'order' => 'column_name' )
+     * array( 'table' => 'tablename', 'col' => 'column_name' ) )
+     * array( 'table' => 'tablename', 'col' => array('col1', 'col2' ) )
      *
-     * @return unknown
+     * column_name may be prefixed by a + or - to indicate ascending or descending
+     *
+     * @return string $mysql_order
      */
     private function _buildOrder() {
         $order = array();
@@ -447,25 +453,52 @@ class Nano_Db_Query_Builder {
 
         foreach ( $this->_order as $clause ) {
             if ( is_array( $clause ) ) {
-                if ( isset($clause['table']) && isset($clause['col']) ) {
-                    $cols = (array) $clause['col'];
-                    foreach ( $cols as $col ) {
-                        $order[] = $this->_buildTableCol( $col, $clause['table']);
-                    }
+                if ( !isset($clause['table']) || !isset($clause['col']) )
+                    throw new Exception( 'Cannot build ORDER without table, col arguments');
+
+                $cols = (array) $clause['col'];
+                foreach ( $cols as $col ) {
+                    list( $operator, $column ) = $this->_parseOrderWithOperator( $col );
+
+                    $table_col = $this->_buildTableCol( $column, $clause['table'] );
+                    $order[] = $operator ? sprintf('%s%s', $operator, $table_col ) : $table_col;
                 }
             }
-            else if ( is_string($clause) && in_array( $clause, array('RAND()')) ) {
-                    $order[] = 'RAND()';
-                }
-            else if ( is_string( $clause ) && preg_match('/([-+])?(\w+)/', $clause, $match ) ) {
-                    list( , $op, $s_clause ) = $match;
-                    $order[] = sprintf('%s`%s`', $op, $s_clause );
-                }
+            else {
+                if ( !is_string( $clause ) )
+                    throw new Exception( 'Cannot build ORDER from: ' . gettype($clause) );
+
+                list( $operator, $column ) = $this->_parseOrderWithOperator( $col );
+                $order[] = $operator ? sprintf('%s`%s`', $operator, $table_col ) : $table_col;
+            }
         }
 
         if ( count($order) == 0 ) return '';
 
         return 'ORDER BY ' . join(',', $order );
+    }
+
+
+
+    /**
+     * Parses split string into operator and column name
+     * A valid order can be: +date, -date, RAND()
+     * @TODO add support for 'date ASC' and 'date DESC'
+     *
+     * @param string $order_string
+     * @return array( $operator, $column )
+     */
+    private function _parseOrderWithOperator( $order_string ) {
+        if ( preg_match('/([-+])?(\w+)/', $order_string, $match ) ) {
+            list( , $operator, $column ) = $match;
+
+            return array( $operator, $column );
+        }
+        else if ( $order_string === 'RAND()' ) {
+                return $order_string;
+            }
+
+        return array( null, $order_string );
     }
 
 
