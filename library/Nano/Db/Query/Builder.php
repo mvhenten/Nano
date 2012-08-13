@@ -23,7 +23,7 @@ class Nano_Db_Query_Builder {
     private $_aliasPool     = null;
 
     /**
-     *
+     * Deprecated. returns $builder->sql(), mysql query string
      *
      * @return unknown
      */
@@ -32,10 +32,22 @@ class Nano_Db_Query_Builder {
     }
 
 
+
     /**
+     * Returns SQL query string specified by this builder
+     * This method is preferred over the _toString implementation
+     * 
+     * @return unknown
+     */
+    public function sql() {
+        return $this->_buildSql();
+    }
+
+
+    /**
+     * Adds columns to select to this query builder
      *
-     *
-     * @param unknown $column
+     * @param mixed $column
      * @return unknown
      */
     public function select( $column ) {
@@ -346,7 +358,7 @@ class Nano_Db_Query_Builder {
             extract( $clause ); //don't panic! scope! (col, op, value, table)
 
             if ( $table ) {
-                $alias = $this->_getTableAlias( $table );
+                $alias = $this->_alias( $table );
                 $col   = sprintf( '`%s`.`%s`', $alias, $col );
             }
             else {
@@ -483,9 +495,10 @@ class Nano_Db_Query_Builder {
     /**
      * Parses split string into operator and column name
      * A valid order can be: +date, -date, RAND()
+     *
      * @TODO add support for 'date ASC' and 'date DESC'
      *
-     * @param string $order_string
+     * @param string  $order_string
      * @return array( $operator, $column )
      */
     private function _parseOrderWithOperator( $order_string ) {
@@ -512,7 +525,7 @@ class Nano_Db_Query_Builder {
         $collect = array();
 
         foreach ( $from as $table ) {
-            $alias     = $this->_getTableAlias( (string) $table );
+            $alias     = $this->_alias( (string) $table );
             $collect[] = sprintf('`%s` %s', $table, $alias );
         }
 
@@ -527,32 +540,38 @@ class Nano_Db_Query_Builder {
      * @return unknown
      */
     private function _buildSelect() {
-        if ( is_array( $this->_selectColumns ) ) {
-            $select = array();
+        $select_columns = $this->_selectColumns;
+        $select = array();
 
-            foreach ( $this->_selectColumns as $selectColumn ) {
-                if ( $selectColumn['table'] ) {
-                    $alias = $this->_getTableAlias( (string) $selectColumn['table'] );
-                    $column = sprintf('%s.`%s`', $alias, $selectColumn['column'] );
-                }
+        if ( null == $select_columns )
+            return 'SELECT *';
 
-                if ( $selectColumn['operator'] ) {
-                    $column = $this->_buildOperator(
-                        $selectColumn['operator'], $selectColumn['column'] );
-                }
-                else {
-                    $column   = sprintf('`%s`', $selectColumn['column']);
-                }
+        if ( ! is_array( $select_columns ) )
+            throw new Exception( 'Cannot build SELECT from: ' . typeof($select_columns) );
+
+        foreach ( $select_columns as $clause ) {
+            list( $table, $operator, $column ) =
+                array( $clause['table'], $clause['operator'], $clause['column']  );
 
 
-                $select[] = $column;
+            if ( !isset( $table ) ) {
+                if ( count( $this->_from ) > 1 )
+                    throw new Exception( 'Ambiguous: multiple tables in select');
+
+                list( $table ) = $this->_from;
             }
 
-            return 'SELECT ' .  join( ',', $select );
+            $select_column = $this->_buildTableCol( ( isset($column) ? $column : '*' ), $table );
+
+            if ( isset( $operator ) )
+                $select_column = $this->_buildOperator( $operator, $select_column );
+
+            $select[] = $select_column;
         }
 
-        return 'SELECT *';
+        return 'SELECT ' .  join( ',', $select );
     }
+
 
 
     /**
@@ -639,16 +658,17 @@ class Nano_Db_Query_Builder {
     /**
      *
      *
-     * @param unknown $col
-     * @param unknown $table (optional)
+     * @param unknown $column
+     * @param unknown $table  (optional)
      * @return unknown
      */
-    private function _buildTableCol( $col, $table = null ) {
-        if ( $table ) {
-            $alias = $this->_getTableAlias( $table );
-            return sprintf('%s.`%s`', $alias, $col );
-        }
-        return sprintf('`%s`', $col );
+    private function _buildTableCol( $column, $table = null ) {
+        $column = ( $column === '*' ) ? $column : "`$column`";
+
+        $column = ( isset( $table ) ) ?
+            sprintf('%s.%s', $this->_alias($table), $column ) : $column;
+
+        return $column;
     }
 
 
@@ -658,7 +678,7 @@ class Nano_Db_Query_Builder {
      * @param unknown $tableName
      * @return unknown
      */
-    private function _getTableAlias( $tableName ) {
+    private function _alias( $tableName ) {
 
         if ( ! isset( $this->_tableAlias[$tableName] ) ) {
             $this->_tableAlias[$tableName] = $this->_generateTableAlias();
