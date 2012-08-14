@@ -48,6 +48,16 @@ class Nano_Response {
      * @return unknown
      */
     public function __toString() {
+        return $this->toString();
+    }
+
+
+    /**
+     *
+     *
+     * @return unknown
+     */
+    public function toString() {
         return join( "\n", $this->_content );
     }
 
@@ -56,7 +66,18 @@ class Nano_Response {
      *
      */
     public function out() {
-        $content = join( "\n", $this->_content );
+        $content = $this->_content;
+
+        // N.B. This code checks for a toString method
+        // instead of implicitly stringifying the object
+        // __toString implicitly hides stacktraces
+        foreach ( $content as $index => $item ) {
+            if ( is_object($item) && method_exists( $item, 'toString' ) ) {
+                $content[$index] = $item->toString();
+            }
+        }
+
+        $content = join( "\n", $content );
 
         $this->addHeaders(
             //array( 'Expires: ' . date( 'r', strtotime('+1 Month', $inserted ) ) ),
