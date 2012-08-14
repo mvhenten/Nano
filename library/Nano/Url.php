@@ -140,7 +140,8 @@ class Nano_Url {
 			$this->_path = join( '/', array_filter($parts) );
 		}
 
-		$path_parts = explode( '/', trim($this->_path, '/') );
+		$path_parts = array_filter( explode( '/', trim($this->_path, '/') ), 'strlen' );
+
 
 		if ( is_int($padding) && $padding > 0 ) {
 			$path_parts = array_pad( $path_parts, $padding, null );
