@@ -97,7 +97,7 @@ class Nano_Db_Schema_Mapper {
         ->where( $where )
         ->limit(1);
 
-        $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
+        $sth = $this->_saveExecute( $builder->sql(), $builder->bindings() );
 
         if ( $fetchMode == PDO::FETCH_INTO ) {
             $sth->setFetchMode( PDO::FETCH_INTO, $schema );
@@ -138,10 +138,10 @@ class Nano_Db_Schema_Mapper {
         }
 
         if ( isset($arguments['order']) ) {
-            $builder->order( $arguments['order']);
+            $builder->order( $this->_buildOrderClause( $schema, $arguments['order'] ) );
         }
 
-        $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
+        $sth = $this->_saveExecute( $builder->sql(), $builder->bindings() );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE, get_class( $schema ) );
         return $sth;
     }
@@ -160,11 +160,11 @@ class Nano_Db_Schema_Mapper {
 
         $where = isset($arguments['where']) ? $arguments['where'] : array();
 
-        $builder = $this->_builder()->select(array( 'count' => 1 ))
+        $builder = $this->_builder()->select(array( 'count' => $schema->key() ))
         ->from( $schema->table() )
         ->where( $where );
 
-        $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
+        $sth = $this->_saveExecute( $builder->sql(), $builder->bindings() );
         $sth->setFetchMode( PDO::FETCH_COLUMN , 0 );
 
         return $sth->fetch();
@@ -183,6 +183,7 @@ class Nano_Db_Schema_Mapper {
      */
     public function many_to_many( Nano_Db_Schema $schema, $arguments = array() ) {
         $arguments = (array) $arguments;
+        $select = array();
 
         list( $offset, $limit ) = $this->_buildLimit( $arguments );
 
@@ -191,19 +192,14 @@ class Nano_Db_Schema_Mapper {
 
         $join_clause = reset($arguments['join']);
         $join_table  = key($arguments['join']);
-
         $values = array( reset($where) );
 
+        foreach ( $columns as $column ) {
+            $select[] = array( 'table' => $schema->table(), 'columns' => $column );
+        }
 
-        if ( isset($arguments['columns']) ) {
-            // @FIXME BUG BUG
-            $query = (string) $builder = $this->_builder()->select( $columns )
-            ->from( $schema->table() ) . ' a';
-        }
-        else {
-            // @FIXME builder should handle this!
-            $query = sprintf('SELECT a.* FROM `%s` %s', $schema->table(), 'a');
-        }
+        $query = $this->_builder()->select( $columns )
+        ->from( $schema->table() )->sql();
 
         //@FIXME Builder should support left_join
         // so this printing of SQL is not needed
@@ -235,7 +231,6 @@ class Nano_Db_Schema_Mapper {
         if ( $limit ) {
             $query = sprintf("%s\nLIMIT %s, %s", $query, intval($offset), intval($limit) );
         }
-
 
         $sth = $this->_saveExecute( $query, array(reset($where)) );
         $sth->setFetchMode( PDO::FETCH_CLASS|PDO::FETCH_PROPS_LATE,
@@ -269,7 +264,7 @@ class Nano_Db_Schema_Mapper {
         ->delete( $schema->table() )
         ->where( $where );
 
-        return $this->_saveExecute( (string) $builder, $builder->bindings() );
+        return $this->_saveExecute( $builder->sql(), $builder->bindings() );
     }
 
 
@@ -303,7 +298,7 @@ class Nano_Db_Schema_Mapper {
         $builder = $this->_builder()
         ->insert( $schema->table(), $schema->values() );
 
-        $sth = $this->_saveExecute( (string) $builder, $builder->bindings() );
+        $sth = $this->_saveExecute( $builder->sql(), $builder->bindings() );
         return $this->getAdapter()->lastInsertId();
     }
 
@@ -325,7 +320,7 @@ class Nano_Db_Schema_Mapper {
         ->update( $schema->table(), $values )
         ->where( $where );
 
-        return $this->_saveExecute( (string) $builder, $builder->bindings() );
+        return $this->_saveExecute( $builder->sql(), $builder->bindings() );
     }
 
 
@@ -349,6 +344,29 @@ class Nano_Db_Schema_Mapper {
      */
     protected function getAdapter() {
         return Nano_Db::getAdapter( $this->_adapter );
+    }
+
+
+
+    /**
+     * If it's an array and it doesn't look like a proper order clause,
+     * assume we want 'order' => array($cols) to become a proper order clause.
+     *
+     * @param object  $schema
+     * @param string  $order_arguments
+     * @return array $order_clause
+     */
+    private function _buildOrderClause( Nano_Db_Schema $schema, $order_arguments ) {
+        $order_clause = $order_arguments;
+
+        if ( !isset( $order['table'] ) ) {
+            $order_clause = array(
+                'table' => $schema->table(),
+                'col'   => $order_arguments,
+            );
+        }
+
+        return $order_clause;
     }
 
 
