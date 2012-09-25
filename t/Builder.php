@@ -7,6 +7,15 @@
  */
 
 
+/**
+ *
+ *
+ * @todo This part of nano needs a lot more attention and testing.
+ *
+ */
+ini_set('display_errors', "true");
+ini_set('display_warnings', "true");
+
 class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
     private $config;
 
@@ -85,6 +94,72 @@ class Nano_Db_Query_BuilderTest extends PHPUnit_Framework_TestCase{
         $this->assertEquals( (string) $builder, $expect );
         $this->assertEquals( count($builder->bindings()), count( $values ) );
         $this->assertEquals( $builder->bindings(), array_values( $values ) );
+    }
+
+
+    /**
+     *
+     */
+    public function testOrderPlain() {
+        $columns = array( 'title', 'isbn' );
+        $table  = 'books';
+        $order = 'date';
+
+        $builder = $this->_builder()
+        ->select( $columns )
+        ->from( $table )
+        ->order( $order );
+
+        $expect =
+            "SELECT a.`title`,a.`isbn`\nFROM `books` a\nORDER BY `date`";
+
+        $this->assertEquals(  $expect, $builder->sql() );
+        $this->assertEquals( count($builder->bindings()), 0 );
+        $this->assertEquals( $builder->bindings(), array() );
+    }
+
+
+    /**
+     *
+     */
+    public function testOrderTableCol() {
+        $columns = array( 'title', 'isbn' );
+        $table  = array( 'books');
+        $order = array( 'table' => 'books', 'col' => 'published' );
+
+        $builder = $this->_builder()
+        ->select( $columns )
+        ->from( $table )
+        ->order( $order );
+
+        $expect =
+            "SELECT a.`title`,a.`isbn`\nFROM `books` a\nORDER BY a.`published`";
+
+        $this->assertEquals(  $expect, $builder->sql() );
+        $this->assertEquals( count($builder->bindings()), 0 );
+        $this->assertEquals( $builder->bindings(), array() );
+    }
+
+
+    /**
+     *
+     */
+    public function testOrderRAND() {
+        $columns = array( 'title', 'isbn' );
+        $table  = 'books';
+        $order = 'RAND()';
+
+        $builder = $this->_builder()
+        ->select( $columns )
+        ->from( $table )
+        ->order( $order );
+
+        $expect =
+            "SELECT a.`title`,a.`isbn`\nFROM `books` a\nORDER BY RAND()";
+
+        $this->assertEquals(  $expect, $builder->sql() );
+        $this->assertEquals( count($builder->bindings()), 0 );
+        $this->assertEquals( $builder->bindings(), array() );
     }
 
 

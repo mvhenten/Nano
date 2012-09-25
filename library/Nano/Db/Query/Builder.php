@@ -216,9 +216,11 @@ class Nano_Db_Query_Builder {
      *
      *
      * @param unknown $order
+     * @return unknown
      */
     public function order( $order ) {
         $this->_order = func_get_args();
+        return $this;
     }
 
 
@@ -226,9 +228,11 @@ class Nano_Db_Query_Builder {
      *
      *
      * @param unknown $group
+     * @return unknown
      */
     public function group( $group ) {
         $this->_group = func_get_args();
+        return $this;
     }
 
 
@@ -236,9 +240,11 @@ class Nano_Db_Query_Builder {
      *
      *
      * @param unknown $group
+     * @return unknown
      */
     public function groupBy( $group ) {
         $this->_group = func_get_args();
+        return $this;
     }
 
 
@@ -300,6 +306,7 @@ class Nano_Db_Query_Builder {
                 $sql[] = $this->_buildGroup();
                 $sql[] = $this->_buildOrder();
                 $sql[] = $this->_buildLimitOffset();
+
             }
 
         if ( $this->_action == 'update' ) {
@@ -475,12 +482,15 @@ class Nano_Db_Query_Builder {
                     $order[] = $operator ? sprintf('%s%s', $operator, $table_col ) : $table_col;
                 }
             }
+            else if ( preg_match( '/RAND[()]?/', $clause ) ) {
+                    $order[] = 'RAND()';
+                }
             else {
                 if ( !is_string( $clause ) )
                     throw new Exception( 'Cannot build ORDER from: ' . gettype($clause) );
 
-                list( $operator, $column ) = $this->_parseOrderWithOperator( $col );
-                $order[] = $operator ? sprintf('%s`%s`', $operator, $table_col ) : $table_col;
+                list( $operator, $column ) = $this->_parseOrderWithOperator( $clause );
+                $order[] = $operator ? sprintf('%s`%s`', $operator, $column ) : "`$column`";
             }
         }
 
