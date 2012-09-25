@@ -36,7 +36,7 @@ class Nano_Db_Query_Builder {
     /**
      * Returns SQL query string specified by this builder
      * This method is preferred over the _toString implementation
-     * 
+     *
      * @return unknown
      */
     public function sql() {
@@ -47,7 +47,7 @@ class Nano_Db_Query_Builder {
     /**
      * Adds columns to select to this query builder
      *
-     * @param mixed $column
+     * @param mixed   $column
      * @return unknown
      */
     public function select( $column ) {
@@ -358,8 +358,7 @@ class Nano_Db_Query_Builder {
             extract( $clause ); //don't panic! scope! (col, op, value, table)
 
             if ( $table ) {
-                $alias = $this->_alias( $table );
-                $col   = sprintf( '`%s`.`%s`', $alias, $col );
+                $col = $this->_buildTableAlias( $table );
             }
             else {
                 $col    = sprintf( '`%s`', $col );
@@ -525,8 +524,7 @@ class Nano_Db_Query_Builder {
         $collect = array();
 
         foreach ( $from as $table ) {
-            $alias     = $this->_alias( (string) $table );
-            $collect[] = sprintf('`%s` %s', $table, $alias );
+            $collect[] = $this->_buildTableAlias( $table );
         }
 
         if ( count($from) == 0 ) return '';
@@ -669,6 +667,21 @@ class Nano_Db_Query_Builder {
             sprintf('%s.%s', $this->_alias($table), $column ) : $column;
 
         return $column;
+    }
+
+
+    /**
+     *
+     *
+     * @param unknown $tableName
+     * @return unknown
+     */
+    private function _buildTableAlias( $tableName ) {
+        if ( $this->_action == 'delete' ) return "`$tableName`";
+
+        $alias     = $this->_alias( (string) $tableName );
+
+        return sprintf('`%s` %s', $tableName, $alias );
     }
 
 

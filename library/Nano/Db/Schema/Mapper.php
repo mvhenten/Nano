@@ -9,6 +9,10 @@
 
 error_reporting(E_ALL | E_STRICT);
 
+if ( ! defined( 'NANO_DEBUG' ) ) {
+    define( 'NANO_DEBUG', false );
+}
+
 /**
  *
  *
@@ -415,6 +419,11 @@ class Nano_Db_Schema_Mapper {
 
         if ( false == $sth ) {
             $error = print_r( $this->getAdapter()->errorInfo(), true );
+
+            if ( NANO_DEBUG ) {
+                print( $query );
+            }
+
             throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
         }
         else {
@@ -423,6 +432,12 @@ class Nano_Db_Schema_Mapper {
 
             if ( ! $success ) {
                 $error = print_r( $sth->errorInfo(), true );
+
+                if ( NANO_DEBUG  ) {
+                    print( $error );
+                    print( $query );
+                }
+
                 throw new Exception( 'Query failed: PDOStatement::errorCode():' . $error );
             }
         }
