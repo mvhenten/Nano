@@ -271,7 +271,7 @@ class Nano_IM_Resize {
      * @param int     $value
      */
     private function _set_int( $name, $value ) {
-        if ( ! is_int( $value ) ) {
+        if ( ! intval( $value ) == $value ) {
             throw new Exception( "Value for $name must be an integer" );
         }
         $this->_config[$name] = $value;
