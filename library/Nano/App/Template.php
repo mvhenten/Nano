@@ -165,6 +165,7 @@ class Nano_App_Template {
      * This function produces output.
      *
      * @param unknown $tpl
+     * @param array   $context (optional)
      */
     public function process( $tpl, array $context=array() ) {
         echo $this->_include( $tpl, array_merge( $this->_values, $context ) );
@@ -294,13 +295,21 @@ class Nano_App_Template {
         //$path = join( '/', array_filter($path));
         //return APPLICATION_PATH . '/' . $path;
 
-        $path = join( '/', array_filter( array(
-                    APPLICATION_PATH,
-                    trim( $this->_templatePath, ' /\\'),
-                    $name . '.phtml'
-                )));
+        $templates = (array) $this->_templatePath;
 
-        return realpath( $path );
+        foreach ( $templates as $base ) {
+            $path = join( '/', array_filter( array(
+                        APPLICATION_PATH,
+                        trim( $base, ' /\\'),
+                        $name . '.phtml'
+                    )));
+
+            $path = realpath( $path );
+
+            if ( $path && file_exists( $path ) ) {
+                return $path;
+            }
+        }
     }
 
 
@@ -404,6 +413,19 @@ class Nano_App_Template {
      */
     public function clearValues() {
         $this->_values = array();
+    }
+
+
+    /**
+     *
+     *
+     * @param unknown $path
+     */
+    public function addTemplatePath( $path ) {
+        $template_paths = (array) $this->_templatePath;
+        array_push( $template_paths, $path );
+
+        $this->_templatePath = $template_paths;
     }
 
 
