@@ -101,7 +101,10 @@ class Nano_App {
      *
      */
     public function dispatch() {
-        $this->plugins->hook( 'start', $this, array('request' => $this->request) );
+        $this->plugins->hook( 'start', $this, array(
+                'request' => $this->request,
+                'config' => $this->config()
+            ));
 
         list( $handler, $matches, $pattern ) = $this->router->getRoute( $this->request->url );
 
@@ -113,7 +116,10 @@ class Nano_App {
         }
 
         $handler_object = new $handler( $this->request, $this->_build_args );
-        $this->plugins->hook( 'end', $handler_object, array('request' => $this->request) );
+        $this->plugins->hook( 'end', $handler_object, array(
+                'request' => $this->request,
+                'config' => $this->config()
+            ) );
 
         $handler_object->response()->out();
     }
