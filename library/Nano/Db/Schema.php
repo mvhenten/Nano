@@ -138,7 +138,8 @@ abstract class Nano_Db_Schema {
         foreach ( $this->_values as $key => $value ) {
             $values[$key] = $this->filter( $key, $value );
         }
-        return $values;
+
+        return array_filter( $values, 'is_scalar' );
     }
 
 

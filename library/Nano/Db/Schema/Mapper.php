@@ -361,7 +361,7 @@ class Nano_Db_Schema_Mapper {
      * @return array $order_clause
      */
     private function _buildOrderClause( Nano_Db_Schema $schema, $order_arguments ) {
-        if( is_string( $order_arguments ) && preg_match( '/RAND[()]?/', $order_arguments ) ){
+        if ( is_string( $order_arguments ) && preg_match( '/RAND[()]?/', $order_arguments ) ) {
             return $order_arguments;
         }
 

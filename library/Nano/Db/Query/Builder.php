@@ -95,7 +95,7 @@ class Nano_Db_Query_Builder {
     public function update( $table, array $values ) {
         $update = array();
 
-        foreach ( array_filter($values) as $key => $value ) {
+        foreach ( $values as $key => $value ) {
             $update[] = array(
                 'column' => $key,
                 'value'  => $value,
