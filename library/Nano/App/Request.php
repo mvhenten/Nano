@@ -262,6 +262,16 @@ class Nano_App_Request {
 
 
     /**
+     *
+     *
+     * @return unknown
+     */
+    public function documentRoot() {
+        return $_SERVER['DOCUMENT_ROOT'];
+    }
+
+
+    /**
      * Returns $_SERVER[HTTP_HOST] and $_SERVER[REQUEST_URI] combined as a
      * single Nano_Url object.
      *
